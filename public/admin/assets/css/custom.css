@@ -1,0 +1,49 @@
+#preview {
+    width: 100%;
+    text-align: center;
+}
+
+#preview img {
+    width: 100%;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.zoomed {
+    transform: scale(5.5);
+    transform-origin: left center; /* Zoom from the left */
+    overflow: visible;  /* Ensure that zoomed part is not clipped */
+}
+
+/* Zoomable class for applying zoom effect */
+.zoomable {
+    cursor: pointer; /* Show pointer cursor on hover */
+    transition: transform 0.3s ease; /* Smooth transition for zoom effect */
+}
+
+@keyframes blink {
+    0% {
+        color: red;
+    }
+    50% {
+        color: transparent;
+    }
+    100% {
+        color: red;
+    }
+}
+
+.blink-text {
+    animation: blink 1s infinite;
+}
+
+.new-item-indicator {
+    width: 10px;
+    height: 10px;
+    background-color: red;
+    border-radius: 50%;
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%);
+}
