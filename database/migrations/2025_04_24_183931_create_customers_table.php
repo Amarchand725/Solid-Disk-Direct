@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('name')->nullable();
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
+            $table->string('password')->nullable();
             $table->boolean('status')->default(true);
             $table->string('deleted_at')->nullable();
             $table->timestamps();

@@ -9,9 +9,12 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use App\Notifications\SiteEventNotification;
+use App\Traits\ApiResponse;
 
 class SubscriberController extends Controller
 {
+    use ApiResponse;
+    
     public function store(Request $request){
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|unique:subscribers,email',
@@ -39,7 +42,14 @@ class SubscriberController extends Controller
                     $url = route('subscribers.index');
                     $admin->notify(new SiteEventNotification('subscribe.png', 'New Email Subscription', "{$model->email} has subscribed.", $url));
                 }
-                return response()->json(['success' => true, 'message' =>'Thank you for subscribing!']);
+                return $this->success('Thank you for subscribing!', 200);
+            }else{
+                DB::rollBack();
+
+                return $this->error(
+                    'Failed to subscribing try again',
+                    500,
+                );
             }
         } catch (Exception $e) {
             DB::rollback();

@@ -9,18 +9,21 @@
   "basePath": "/api",
   "tags": [
     {
-      "name": "User",
-      "description": "All User Operations"
+      "name": "Customer",
+      "description": "All Customer Operations"
+    },
+    {
+      "name": "Subscriber",
+      "description": "All Subscriber Operations"
     }
-  
   ],
   "paths": {
-    "/auth/login": {
+    "/customer/login": {
       "post": {
         "tags": [
-          "User"
+          "Customer"
         ],
-        "summary": "User Login",
+        "summary": "Customer Login",
         "operationId": "login",
         "produces": [
           "application/json"
@@ -53,10 +56,201 @@
           }
         }
       }
+    },
+    "/customer/register": {
+      "post": {
+        "tags": [
+          "Customer"
+        ],
+        "summary": "Customer Register",
+        "operationId": "register",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "formData",
+            "description": "Enter name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "phone",
+            "in": "formData",
+            "description": "Enter phone",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "email",
+            "in": "formData",
+            "description": "Enter Email",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "password",
+            "in": "formData",
+            "description": "password",
+            "required": true,
+            "type": "string"
+          },  
+          {
+            "name": "password_confirmation",
+            "in": "formData",
+            "description": "confirm password",
+            "required": true,
+            "type": "string"
+          }  
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/customer/show": {
+      "get": {
+        "tags": [
+          "Customer"
+        ],
+        "summary": "Customer Show",
+        "operationId": "show",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "Enter Bearer Token",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/customer/update": {
+      "post": {
+        "tags": [
+          "Customer"
+        ],
+        "summary": "Customer Update",
+        "operationId": "update",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "Enter Bearer Token",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "image",
+            "in": "formData",
+            "description": "choose profile image",
+            "required": false,
+            "type": "file"
+          },
+          {
+            "name": "name",
+            "in": "formData",
+            "description": "Enter name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "phone",
+            "in": "formData",
+            "description": "Enter phone",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/customer/logout": {
+      "post": {
+        "tags": [
+          "Customer"
+        ],
+        "summary": "Customer Logout",
+        "operationId": "logout",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "Enter Bearer Token",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/subscriber/store": {
+      "post": {
+        "tags": [
+          "Subscriber"
+        ],
+        "summary": "Subscriber Register",
+        "operationId": "register",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "email",
+            "in": "formData",
+            "description": "Enter Email",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
     }
-   
-    
-   
   },
   "securityDefinitions": {
     "APIKeyHeader": {

@@ -6,7 +6,8 @@ use App\Http\Controllers\Api\{
     SettingController,
     ProductController,
     SubscriberController,
-    TestimonialController
+    TestimonialController,
+    CustomerController
 };
 
 /*
@@ -38,4 +39,17 @@ Route::controller(TestimonialController::class)->group(function () {
 
 Route::controller(SubscriberController::class)->group(function () {
     Route::post('subscriber/store', 'store')->name('subscriber.store');
+});
+
+Route::controller(CustomerController::class)->group(function () {
+    Route::post('customer/register', 'store');
+    Route::post('customer/login', 'login');
+});
+
+Route::middleware('auth:customer')->group(function () {
+    Route::controller(CustomerController::class)->group(function () {
+        Route::post('/customer/logout', 'logout');
+        Route::get('/customer/show', 'show');
+        Route::post('/customer/update', 'update');
+    });
 });

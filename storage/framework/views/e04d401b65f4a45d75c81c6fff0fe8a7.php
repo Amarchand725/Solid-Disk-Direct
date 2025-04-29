@@ -62,4 +62,4 @@
         </script>
     </body>
 </html>
-<?php /**PATH C:\xampp\htdocs\solid-dis-direct\backend\resources\views/apiDocs.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/apiDocs.blade.php ENDPATH**/ ?>

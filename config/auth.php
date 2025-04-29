@@ -41,7 +41,7 @@ return [
             'provider' => 'users',
         ],
         'customer' => [ // custom guard
-            'driver' => 'session',
+            'driver' => 'sanctum',
             'provider' => 'customers',
         ],
     ],
