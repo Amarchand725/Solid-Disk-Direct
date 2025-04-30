@@ -139,6 +139,8 @@ class CategoryController extends Controller
         DB::beginTransaction();
 
         try{
+            $lastParentId = collect($request->categories)->last();
+            $validated['parent'] = $lastParentId;
             $saved = new $this->model;
             // Step 3: Dynamically assign fields
             foreach ($fields as $field => $config) {

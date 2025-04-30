@@ -4,14 +4,14 @@ $(document).on('change', '.category', function() {
     const selectedId = $(this).val();
     const currentLevel = parseInt($(this).data('level'));
 
-    // 🔄 Remove all selects after current level (clean children)
+    // Remove all selects after current level (clean children)
     $('.category-select').each(function () {
         if (parseInt($(this).data('level')) > currentLevel) {
             $(this).parent('.sub-category-container').remove();
         }
     });
 
-    // ❌ If nothing is selected, no need to load children
+    // If nothing is selected, no need to load children
     if (!selectedId) return;
 
     if(category_id != ''){
@@ -21,7 +21,7 @@ $(document).on('change', '.category', function() {
             method: 'GET',
             success: function (response) {
                 if (response.subCategories && response.subCategories.length > 0) {
-                    // 🔽 Create new select for subcategories
+                    // Create new select for subcategories
                     const nextLevel = currentLevel + 1;
                     let newSelect = `
                         <div class="col-12 mt-3 sub-category-container">
@@ -47,11 +47,15 @@ $(document).on('change', '.category', function() {
                     $('#category-container').append(newSelect);
 
                     // Initialize select2 on the newly added select box
-                    $('select').each(function () {
-                        $(this).select2({
-                            dropdownParent: $(this).parent(),
-                        });
-                    });
+                    // $('select').each(function () {
+                    //     $(this).select2({
+                    //         dropdownParent: $(this).parent(),
+                    //     });
+                    // });
+
+                    $('#category-container select.category-select').last().select2({
+                        dropdownParent: $('#category-container .sub-category-container').last(),
+                    });                    
                 }
             },
             error: function (xhr) {
