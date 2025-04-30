@@ -23,16 +23,16 @@
                                 </option>
                             @endforeach
                         </select>
-                    @elseif($name=='category' && isset($categories) && !empty($categories))
-                        <select id="{{ $name }}" name="categories[]" data-url="{{ route('categories.sub-categories') }}" class="form-control category">
-                            <option value="" selected>Select {{ $name }}</option>
-                            @foreach($categories as $category) 
-                                <option value="{{ $category->id }}" {{ old($name, $field['value']) == $category->id ? 'selected' : '' }}>
-                                    {{ $category->name }}
+                    @elseif($name=='category' && isset($parent_categories) && !empty($parent_categories))
+                        <select id="{{ $name }}" name="categories[]" data-url="{{ route('categories.sub-categories') }}" data-category-level="parent" data-level="0" class="form-control category category-select">
+                            <option value="" selected>Select parent category</option>
+                            @foreach($parent_categories as $key => $parent_category)
+                                <option value="{{ $parent_category->id }}">
+                                    {{ $parent_category->name }}
                                 </option>
                             @endforeach
                         </select>
-                        <span id="sub_categories"></span>
+                        <span id="category-container"></span>
                     @elseif($name=='unit' && isset($units) && !empty($units))
                         <select id="{{ $name }}" name="{{ $name }}" class="form-control">
                             <option value="" selected>Select {{ $name }}</option>
@@ -148,3 +148,66 @@
     </div>
 </div>
 <script src="{{ asset('admin') }}/custom/product.js"></script> 
+<script>
+    CKEDITOR.replace('short_description');
+    CKEDITOR.replace('full_description');
+
+    $('select').each(function () {
+        $(this).select2({
+            dropdownParent: $(this).parent(),
+        });
+    });
+
+    document.getElementById('images').addEventListener('change', function(event) {
+        const preview = document.getElementById('image-preview');
+        preview.innerHTML = ''; // Clear previous
+
+        const files = Array.from(event.target.files);
+
+        files.forEach((file, index) => {
+            if (!file.type.startsWith('image/')) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const wrapper = document.createElement('div');
+                wrapper.style.position = 'relative';
+                wrapper.style.width = '80px';
+                wrapper.style.height = '80px';
+
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '6px';
+                img.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+
+                const removeBtn = document.createElement('span');
+                removeBtn.innerHTML = '&times;';
+                removeBtn.style.position = 'absolute';
+                removeBtn.style.top = '-5px';
+                removeBtn.style.right = '-5px';
+                removeBtn.style.cursor = 'pointer';
+                removeBtn.style.background = 'red';
+                removeBtn.style.color = 'white';
+                removeBtn.style.borderRadius = '50%';
+                removeBtn.style.width = '20px';
+                removeBtn.style.height = '20px';
+                removeBtn.style.display = 'flex';
+                removeBtn.style.alignItems = 'center';
+                removeBtn.style.justifyContent = 'center';
+                removeBtn.style.fontSize = '14px';
+
+                removeBtn.onclick = function() {
+                    wrapper.remove();
+                    // Optional: remove file from input (see below)
+                };
+
+                wrapper.appendChild(img);
+                wrapper.appendChild(removeBtn);
+                preview.appendChild(wrapper);
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+</script>

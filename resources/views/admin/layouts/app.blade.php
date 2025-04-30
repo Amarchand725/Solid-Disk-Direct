@@ -125,7 +125,7 @@
     <script src="{{ asset('admin/assets/js/select2.min.js') }}"></script>
     <script src="{{ asset('admin') }}/custom/ajax-request.js"></script>
     <!-- Multi date picker to filter summary -->
-    <script src="{{ asset('admin/assets/js/forms-pickers.js') }}"></script>
+    {{-- <script src="{{ asset('admin/assets/js/forms-pickers.js') }}"></script> --}}
 
     <script src="{{ asset('admin') }}/assets/vendor/libs/hammer/hammer.js"></script>
     <script src="{{ asset('admin') }}/assets/vendor/libs/i18n/i18n.js"></script>
@@ -142,9 +142,7 @@
 
     <!-- Main JS -->
     <script src="{{ asset('admin') }}/assets/js/main.js"></script>
-
-    <script src="https://cdn.ckeditor.com/4.21.0/standard/ckeditor.js"></script> {{-- Getting error if i set it to local path. --}}
-    {{-- <script src="https://cdn.ckeditor.com/4.25.1-lts/standard/ckeditor.js"></script> --}}
+    <script src="{{ asset('admin/assets/ckeditor/ckeditor.js') }}"></script>
 
     <!-- Page JS -->
     <script src="{{asset('admin/assets/js/toastr.min.js')}}"></script>
@@ -216,10 +214,6 @@
 			this.value = this.value.replace(/\D/g,'');
 		});
 
-        // if (typeof description !== 'undefined') {
-        //   CKEDITOR.replace('description');
-        // }
-
         $(document).on('keyup', '.cnic_number', function() {
             var cnic = $(this).val();
             var formattedCnic = formatCnic(cnic);
@@ -278,14 +272,14 @@
 
         $(document).ready(function() {
             //image preview & zoom out
-            $('#file-uploader').change(function() {
+            $(document).on('change', '#file-uploader', function() {
                 var file = this.files[0];
                 if (file) {
                     var reader = new FileReader();
 
                     reader.onload = function(e) {
                         // Create an image element
-                        var img = $('<img style="width:30%; height:20%">').attr('src', e.target.result);
+                        var img = $('<img style="width:60px; height:50px">').attr('src', e.target.result);
 
                         // Display the image preview
                         $('#preview').html(img);

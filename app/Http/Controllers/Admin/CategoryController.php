@@ -63,27 +63,30 @@ class CategoryController extends Controller
 
         $models = [];
         $this->model->latest()
-            ->with('createdBy:id,name', 'parent:id,name')
+            ->with('createdBy:id,name', 'hasParent:id,name')
             ->chunk(100, function ($modelData) use (&$models) {
                 foreach ($modelData as $modelItem) {
                     $models[] = $modelItem;
                 }
         });        
-        // return $models;
+        
         // Get column definitions dynamically
         $getFields = getFields($this->model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'index');
-
+        
         // Check and handle relation
-        if (isset($getFields['parent_id'])) {
+        if (isset($getFields['banner'])) {
+            $getFields = ['banner' => $getFields['banner']] + $getFields;
+        }
+        
+        if (isset($getFields['parent'])) {
             // Clone config from parent_id
-            $parentConfig = $getFields['parent_id'];
-
+            // $parentConfig = $getFields['parent_id'];
             // Customize index to pull from relation
-            $parentConfig['index'] = fn($model) => optional($model->parent)->name ?? '-';
-
+            // $parentConfig['index'] = fn($model) => optional($model->parent)->name ?? '-';
             // Remove parent_id and add custom parent
-            unset($getFields['parent_id']);
-            $getFields = ['parent' => $parentConfig] + $getFields;
+            // unset($getFields['parent_id']);
+
+            $getFields['parent']['index'] = fn($model) => $model->hasParent?->name ?? '-';
         }
 
         $columns = collect($getFields)->mapWithKeys(function ($config, $key) {
@@ -109,7 +112,7 @@ class CategoryController extends Controller
         $bladePath = $this->pathInitialize;
 
         $models = [];
-        $parent_categories = $this->model->where('status', 1)->latest()->get();
+        $parent_categories = $this->model->where('parent', NULL)->where('status', 1)->latest()->get();
 
         $model = $this->model;
         $fields = getFields($this->model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'create');
@@ -137,7 +140,6 @@ class CategoryController extends Controller
 
         try{
             $saved = new $this->model;
-
             // Step 3: Dynamically assign fields
             foreach ($fields as $field => $config) {
                 if($field != 'created_at' && $field != 'action'){
@@ -147,12 +149,13 @@ class CategoryController extends Controller
                     } else {
                         if($field=='created_by'){
                             $saved->$field = auth()->id() ?? null;
+                        }elseif($field=='status'){
+                            $saved->$field = $validated[$field] ?? 1;
                         }else{
                             $saved->$field = $validated[$field] ?? null;
                         }
                     }
                 }
-
                 $saved->save();
             }
 
@@ -369,11 +372,21 @@ class CategoryController extends Controller
     }
 
     public function subCategories(Request $request){
-        $categories = Category::where('parent_id', $request->category_id)->get();
-        if(!empty($categories)){
-            return $categories;
+        $subCategories = Category::where('parent', $request->category_id)->get();
+
+        if(!empty($subCategories)){
+            // return $subCategories;
+            return response()->json([
+                'status' => true,
+                'subCategories' => $subCategories,
+                'message' => 'Sub categories found',
+            ]);
         }else{
-            return [];
+            return response()->json([
+                'status' => true,
+                'subCategories' => $subCategories,
+                'message' => 'Sub categories not found',
+            ]);
         }
     }
 }

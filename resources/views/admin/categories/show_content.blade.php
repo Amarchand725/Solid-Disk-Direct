@@ -14,8 +14,8 @@
                         {{ $model->status ? 'Active' : 'Deactive' }}
                     </span>
                 @else
-                    @if($name=='parent_id' && isset($model->parent) && !empty($model->parent))
-                        {{ $model->parent->name ?? '-' }}
+                    @if($name=='parent' && isset($model->hasParent) && !empty($model->hasParent))
+                        {{ $model->hasParent->name ?? '-' }}
                     @else
                         {{ $field['value'] }}
                     @endif

@@ -14,16 +14,18 @@ return new class extends Migration
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('created_by')->nullable();
-            $table->bigInteger('parent_id')->nullable();
-            $table->boolean('is_featured')->default(false);
-            $table->string('slug')->nullable();
+            $table->string('banner')->nullable();
+            $table->bigInteger('parent')->nullable();
             $table->string('name')->nullable();
+            $table->string('slug')->nullable();
             $table->text('description')->nullable();
+            $table->boolean('is_featured')->default(false);
             $table->boolean('status')->default(true);
             $table->string('deleted_at')->nullable();
             $table->timestamps();
         });
     }
+
 
     /**
      * Reverse the migrations.

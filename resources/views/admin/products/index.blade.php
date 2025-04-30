@@ -33,6 +33,11 @@
         .swal2-container {
             z-index: 9999 !important;
         }
+        .highlight-arrow {
+            color: #ff5722; /* or any highlight color */
+            font-weight: bold;
+        }
+
     </style>    
 @endpush   
 @section('content')

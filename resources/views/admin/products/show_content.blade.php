@@ -20,8 +20,8 @@
                 @else
                     @if($name=='brand' && isset($model->hasBrand) && !empty($model->hasBrand))
                         {{ $model->hasBrand->name ?? '-' }}
-                    @elseif($name=='category' && isset($model->hasCategory) && !empty($model->hasCategory))
-                        {{ $model->hasCategory->name ?? '-' }}
+                    @elseif($name=='category' && isset($model->categories) && !empty($model->categories))                        
+                    {!! $model->categories->pluck('name')->implode('<span class="highlight-arrow"> &rarr; </span>') !!}
                     @elseif($name=='unit' && isset($model->hasUnit) && !empty($model->hasUnit))
                         {{ $model->hasUnit->name ?? '-' }}
                     @elseif($name=='tax_type' && isset($model->hasTaxType) && !empty($model->hasTaxType))

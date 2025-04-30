@@ -37,8 +37,16 @@ class Category extends Model
         return $this->hasOne(User::class, 'id', 'created_by');
     }
 
-    public function parent()
+    public function hasParent()
     {
-        return $this->belongsTo(Category::class, 'parent_id');
+        return $this->belongsTo(Category::class, 'parent');
+    }
+    public function children()
+    {
+        return $this->hasMany(Category::class, 'parent');
+    }
+    public function childrenRecursive()
+    {
+        return $this->children()->with('childrenRecursive');
     }
 }

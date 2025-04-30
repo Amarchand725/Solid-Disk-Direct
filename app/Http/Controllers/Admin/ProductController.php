@@ -51,7 +51,7 @@ class ProductController extends Controller
         $this->pluralLabel = 'All '.Str::title(str_replace('_', ' ', $this->routePrefix));
 
         $this->brandModal = Brand::where('status', 1)->get();
-        $this->categoryModal = Category::where('status', 1)->get();
+        $this->categoryModal = Category::with('childrenRecursive')->where('parent', NULL)->where('status', 1)->get();
         $this->unitModal = Unit::where('status', 1)->get();
         $this->taxTypeModal = TaxType::where('status', 1)->get();
         $this->productConditionModal = ProductCondition::where('status', 1)->get();
@@ -130,7 +130,7 @@ class ProductController extends Controller
     public function create(){
         $bladePath = $this->pathInitialize;
         $brands = $this->brandModal;
-        $categories = $this->categoryModal;
+        $parent_categories = $this->categoryModal;
         $units = $this->unitModal;
         $tax_types = $this->taxTypeModal;
         $product_conditions = $this->productConditionModal;
@@ -182,6 +182,9 @@ class ProductController extends Controller
             }
 
             if(isset($saved) && !empty($saved)){
+                // Attach a single category
+                $saved->categories()->attach($request->categories);
+
                 if ($request->hasFile('images')) {
                     $uploadPath = Str::plural(Str::lower($this->singularLabel));
                     foreach ($request->file('images') as $additionalImage) {
@@ -221,13 +224,14 @@ class ProductController extends Controller
     {
         $bladePath = $this->pathInitialize;
         $brands = $this->brandModal;
-        $categories = $this->categoryModal;
+        $parent_categories = $this->categoryModal;
         $units = $this->unitModal;
         $tax_types = $this->taxTypeModal;
         $product_conditions = $this->productConditionModal;
         // $tags = $this->tagModal;
         $title = $this->singularLabel;
         $model = $this->model->where('id', $id)->first();
+
         $fields = getFields($model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'edit');
         
         return view($bladePath.'.edit_content', get_defined_vars());

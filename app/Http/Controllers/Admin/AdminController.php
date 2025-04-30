@@ -16,11 +16,17 @@ class AdminController extends Controller
 {
     public function dashboard(){
         $title = 'Dashboard';
+        if(!Auth::check()){
+            return redirect()->route('admin.login');
+        }
         return view('admin.dashboards.dashboard', get_defined_vars());
     }
     public function loginForm()
     {
         $title = 'Login';
+        if(Auth::check()){
+            return redirect()->route('dashboard');
+        }
         return view('admin.auth.login', compact('title'));
     }
     public function login(Request $request)

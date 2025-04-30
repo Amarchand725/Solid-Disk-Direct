@@ -38,7 +38,7 @@ Route::controller(TestimonialController::class)->group(function () {
 });
 
 Route::controller(SubscriberController::class)->group(function () {
-    Route::post('subscriber/store', 'store')->name('subscriber.store');
+    Route::post('subscriber/store', 'store');
 });
 
 Route::controller(CustomerController::class)->group(function () {

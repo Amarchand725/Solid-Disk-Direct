@@ -41,7 +41,7 @@ class Product extends Model
         return $this->hasOne(Brand::class, 'id', 'brand');
     }
     public function hasCategory(){
-        return $this->hasOne(Category::class, 'id', 'category');
+        return $this->belongsTo(Category::class, 'category_product');
     }
     public function hasUnit(){
         return $this->hasOne(Unit::class, 'id', 'unit');

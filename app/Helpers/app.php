@@ -64,11 +64,11 @@ function getFields($model, $fields, $view = 'index')
         ->mapWithKeys(function ($config, $key) use ($view, $model) {
             $type = $config['type'] ?? 'text';
             $field = $key;
-
+            $defaultImage = 'images/default.png';
             $indexCallback = match ($type) {
                 'file' => fn($model) => $model->$field
                     ? view('admin.layouts.show_image', ['image' => $model->$field])->render()
-                    : 'No Image',
+                    : view('admin.layouts.show_image', ['image' => $defaultImage])->render(),
                 default => $config['index'] ?? fn($model) => $model->$field ?? '-',
             };                      
 
@@ -118,7 +118,7 @@ function buildValidationRules($fields, $model = null, $request = null)
 
         // Ensure 'required' or 'nullable' is added appropriately
         if (isset($config['type']) && ($config['type'] === 'file' || in_array('file', $validations)) && $model) {
-            if (!$model->$key && !$request->hasFile($key)) {
+            if (!$model->$key && !$request->hasFile($key) && $isRequired) {
                 array_unshift($validations, 'required');
             } else {
                 array_unshift($validations, 'nullable');
@@ -246,15 +246,6 @@ function getDynamicMenuGroups(){
 
     return $result;
 }
-
-// function getDynamicMenus($groupId){
-//     return Menu::where('status', 1)
-//                 ->where('id', $groupId)
-//                 ->orWhere('menu_group', $groupId)
-//                 ->orderby('priority', 'DESC')
-//                 ->pluck('menu')
-//                 ->toArray();
-// }
 
 function formatSales($amount)
 {

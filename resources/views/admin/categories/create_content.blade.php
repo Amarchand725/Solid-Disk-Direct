@@ -9,8 +9,8 @@
             </label>
 
             @if(isset($field['type']) && $field['type'] === 'select')
-                @if($name=='parent_id')
-                    <select id="{{ $name }}" name="{{ $name }}" class="form-control">
+                @if($name=='parent')
+                    <select id="{{ $name }}" name="categories[]" data-url="{{ route('categories.sub-categories') }}" data-category-level="parent" data-level="0" class="form-control category category-select">
                         <option value="" selected>Select parent category</option>
                         @foreach($parent_categories as $key => $parent_category)
                             <option value="{{ $parent_category->id }}">
@@ -18,6 +18,7 @@
                             </option>
                         @endforeach
                     </select>
+                    <span id="category-container"></span>
                 @else
                     <select id="{{ $name }}" name="{{ $name }}" class="form-control">
                         @foreach($field['options'] ?? [] as $key => $option)  <!-- Safely handle 'options' -->
@@ -63,35 +64,11 @@
     @endif
 @endforeach
 
+<script src="{{ asset('admin') }}/custom/product.js"></script> 
 <script>
     $('select').each(function () {
         $(this).select2({
             dropdownParent: $(this).parent(),
         });
-    });
-    $('#file-uploader').change(function() {
-        var file = this.files[0];
-        if (file) {
-            var reader = new FileReader();
-
-            reader.onload = function(e) {
-                // Create an image element
-                var img = $('<img style="width:30%; height:20%">').attr('src', e.target.result);
-
-                // Display the image preview
-                $('#preview').html(img);
-
-                // Add click event handler to the image for zooming
-                img.click(function() {
-                    $(this).toggleClass('zoomed');
-                });
-            };
-
-            // Read the image file as a data URL
-            reader.readAsDataURL(file);
-        } else {
-            // Clear the preview area if no file is selected
-            $('#preview').html('');
-        }
     });
 </script>
