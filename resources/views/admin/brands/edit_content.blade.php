@@ -24,22 +24,29 @@
                     @endforeach
                 </select>
             @elseif(isset($field['type']) && $field['type'] === 'textarea')
-                <textarea id="{{ $name }}" name="{{ $name }}" class="form-control" placeholder="{{ $field['placeholder'] ?? '' }}">{{ old($name, $field['value'] ?? '') }}</textarea>
+                <textarea id="{{ $name }}" name="{{ $name }}" class="form-control summernote" placeholder="{{ $field['placeholder'] ?? '' }}">{{ old($name, $field['value'] ?? '') }}</textarea>
             @elseif(isset($field['type']) && $field['type'] === 'file')
                 <input 
                     type="{{ $field['type'] ?? 'file' }}" 
                     id="file-uploader" 
                     name="{{ $name }}" 
                     accept="{{ isset($field['accept']) ? $field['accept'] : '' }}"
-                    class="form-control" 
+                    class="form-control uploader" 
                     autofocus
                 />
 
-                <span id="preview">
+                <span id="preview-{{ $name }}">
                     @if(!empty($field['value']))
                         <img src="{{ asset('storage/' . $field['value']) }}" style="width:60px; height:50px" alt="Avatar" class="img-avatar zoomable">
                     @endif
                 </span>
+            @elseif (isset($field['type']) && $field['type'] === 'checkbox')
+                <input 
+                    type="{{ $field['type'] }}" 
+                    id="{{ $name }}" 
+                    name="{{ $name }}" 
+                    value="1" @if($field['value']==1) checked @endif 
+                />
             @else
                 <input 
                     type="{{ $field['type'] ?? 'text' }}" 
@@ -63,29 +70,7 @@
             dropdownParent: $(this).parent(),
         });
     });
-    $('#file-uploader').change(function() {
-        var file = this.files[0];
-        if (file) {
-            var reader = new FileReader();
-
-            reader.onload = function(e) {
-                // Create an image element
-                var img = $('<img style="width:30%; height:20%">').attr('src', e.target.result);
-
-                // Display the image preview
-                $('#preview').html(img);
-
-                // Add click event handler to the image for zooming
-                img.click(function() {
-                    $(this).toggleClass('zoomed');
-                });
-            };
-
-            // Read the image file as a data URL
-            reader.readAsDataURL(file);
-        } else {
-            // Clear the preview area if no file is selected
-            $('#preview').html('');
-        }
+    $('#description').summernote({
+        height: 200
     });
 </script>

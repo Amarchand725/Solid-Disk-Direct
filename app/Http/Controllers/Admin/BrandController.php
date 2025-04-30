@@ -130,6 +130,8 @@ class BrandController extends Controller
                     } else {
                         if($field=='created_by'){
                             $saved->$field = auth()->id() ?? null;
+                        }elseif($field=='status'){
+                            $saved->$field = $validated[$field] ?? 1;
                         }else{
                             $saved->$field = $validated[$field] ?? null;
                         }

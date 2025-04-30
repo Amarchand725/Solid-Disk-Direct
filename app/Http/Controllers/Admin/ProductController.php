@@ -164,7 +164,7 @@ class ProductController extends Controller
 
         try{
             $saved = new $this->model;
-
+            
             // Step 3: Dynamically assign fields
             foreach ($fields as $field => $config) {
                 if($field != 'created_at' && $field != 'action'){

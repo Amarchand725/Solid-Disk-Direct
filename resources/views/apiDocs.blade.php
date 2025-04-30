@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <title>{{ $title ?? 'Swagger UI' }}</title>
     <link rel="stylesheet" type="text/css" href="{{ asset('api-docs') }}/swagger-ui.css" >
-    {{-- <link rel="icon" type="image/png" href="{{ asset('api-docs') }}/favicon-32x32.png" sizes="32x32" /> --}}
     @if(!empty(settings()->favicon))
         <link rel="icon" type="image/x-icon" href="{{ asset('storage').'/'.settings()->favicon }}" sizes="16x16" />
     @else

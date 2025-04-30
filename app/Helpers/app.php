@@ -2,6 +2,8 @@
 
 use Carbon\Carbon;
 use App\Models\Menu;
+use App\Models\PaymentMode;
+use App\Models\PaymentType;
 use App\Models\User;
 use App\Models\Setting;
 use Illuminate\Support\Str;
@@ -410,4 +412,22 @@ function getTabIcons(){
         "ti ti-user-star",
         "ti ti-notes",
     ];      
+}
+
+function getPaymentModes(){
+    $modes = PaymentMode::where('status', 1)->get();
+    if($modes){
+        return $modes;
+    }else{
+        return [];
+    }
+}
+
+function getPaymentTypes(){
+    $types = PaymentType::where('status', 1)->get();
+    if($types){
+        return $types;
+    }else{
+        return [];
+    }
 }

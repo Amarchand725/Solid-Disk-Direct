@@ -5,7 +5,7 @@
             <td>
                 @if($field['type'] === 'file')
                     @if(!empty($field['value']))
-                        <img src="{{ asset('storage/' . $field['value']) }}" width="80">
+                        <img src="{{ asset('storage/' . $field['value']) }}" width="80" class="zoomable">
                     @else
                         -
                     @endif

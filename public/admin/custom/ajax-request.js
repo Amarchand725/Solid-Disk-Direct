@@ -7,6 +7,7 @@ $("form.submitBtnWithFileUpload").on('submit', function (e) {
     // Get the form data
     var formElement = $('#' + modal_id).find('#create-form');
 
+    prepareFormDataBeforeSubmit(formElement);
     var formData = new FormData(formElement[0]);
 
     thi.find('.sub-btn').hide();
@@ -70,6 +71,13 @@ $("form.submitBtnWithFileUpload").on('submit', function (e) {
         }
     });
 });
+function prepareFormDataBeforeSubmit(formElement) {
+    $(formElement).find('.summernote').each(function () {
+        var content = $(this).summernote('code');
+        $(this).val(content);
+    });
+}
+
 $('.submitBtn').click(function (e) {
     e.preventDefault(); // Prevent the form from submitting normally
     var thi = $(this);
@@ -85,11 +93,19 @@ $('.submitBtn').click(function (e) {
     // Check if the description variable exists in the serialized form data
     var fieldExists = formData.indexOf('description=') > -1;
 
+    // if (fieldExists) {
+    //     //Get editor value.
+    //     var editorData = CKEDITOR.instances.description.getData();
+    //     // Combine the editor data with the serialized form data
+    //     formData = formData + '&description=' + encodeURIComponent(editorData);
+    // }
+
     if (fieldExists) {
-        //Get editor value.
-        var editorData = CKEDITOR.instances.description.getData();
-        // Combine the editor data with the serialized form data
-        formData = formData + '&description=' + encodeURIComponent(editorData);
+        // Get Summernote content (assumes #description is the textarea enhanced with Summernote)
+        var editorData = $('#description').summernote('code');
+    
+        // Update/replace the existing `description` field in formData
+        formData = formData.replace(/description=[^&]*/, 'description=' + encodeURIComponent(editorData));
     }
 
     thi.parents('.action-btn').find('.sub-btn').hide();

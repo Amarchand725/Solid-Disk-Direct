@@ -103,18 +103,18 @@
                         </select>
                     @endif
                 @elseif(isset($field['type']) && $field['type'] === 'textarea')
-                    <textarea id="{{ $name }}" name="{{ $name }}" class="form-control" placeholder="{{ $field['placeholder'] ?? '' }}">{{ old($name, $field['value'] ?? '') }}</textarea>
+                    <textarea id="{{ $name }}" name="{{ $name }}" class="form-control summernote" placeholder="{{ $field['placeholder'] ?? '' }}">{{ old($name, $field['value'] ?? '') }}</textarea>
                 @elseif(isset($field['type']) && $field['type'] === 'file')
                     <input 
                         type="{{ $field['type'] ?? 'file' }}" 
                         id="file-uploader" 
                         name="{{ $name }}" 
                         accept="{{ isset($field['accept']) ? $field['accept'] : '' }}"
-                        class="form-control" 
+                        class="form-control uploader" 
                         autofocus
                     />
 
-                    <span id="preview">
+                    <span id="preview-{{ $name }}">
                         @if(!empty($field['value']))
                             <img src="{{ asset('storage/' . $field['value']) }}" style="width:60px; height:50px" alt="Avatar" class="img-avatar zoomable">
                         @endif
@@ -175,67 +175,20 @@
         <span id="images_error" class="text-danger error"></span>
     </div>
 </div>
-<script src="{{ asset('admin') }}/custom/multi-categories.js"></script>
+<script src="{{ asset('admin') }}/custom/product.js"></script>
 <script>
-    CKEDITOR.replace('short_description');
-    CKEDITOR.replace('full_description');
-
+    $('#short_description').summernote({
+        height: 200
+    });
+    
+    $('#full_description').summernote({
+        height: 200
+    });
     $('select').each(function () {
         $(this).select2({
             dropdownParent: $(this).parent(),
         });
     });
 
-    document.getElementById('images').addEventListener('change', function(event) {
-        const preview = document.getElementById('image-preview');
-        preview.innerHTML = ''; // Clear previous
-
-        const files = Array.from(event.target.files);
-
-        files.forEach((file, index) => {
-            if (!file.type.startsWith('image/')) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const wrapper = document.createElement('div');
-                wrapper.style.position = 'relative';
-                wrapper.style.width = '80px';
-                wrapper.style.height = '80px';
-
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.style.width = '100%';
-                img.style.height = '100%';
-                img.style.objectFit = 'cover';
-                img.style.borderRadius = '6px';
-                img.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
-
-                const removeBtn = document.createElement('span');
-                removeBtn.innerHTML = '&times;';
-                removeBtn.style.position = 'absolute';
-                removeBtn.style.top = '-5px';
-                removeBtn.style.right = '-5px';
-                removeBtn.style.cursor = 'pointer';
-                removeBtn.style.background = 'red';
-                removeBtn.style.color = 'white';
-                removeBtn.style.borderRadius = '50%';
-                removeBtn.style.width = '20px';
-                removeBtn.style.height = '20px';
-                removeBtn.style.display = 'flex';
-                removeBtn.style.alignItems = 'center';
-                removeBtn.style.justifyContent = 'center';
-                removeBtn.style.fontSize = '14px';
-
-                removeBtn.onclick = function() {
-                    wrapper.remove();
-                    // Optional: remove file from input (see below)
-                };
-
-                wrapper.appendChild(img);
-                wrapper.appendChild(removeBtn);
-                preview.appendChild(wrapper);
-            };
-            reader.readAsDataURL(file);
-        });
-    });
+    setupImagePreview('images', 'image-preview');
 </script>

@@ -64,18 +64,18 @@
                     </select>
                 @endif
             @elseif(isset($field['type']) && $field['type'] === 'textarea')
-                <textarea id="{{ $name }}" name="{{ $name }}" class="form-control" placeholder="{{ $field['placeholder'] ?? '' }}">{!! old($name, $field['value'] ?? '') !!}</textarea>
+                <textarea id="{{ $name }}" name="{{ $name }}" class="form-control summernote" placeholder="{{ $field['placeholder'] ?? '' }}">{!! old($name, $field['value'] ?? '') !!}</textarea>
             @elseif(isset($field['type']) && $field['type'] === 'file')
                 <input 
                     type="{{ $field['type'] ?? 'file' }}" 
                     id="file-uploader" 
                     name="{{ $name }}" 
                     accept="{{ isset($field['accept']) ? $field['accept'] : '' }}"
-                    class="form-control" 
+                    class="form-control uploader" 
                     autofocus
                 />
 
-                <span id="preview">
+                <span id="preview-{{ $name }}">
                     @if(!empty($field['value']))
                         <img src="{{ asset('storage/' . $field['value']) }}" style="width:60px; height:50px" alt="Avatar" class="img-avatar zoomable">
                     @endif
@@ -103,5 +103,8 @@
         $(this).select2({
             dropdownParent: $(this).parent(),
         });
+    });
+    $('#description').summernote({
+        height: 200
     });
 </script>

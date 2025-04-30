@@ -77,20 +77,20 @@
                         </select>
                     <?php endif; ?>
                 <?php elseif(isset($field['type']) && $field['type'] === 'textarea'): ?>
-                    <textarea id="<?php echo e($name); ?>" name="<?php echo e($name); ?>" class="form-control" placeholder="<?php echo e($field['placeholder'] ?? ''); ?>"><?php echo e(old($name, $field['value'] ?? '')); ?></textarea>
+                    <textarea id="<?php echo e($name); ?>" name="<?php echo e($name); ?>" class="form-control summernote" placeholder="<?php echo e($field['placeholder'] ?? ''); ?>"><?php echo e(old($name, $field['value'] ?? '')); ?></textarea>
                 <?php elseif(isset($field['type']) && $field['type'] === 'file'): ?>
                     <input 
                         type="<?php echo e($field['type'] ?? 'text'); ?>" 
                         id="file-uploader" 
                         name="<?php echo e($name); ?>" 
                         accept="<?php echo e(isset($field['accept']) ? $field['accept'] : ''); ?>" 
-                        class="form-control" 
+                        class="form-control uploader" 
                         placeholder="<?php echo e($field['placeholder'] ?? ''); ?>" 
                         value="<?php echo e(old($name, $field['value'] ?? '')); ?>" 
                         autofocus
                     />
 
-                    <span id="preview">
+                    <span id="preview-<?php echo e($name); ?>">
                         <?php if(!empty($field['value'])): ?>
                             <img src="<?php echo e(asset('storage/' . $field['value'])); ?>" style="width:60px; height:50px" alt="Avatar" class="img-avatar zoomable">
                         <?php endif; ?>
@@ -100,7 +100,7 @@
                         type="<?php echo e($field['type']); ?>" 
                         id="<?php echo e($name); ?>" 
                         name="<?php echo e($name); ?>" 
-                        value="<?php echo e(old($name, $field['value'] ?? '')); ?>" 
+                        value="1" 
                     />
                 <?php else: ?>
                     <?php if($name=='unit_price'): ?>
@@ -141,10 +141,15 @@
         <span id="images_error" class="text-danger error"></span>
     </div>
 </div>
-<script src="<?php echo e(asset('admin')); ?>/custom/multi-categories.js"></script> 
+<script src="<?php echo e(asset('admin')); ?>/custom/product.js"></script> 
 <script>
-    CKEDITOR.replace('short_description');
-    CKEDITOR.replace('full_description');
+    $('#short_description').summernote({
+        height: 200
+    });
+    
+    $('#full_description').summernote({
+        height: 200
+    });
 
     $('select').each(function () {
         $(this).select2({
@@ -152,56 +157,58 @@
         });
     });
 
-    document.getElementById('images').addEventListener('change', function(event) {
-        const preview = document.getElementById('image-preview');
-        preview.innerHTML = ''; // Clear previous
+    setupImagePreview('images', 'image-preview');
 
-        const files = Array.from(event.target.files);
+    // document.getElementById('images').addEventListener('change', function(event) {
+    //     const preview = document.getElementById('image-preview');
+    //     preview.innerHTML = ''; // Clear previous
 
-        files.forEach((file, index) => {
-            if (!file.type.startsWith('image/')) return;
+    //     const files = Array.from(event.target.files);
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const wrapper = document.createElement('div');
-                wrapper.style.position = 'relative';
-                wrapper.style.width = '80px';
-                wrapper.style.height = '80px';
+    //     files.forEach((file, index) => {
+    //         if (!file.type.startsWith('image/')) return;
 
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.style.width = '100%';
-                img.style.height = '100%';
-                img.style.objectFit = 'cover';
-                img.style.borderRadius = '6px';
-                img.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+    //         const reader = new FileReader();
+    //         reader.onload = function(e) {
+    //             const wrapper = document.createElement('div');
+    //             wrapper.style.position = 'relative';
+    //             wrapper.style.width = '80px';
+    //             wrapper.style.height = '80px';
 
-                const removeBtn = document.createElement('span');
-                removeBtn.innerHTML = '&times;';
-                removeBtn.style.position = 'absolute';
-                removeBtn.style.top = '-5px';
-                removeBtn.style.right = '-5px';
-                removeBtn.style.cursor = 'pointer';
-                removeBtn.style.background = 'red';
-                removeBtn.style.color = 'white';
-                removeBtn.style.borderRadius = '50%';
-                removeBtn.style.width = '20px';
-                removeBtn.style.height = '20px';
-                removeBtn.style.display = 'flex';
-                removeBtn.style.alignItems = 'center';
-                removeBtn.style.justifyContent = 'center';
-                removeBtn.style.fontSize = '14px';
+    //             const img = document.createElement('img');
+    //             img.src = e.target.result;
+    //             img.style.width = '100%';
+    //             img.style.height = '100%';
+    //             img.style.objectFit = 'cover';
+    //             img.style.borderRadius = '6px';
+    //             img.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
 
-                removeBtn.onclick = function() {
-                    wrapper.remove();
-                    // Optional: remove file from input (see below)
-                };
+    //             const removeBtn = document.createElement('span');
+    //             removeBtn.innerHTML = '&times;';
+    //             removeBtn.style.position = 'absolute';
+    //             removeBtn.style.top = '-5px';
+    //             removeBtn.style.right = '-5px';
+    //             removeBtn.style.cursor = 'pointer';
+    //             removeBtn.style.background = 'red';
+    //             removeBtn.style.color = 'white';
+    //             removeBtn.style.borderRadius = '50%';
+    //             removeBtn.style.width = '20px';
+    //             removeBtn.style.height = '20px';
+    //             removeBtn.style.display = 'flex';
+    //             removeBtn.style.alignItems = 'center';
+    //             removeBtn.style.justifyContent = 'center';
+    //             removeBtn.style.fontSize = '14px';
 
-                wrapper.appendChild(img);
-                wrapper.appendChild(removeBtn);
-                preview.appendChild(wrapper);
-            };
-            reader.readAsDataURL(file);
-        });
-    });
+    //             removeBtn.onclick = function() {
+    //                 wrapper.remove();
+    //                 // Optional: remove file from input (see below)
+    //             };
+
+    //             wrapper.appendChild(img);
+    //             wrapper.appendChild(removeBtn);
+    //             preview.appendChild(wrapper);
+    //         };
+    //         reader.readAsDataURL(file);
+    //     });
+    // });
 </script><?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/admin/products/create_content.blade.php ENDPATH**/ ?>
