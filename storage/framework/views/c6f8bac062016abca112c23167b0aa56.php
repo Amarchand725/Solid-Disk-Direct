@@ -3,7 +3,7 @@
 <div class="row">
     <?php $__currentLoopData = $fields; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $name => $field): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
         <?php if($name != 'created_at'): ?>
-            <?php if($name=='thumbnail' || isset($field['type']) && $field['type'] === 'textarea'): ?>
+            <?php if($name=='brand' || $name=='category' || $name=='thumbnail' || isset($field['type']) && $field['type'] === 'textarea'): ?>
                 <div class="col-12 mb-3">
             <?php else: ?>
                 <div class="col-6 mb-3">
@@ -34,7 +34,8 @@
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     <?php elseif($name=='category' && isset($parent_categories) && !empty($parent_categories)): ?>
-                        <select id="<?php echo e($name); ?>" name="categories[]" class="form-control">
+                        
+                        <select id="<?php echo e($name); ?>" name="categories[]" data-url="<?php echo e(route('categories.sub-categories')); ?>" data-category-level="parent" data-level="0" class="form-control category category-select">
                             <option value="" selected>Select <?php echo e($name); ?></option>
                             <?php $__currentLoopData = $parent_categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($category->id); ?>"
@@ -44,6 +45,32 @@
                                 </option>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
+                        <span id="category-container">
+                            <?php $counter = 0 ?> 
+                            <?php $__currentLoopData = $categoriesData; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $parentCategories): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <?php $counter++ ?> 
+                                <div class="col-12 mt-3 sub-category-container">
+                                    <label class="form-label" for="sub-category-<?php echo e($counter); ?>">Sub Category</label>
+                                    <select 
+                                        id="sub-category-<?php echo e($counter); ?>" 
+                                        name="categories[]" 
+                                        class="category-select form-control category" 
+                                        data-level="<?php echo e($counter); ?>" 
+                                        data-url="<?php echo e(route('categories.sub-categories')); ?>" 
+                                        data-category-level="sub-category"
+                                    >
+                                        <option value="" selected>Select <?php echo e($name); ?></option>
+                                        <?php $__currentLoopData = $parentCategories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $parentCategory): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <option value="<?php echo e($parentCategory->id); ?>"
+                                                <?php echo e(collect(old($name, $model->categories->pluck('id')->toArray()))->contains($parentCategory->id) ? 'selected' : ''); ?>>
+                                                <?php echo e($parentCategory->name); ?>
+
+                                            </option>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </select>
+                                </div>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </span>
                     <?php elseif($name=='unit' && isset($units) && !empty($units)): ?>
                         <select id="<?php echo e($name); ?>" name="<?php echo e($name); ?>" class="form-control">
                             <option value="" selected>Select <?php echo e($name); ?></option>
@@ -157,7 +184,7 @@
         <span id="images_error" class="text-danger error"></span>
     </div>
 </div>
-<script src="<?php echo e(asset('admin')); ?>/custom/product.js"></script>
+<script src="<?php echo e(asset('admin')); ?>/custom/multi-categories.js"></script>
 <script>
     CKEDITOR.replace('short_description');
     CKEDITOR.replace('full_description');

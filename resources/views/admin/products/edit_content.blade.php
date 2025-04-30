@@ -3,7 +3,7 @@
 <div class="row">
     @foreach($fields as $name => $field)
         @if($name != 'created_at')
-            @if($name=='thumbnail' || isset($field['type']) && $field['type'] === 'textarea')
+            @if($name=='brand' || $name=='category' || $name=='thumbnail' || isset($field['type']) && $field['type'] === 'textarea')
                 <div class="col-12 mb-3">
             @else
                 <div class="col-6 mb-3">
@@ -32,7 +32,7 @@
                             @endforeach
                         </select>
                     @elseif($name=='category' && isset($parent_categories) && !empty($parent_categories))
-                        <select id="{{ $name }}" name="categories[]" class="form-control">
+                        <select id="{{ $name }}" name="categories[]" data-url="{{ route('categories.sub-categories') }}" data-category-level="parent" data-level="0" class="form-control category category-select">
                             <option value="" selected>Select {{ $name }}</option>
                             @foreach($parent_categories as $category)
                                 <option value="{{ $category->id }}"
@@ -41,6 +41,31 @@
                                 </option>
                             @endforeach
                         </select>
+                        <span id="category-container">
+                            @php $counter = 0 @endphp 
+                            @foreach ($categoriesData as $parentCategories)
+                                @php $counter++ @endphp 
+                                <div class="col-12 mt-3 sub-category-container">
+                                    <label class="form-label" for="sub-category-{{ $counter }}">Sub Category</label>
+                                    <select 
+                                        id="sub-category-{{ $counter }}" 
+                                        name="categories[]" 
+                                        class="category-select form-control category" 
+                                        data-level="{{ $counter }}" 
+                                        data-url="{{ route('categories.sub-categories') }}" 
+                                        data-category-level="sub-category"
+                                    >
+                                        <option value="" selected>Select {{ $name }}</option>
+                                        @foreach($parentCategories as $parentCategory)
+                                            <option value="{{ $parentCategory->id }}"
+                                                {{ collect(old($name, $model->categories->pluck('id')->toArray()))->contains($parentCategory->id) ? 'selected' : '' }}>
+                                                {{ $parentCategory->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @endforeach
+                        </span>
                     @elseif($name=='unit' && isset($units) && !empty($units))
                         <select id="{{ $name }}" name="{{ $name }}" class="form-control">
                             <option value="" selected>Select {{ $name }}</option>
@@ -150,7 +175,7 @@
         <span id="images_error" class="text-danger error"></span>
     </div>
 </div>
-<script src="{{ asset('admin') }}/custom/product.js"></script>
+<script src="{{ asset('admin') }}/custom/multi-categories.js"></script>
 <script>
     CKEDITOR.replace('short_description');
     CKEDITOR.replace('full_description');

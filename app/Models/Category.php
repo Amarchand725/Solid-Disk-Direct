@@ -41,12 +41,21 @@ class Category extends Model
     {
         return $this->belongsTo(Category::class, 'parent');
     }
-    public function children()
-    {
-        return $this->hasMany(Category::class, 'parent');
-    }
+    
     public function childrenRecursive()
     {
         return $this->children()->with('childrenRecursive');
+    }
+
+    // Parents of this category
+    public function parents()
+    {
+        return $this->belongsToMany(Category::class, 'category_relations', 'child_id', 'parent_id');
+    }
+
+    // Children of this category
+    public function children()
+    {
+        return $this->belongsToMany(Category::class, 'category_relations', 'parent_id', 'child_id');
     }
 }

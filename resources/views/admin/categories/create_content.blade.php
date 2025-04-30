@@ -10,7 +10,11 @@
 
             @if(isset($field['type']) && $field['type'] === 'select')
                 @if($name=='parent')
-                    <select id="{{ $name }}" name="categories[]" data-url="{{ route('categories.sub-categories') }}" data-category-level="parent" data-level="0" class="form-control category category-select">
+                    <select id="category" name="categories[]" 
+                        data-url="{{ route('categories.sub-categories') }}" 
+                        data-category-level="parent" data-level="0" 
+                        class="form-control category category-select"
+                    >
                         <option value="" selected>Select parent category</option>
                         @foreach($parent_categories as $key => $parent_category)
                             <option value="{{ $parent_category->id }}">
@@ -64,7 +68,7 @@
     @endif
 @endforeach
 
-<script src="{{ asset('admin') }}/custom/product.js"></script> 
+<script src="{{ asset('admin') }}/custom/multi-categories.js"></script> 
 <script>
     $('select').each(function () {
         $(this).select2({

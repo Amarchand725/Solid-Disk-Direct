@@ -1,7 +1,7 @@
 <div class="row">
     <?php $__currentLoopData = $fields; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $name => $field): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
         <?php if($name != 'created_at'): ?>
-            <?php if($name=='thumbnail' || isset($field['type']) && $field['type'] === 'textarea'): ?>
+            <?php if($name=='brand' || $name=='category' || $name=='thumbnail' || isset($field['type']) && $field['type'] === 'textarea'): ?>
                 <div class="col-12 mb-3">
             <?php else: ?>
                 <div class="col-6 mb-3">
@@ -141,18 +141,10 @@
         <span id="images_error" class="text-danger error"></span>
     </div>
 </div>
-<script src="<?php echo e(asset('admin')); ?>/custom/product.js"></script> 
+<script src="<?php echo e(asset('admin')); ?>/custom/multi-categories.js"></script> 
 <script>
-    tinymce.init({
-        selector: '#short_description',
-        plugins: 'lists link image table code',
-        toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist | link image | code',
-        height: 300
-    });
-</script>
-<script>
-    // CKEDITOR.replace('short_description');
-    // CKEDITOR.replace('full_description');
+    CKEDITOR.replace('short_description');
+    CKEDITOR.replace('full_description');
 
     $('select').each(function () {
         $(this).select2({

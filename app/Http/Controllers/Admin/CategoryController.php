@@ -139,8 +139,6 @@ class CategoryController extends Controller
         DB::beginTransaction();
 
         try{
-            $lastParentId = collect($request->categories)->last();
-            $validated['parent'] = $lastParentId;
             $saved = new $this->model;
             // Step 3: Dynamically assign fields
             foreach ($fields as $field => $config) {
@@ -162,6 +160,14 @@ class CategoryController extends Controller
             }
 
             if(isset($saved) && !empty($saved)){
+                $categories = array_filter($request->categories, function($value) {
+                    return !is_null($value) && $value !== '';  // Filter out null and empty values
+                });
+                
+                if (!empty($categories)) {
+                    $saved->parents()->attach($categories);
+                }                
+
                 DB::commit();
                 return response()->json(['success' => true, 'message' =>'You have added '.$singularLabel.' successfully.']);
             }else{
@@ -194,6 +200,19 @@ class CategoryController extends Controller
         $title = $this->singularLabel;
         $parent_categories = $this->model->where('status', 1)->latest()->get();
         $model = $this->model->where('id', $id)->first();
+        
+        $categoriesData = [];
+        foreach ($model->parents as $index => $parent) {
+            // Find the parent(s) of this parent (i.e., grandparents)
+            $parentOfParentIds = DB::table('category_relations')
+                ->where('child_id', $parent->id)
+                ->pluck('parent_id');
+
+            if ($parentOfParentIds->isNotEmpty()) {
+                $categoriesData[$index] = $this->model->where('id', $parent->id)->get();
+            } 
+        }
+
         $fields = getFields($model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'edit');
         
         return view($bladePath.'.edit_content', get_defined_vars());
@@ -248,6 +267,14 @@ class CategoryController extends Controller
             }
 
             if(isset($model) && !empty($model)){
+                $categories = array_filter($request->categories, function($value) {
+                    return !is_null($value) && $value !== '';  // Clean input
+                });
+                
+                if (!empty($categories)) {
+                    $model->parents()->sync($categories); // ← safe update
+                }
+                
                 DB::commit();
                 return response()->json(['success' => true, 'message' =>'You have updated '.$singularLabel.' successfully.']);
             }else{
@@ -374,10 +401,9 @@ class CategoryController extends Controller
     }
 
     public function subCategories(Request $request){
-        $subCategories = Category::where('parent', $request->category_id)->get();
+        $subCategories = Category::find($request->category_id)->children;
 
         if(!empty($subCategories)){
-            // return $subCategories;
             return response()->json([
                 'status' => true,
                 'subCategories' => $subCategories,

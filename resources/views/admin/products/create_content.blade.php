@@ -1,7 +1,7 @@
 <div class="row">
     @foreach($fields as $name => $field)
         @if($name != 'created_at')
-            @if($name=='thumbnail' || isset($field['type']) && $field['type'] === 'textarea')
+            @if($name=='brand' || $name=='category' || $name=='thumbnail' || isset($field['type']) && $field['type'] === 'textarea')
                 <div class="col-12 mb-3">
             @else
                 <div class="col-6 mb-3">
@@ -147,7 +147,7 @@
         <span id="images_error" class="text-danger error"></span>
     </div>
 </div>
-<script src="{{ asset('admin') }}/custom/product.js"></script> 
+<script src="{{ asset('admin') }}/custom/multi-categories.js"></script> 
 <script>
     CKEDITOR.replace('short_description');
     CKEDITOR.replace('full_description');

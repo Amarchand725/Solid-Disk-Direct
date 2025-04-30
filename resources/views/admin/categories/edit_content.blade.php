@@ -16,14 +16,44 @@
 
             @if(isset($field['type']) && $field['type'] === 'select')
                 @if($name=='parent')
-                    <select id="{{ $name }}" name="{{ $name }}" class="form-control">
-                        <option value="" selected>Select parent category</option>
-                        @foreach($parent_categories as $key => $parent_category)
-                            <option value="{{ $parent_category->id }}" {{ $parent_category->id==$field['value']?'selected':'' }}>
-                                {{ $parent_category->name }}
+                    <select id="category" name="categories[]" 
+                        data-url="{{ route('categories.sub-categories') }}" 
+                        data-category-level="parent" data-level="0" 
+                        class="form-control category category-select"
+                    >
+                        <option value="" selected>Select {{ $name }}</option>
+                        @foreach($parent_categories as $category)
+                            <option value="{{ $category->id }}"
+                                {{ collect(old($name, $model->parents->pluck('id')->toArray()))->contains($category->id) ? 'selected' : '' }}>
+                                {{ $category->name }}
                             </option>
                         @endforeach
                     </select>
+                    <span id="category-container">
+                        @php $counter = 0 @endphp 
+                        @foreach ($categoriesData as $parentCategories)
+                            @php $counter++ @endphp 
+                            <div class="col-12 mt-3 sub-category-container">
+                                <label class="form-label" for="sub-category-{{ $counter }}">Sub Category</label>
+                                <select 
+                                    id="sub-category-{{ $counter }}" 
+                                    name="categories[]" 
+                                    class="category-select form-control category" 
+                                    data-level="{{ $counter }}" 
+                                    data-url="{{ route('categories.sub-categories') }}" 
+                                    data-category-level="sub-category"
+                                >
+                                    <option value="" selected>Select {{ $name }}</option>
+                                    @foreach($parentCategories as $category)
+                                        <option value="{{ $category->id }}"
+                                            {{ collect(old($name, $model->parents->pluck('id')->toArray()))->contains($category->id) ? 'selected' : '' }}>
+                                            {{ $category->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endforeach
+                    </span>
                 @else
                     <select id="{{ $name }}" name="{{ $name }}" class="form-control">
                         @foreach($field['options'] ?? [] as $key => $option)  <!-- Safely handle 'options' -->
@@ -67,7 +97,7 @@
     @endif
 @endforeach
 
-<script src="{{ asset('admin') }}/custom/product.js"></script> 
+<script src="{{ asset('admin') }}/custom/multi-categories.js"></script> 
 <script>
     $('select').each(function () {
         $(this).select2({

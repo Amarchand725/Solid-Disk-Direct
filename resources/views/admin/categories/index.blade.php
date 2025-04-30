@@ -2,6 +2,15 @@
 
 @section('title', $title.' -  ' . appName())
 
+@push('css')
+    <style>
+        .highlight-arrow {
+            color: #ff5722; /* or any highlight color */
+            font-weight: bold;
+        }
+    </style>
+@endpush
+
 @section('content')
 @if (request()->is($routeInitialize.'/trashed'))
     <input type="hidden" id="page_url" value="{{ route($routeInitialize.'.trashed') }}">

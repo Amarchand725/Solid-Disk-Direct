@@ -51,7 +51,11 @@ class ProductController extends Controller
         $this->pluralLabel = 'All '.Str::title(str_replace('_', ' ', $this->routePrefix));
 
         $this->brandModal = Brand::where('status', 1)->get();
-        $this->categoryModal = Category::with('childrenRecursive')->where('parent', NULL)->where('status', 1)->get();
+        // $this->categoryModal = Category::where('parent', NULL)->where('status', 1)->get();
+        $this->categoryModal = Category::whereNotIn('id', function ($query) {
+            $query->select('child_id')->from('category_relations');
+        })->where('status', 1)->get();
+        
         $this->unitModal = Unit::where('status', 1)->get();
         $this->taxTypeModal = TaxType::where('status', 1)->get();
         $this->productConditionModal = ProductCondition::where('status', 1)->get();
@@ -183,7 +187,14 @@ class ProductController extends Controller
 
             if(isset($saved) && !empty($saved)){
                 // Attach a single category
-                $saved->categories()->attach($request->categories);
+                // $saved->categories()->attach($request->categories);
+                $categories = array_filter($request->categories, function($value) {
+                    return !is_null($value) && $value !== '';  // Filter out null and empty values
+                });
+                
+                if (!empty($categories)) {
+                    $saved->categories()->attach($categories);
+                }   
 
                 if ($request->hasFile('images')) {
                     $uploadPath = Str::plural(Str::lower($this->singularLabel));
@@ -231,6 +242,17 @@ class ProductController extends Controller
         // $tags = $this->tagModal;
         $title = $this->singularLabel;
         $model = $this->model->where('id', $id)->first();
+        
+        $categoriesData = [];
+        foreach ($model->categories as $index => $category) {
+            $parentOfParentIds = DB::table('category_relations')
+                ->where('child_id', $category->id)
+                ->pluck('parent_id');
+
+            if ($parentOfParentIds->isNotEmpty()) {
+                $categoriesData[$index] = Category::where('id', $category->id)->get();
+            } 
+        }
 
         $fields = getFields($model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'edit');
         
@@ -286,6 +308,14 @@ class ProductController extends Controller
             }
 
             if(isset($model) && !empty($model)){
+                $categories = array_filter($request->categories, function($value) {
+                    return !is_null($value) && $value !== '';  // Clean input
+                });
+                
+                if (!empty($categories)) {
+                    $model->categories()->sync($categories); // ← safe update
+                }
+
                 if ($request->hasFile('images')) {
                     $uploadPath = Str::plural(Str::lower($this->singularLabel));
                     foreach ($request->file('images') as $additionalImage) {

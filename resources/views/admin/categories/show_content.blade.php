@@ -14,8 +14,8 @@
                         {{ $model->status ? 'Active' : 'Deactive' }}
                     </span>
                 @else
-                    @if($name=='parent' && isset($model->hasParent) && !empty($model->hasParent))
-                        {{ $model->hasParent->name ?? '-' }}
+                    @if($name=='parent' && isset($model->parents) && !empty($model->parents))                        
+                        {!! $model->parents->pluck('name')->implode('<span class="highlight-arrow"> &rarr; </span>') !!}
                     @else
                         {{ $field['value'] }}
                     @endif

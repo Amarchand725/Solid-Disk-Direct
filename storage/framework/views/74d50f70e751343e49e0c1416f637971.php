@@ -1,5 +1,14 @@
 <?php $__env->startSection('title', $title.' -  ' . appName()); ?>
 
+<?php $__env->startPush('css'); ?>
+    <style>
+        .highlight-arrow {
+            color: #ff5722; /* or any highlight color */
+            font-weight: bold;
+        }
+    </style>
+<?php $__env->stopPush(); ?>
+
 <?php $__env->startSection('content'); ?>
 <?php if(request()->is($routeInitialize.'/trashed')): ?>
     <input type="hidden" id="page_url" value="<?php echo e(route($routeInitialize.'.trashed')); ?>">
