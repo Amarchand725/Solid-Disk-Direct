@@ -50,15 +50,14 @@ class ProductController extends Controller
         $this->singularLabel = Str::title(str_replace('_', ' ', Str::singular($this->routePrefix)));        
         $this->pluralLabel = 'All '.Str::title(str_replace('_', ' ', $this->routePrefix));
 
-        $this->brandModal = Brand::where('status', 1)->get();
-        // $this->categoryModal = Category::where('parent', NULL)->where('status', 1)->get();
+        $this->brandModal = Brand::where('status', 1)->select(['id', 'name']);
         $this->categoryModal = Category::whereNotIn('id', function ($query) {
             $query->select('child_id')->from('category_relations');
-        })->where('status', 1)->get();
+        })->where('status', 1)->select(['id', 'name', 'status']);
         
-        $this->unitModal = Unit::where('status', 1)->get();
-        $this->taxTypeModal = TaxType::where('status', 1)->get();
-        $this->productConditionModal = ProductCondition::where('status', 1)->get();
+        $this->unitModal = Unit::where('status', 1)->select(['id', 'name']);
+        $this->taxTypeModal = TaxType::where('status', 1)->select(['id', 'name']);
+        $this->productConditionModal = ProductCondition::where('status', 1)->select(['id', 'name']);
         $this->tagModal = Tag::where('status', 1)->select(['id', 'title', 'status']);
         $this->productImageModal = new ProductImage();
 
@@ -96,10 +95,6 @@ class ProductController extends Controller
         //         }
         // });
 
-        $models = $this->model->latest()
-            ->with(['hasBrand','hasCategory'])
-            ->select(['id', 'thumbnail', 'title', 'sku', 'brand', 'unit_price', 'status']);
-
         // Get column definitions dynamically
         $getFields = getFields($this->model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'index');
         
@@ -116,6 +111,28 @@ class ProductController extends Controller
             // Customize index to pull from relation
             $getFields['category']['index'] = fn($model) => optional($model->hasCategory)->name ?? '-';
         }
+        
+        //select columns
+        $selectedColumns = collect($getFields)
+        ->mapWithKeys(function ($config, $key) {
+            return [$key => $config['index']];
+        })
+        ->keys()
+        ->filter(function ($key) {
+            return $key !== 'action'; // Remove 'action'
+        })
+        ->values() // Reindex the array
+        ->toArray();
+    
+        // Optionally prepend 'id'
+        array_unshift($selectedColumns, 'id');
+        
+        $models = $this->model->latest()
+            ->where('status', 1)
+            ->with(['hasBrand:id,name'])
+            ->select($selectedColumns);
+        //select columns
+
         $columns = collect($getFields)->mapWithKeys(function ($config, $key) {
             return [$key => $config['index']];
         })->toArray();  // Convert Collection to Array
@@ -137,12 +154,12 @@ class ProductController extends Controller
     }
     public function create(){
         $bladePath = $this->pathInitialize;
-        $brands = $this->brandModal;
-        $parent_categories = $this->categoryModal;
-        $units = $this->unitModal;
-        $tax_types = $this->taxTypeModal;
-        $product_conditions = $this->productConditionModal;
-        // $tags = $this->tagModal;
+        $brands = $this->brandModal->get();
+        $parent_categories = $this->categoryModal->get();
+        $units = $this->unitModal->get();
+        $tax_types = $this->taxTypeModal->get();
+        $product_conditions = $this->productConditionModal->get();
+        // $tags = $this->tagModal->get();
         $fields = getFields($this->model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'create');
         return (string) view($bladePath.'.create_content', get_defined_vars());
     }
@@ -238,12 +255,12 @@ class ProductController extends Controller
     public function edit(string $id)
     {
         $bladePath = $this->pathInitialize;
-        $brands = $this->brandModal;
-        $parent_categories = $this->categoryModal;
-        $units = $this->unitModal;
-        $tax_types = $this->taxTypeModal;
-        $product_conditions = $this->productConditionModal;
-        // $tags = $this->tagModal;
+        $brands = $this->brandModal->get();
+        $parent_categories = $this->categoryModal->get();
+        $units = $this->unitModal->get();
+        $tax_types = $this->taxTypeModal->get();
+        $product_conditions = $this->productConditionModal->get();
+        // $tags = $this->tagModal->get(); 
         $title = $this->singularLabel;
         $model = $this->model->where('id', $id)->first();
         

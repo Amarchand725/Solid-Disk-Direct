@@ -61,13 +61,35 @@ class TagController extends Controller
         $routeInitialize = $this->routePrefix;
         $bladePath = $this->pathInitialize;
 
-        $models = $this->model->latest()
-            ->where('status', 1)
-            ->with('createdBy:id,name')
-            ->select(['id', 'title', 'status', 'created_at', 'created_by']);
+        // $models = $this->model->latest()
+        //     ->where('status', 1)
+        //     ->with('createdBy:id,name')
+        //     ->select(['id', 'title', 'status', 'created_at', 'created_by']);
 
         // Get column definitions dynamically
         $getFields = getFields($this->model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'index');
+        
+        //select columns
+        $selectedColumns = collect($getFields)
+        ->mapWithKeys(function ($config, $key) {
+            return [$key => $config['index']];
+        })
+        ->keys()
+        ->filter(function ($key) {
+            return $key !== 'action'; // Remove 'action'
+        })
+        ->values() // Reindex the array
+        ->toArray();
+    
+        // Optionally prepend 'id'
+        array_unshift($selectedColumns, 'id');
+        
+        $models = $this->model->latest()
+            ->where('status', 1)
+            ->with('createdBy:id,name')
+            ->select($selectedColumns);
+        //select columns
+        
         $columns = collect($getFields)->mapWithKeys(function ($config, $key) {
             return [$key => $config['index']];
         })->toArray();  // Convert Collection to Array

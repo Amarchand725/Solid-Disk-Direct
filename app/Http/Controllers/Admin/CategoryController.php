@@ -61,14 +61,14 @@ class CategoryController extends Controller
         $routeInitialize = $this->routePrefix;
         $bladePath = $this->pathInitialize;
 
-        $models = [];
-        $this->model->latest()
-            ->with('createdBy:id,name', 'hasParent:id,name')
-            ->chunk(100, function ($modelData) use (&$models) {
-                foreach ($modelData as $modelItem) {
-                    $models[] = $modelItem;
-                }
-        });        
+        // $models = [];
+        // $this->model->latest()
+        //     ->with('createdBy:id,name', 'hasParent:id,name')
+        //     ->chunk(100, function ($modelData) use (&$models) {
+        //         foreach ($modelData as $modelItem) {
+        //             $models[] = $modelItem;
+        //         }
+        // });        
         
         // Get column definitions dynamically
         $getFields = getFields($this->model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'index');
@@ -88,6 +88,27 @@ class CategoryController extends Controller
 
             $getFields['parent']['index'] = fn($model) => $model->hasParent?->name ?? '-';
         }
+
+        //select columns
+        $selectedColumns = collect($getFields)
+        ->mapWithKeys(function ($config, $key) {
+            return [$key => $config['index']];
+        })
+        ->keys()
+        ->filter(function ($key) {
+            return $key !== 'action'; // Remove 'action'
+        })
+        ->values() // Reindex the array
+        ->toArray();
+    
+        // Optionally prepend 'id'
+        array_unshift($selectedColumns, 'id');
+        
+        $models = $this->model->latest()
+            ->where('status', 1)
+            ->with('createdBy:id,name')
+            ->select($selectedColumns);
+        //select columns
 
         $columns = collect($getFields)->mapWithKeys(function ($config, $key) {
             return [$key => $config['index']];

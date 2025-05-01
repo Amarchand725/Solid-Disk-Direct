@@ -166,15 +166,10 @@ class MenuController extends Controller
         $routeInitialize = $this->routePrefix;
         $bladePath = $this->pathInitialize;
 
-        $models = [];
-        $this->model->latest()
+        // $models = [];
+        $models = $this->model->latest()
             ->with('hasMenuGroup:id,menu', 'createdBy:id,name')
-            ->select('id', 'menu', 'menu_group', 'priority', 'fields', 'status', 'created_by', 'icon') 
-            ->chunk(100, function ($modelData) use (&$models) {
-                foreach ($modelData as $modelItem) {
-                    $models[] = $modelItem;
-                }
-        });
+            ->select('id', 'menu', 'menu_group', 'priority', 'fields', 'status', 'created_by', 'icon');
         
         // Get column definitions dynamically
         $getFields = getFields($this->model, $this->getFieldsAndColumns(), 'index');
