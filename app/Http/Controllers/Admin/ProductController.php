@@ -59,7 +59,7 @@ class ProductController extends Controller
         $this->unitModal = Unit::where('status', 1)->get();
         $this->taxTypeModal = TaxType::where('status', 1)->get();
         $this->productConditionModal = ProductCondition::where('status', 1)->get();
-        $this->tagModal = Tag::where('status', 1)->get();
+        $this->tagModal = Tag::where('status', 1)->select(['id', 'title', 'status']);
         $this->productImageModal = new ProductImage();
 
         // Initialize the permissions array
@@ -87,14 +87,18 @@ class ProductController extends Controller
         $routeInitialize = $this->routePrefix;
         $bladePath = $this->pathInitialize;
 
-        $models = [];
-        $this->model->latest()
+        // $models = [];
+        // $this->model->latest()
+        //     ->with(['hasBrand','hasCategory'])
+        //     ->chunk(100, function ($modelData) use (&$models) {
+        //         foreach ($modelData as $modelItem) {
+        //             $models[] = $modelItem;
+        //         }
+        // });
+
+        $models = $this->model->latest()
             ->with(['hasBrand','hasCategory'])
-            ->chunk(100, function ($modelData) use (&$models) {
-                foreach ($modelData as $modelItem) {
-                    $models[] = $modelItem;
-                }
-        });
+            ->select(['id', 'thumbnail', 'title', 'sku', 'brand', 'unit_price', 'status']);
 
         // Get column definitions dynamically
         $getFields = getFields($this->model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'index');

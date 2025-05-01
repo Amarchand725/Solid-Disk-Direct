@@ -61,16 +61,10 @@ class TagController extends Controller
         $routeInitialize = $this->routePrefix;
         $bladePath = $this->pathInitialize;
 
-        $models = [];
-        $this->model->latest()
+        $models = $this->model->latest()
             ->where('status', 1)
             ->with('createdBy:id,name')
-            ->select(['id', 'title', 'status', 'created_at', 'created_by'])
-            ->chunk(100, function ($modelData) use (&$models) {
-                foreach ($modelData as $modelItem) {
-                    $models[] = $modelItem;
-                }
-        });      
+            ->select(['id', 'title', 'status', 'created_at', 'created_by']);
 
         // Get column definitions dynamically
         $getFields = getFields($this->model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'index');
