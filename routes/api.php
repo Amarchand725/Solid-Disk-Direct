@@ -16,10 +16,12 @@ use App\Http\Controllers\Api\{
     ShippingMethodController,
     QuestionAnswerController,
     PaymentMethodController,
-    PrivacyPolicyController,
-    ReturnPolicyController,
-    TermAndConditionController,
-    QuoteRequestController
+    PolicyController,
+    QuoteRequestController,
+    ContactMessageController,
+    CartController,
+    WishlistController,
+    OrderController
 };
 
 /*
@@ -35,6 +37,22 @@ use App\Http\Controllers\Api\{
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
+});
+
+Route::middleware('auth:customer')->group(function () {
+    Route::controller(CustomerController::class)->group(function () {
+        Route::post('/customer/logout', 'logout');
+        Route::get('/customer/show', 'show');
+        Route::post('/customer/update', 'update');
+    });
+    Route::controller(WishlistController::class)->group(function () {
+        Route::get('wishlists', 'getWishlist');
+        Route::post('wishlists/store', 'store');
+        Route::post('wishlists/remove', 'removeFromWishlist');
+    });
+    Route::controller(OrderController::class)->group(function () {
+        Route::post('orders/place-order', 'store');
+    });
 });
 
 Route::controller(SettingController::class)->group(function () {
@@ -91,23 +109,20 @@ Route::controller(QuestionAnswerController::class)->group(function () {
 Route::controller(PaymentMethodController::class)->group(function () {
     Route::get('payment_methods', 'index');
 });
-Route::controller(PrivacyPolicyController::class)->group(function () {
-    Route::get('privacy_policies', 'index');
-});
-Route::controller(ReturnPolicyController::class)->group(function () {
-    Route::get('return_policies', 'index');
-});
-Route::controller(TermAndConditionController::class)->group(function () {
-    Route::get('term_and_conditions', 'index');
-});
 Route::controller(QuoteRequestController::class)->group(function () {
     Route::post('quote_requests/store', 'store');
 });
-
-Route::middleware('auth:customer')->group(function () {
-    Route::controller(CustomerController::class)->group(function () {
-        Route::post('/customer/logout', 'logout');
-        Route::get('/customer/show', 'show');
-        Route::post('/customer/update', 'update');
-    });
+Route::controller(PolicyController::class)->group(function () {
+    Route::get('policies/{title}', 'policies');
+});
+Route::controller(ContactMessageController::class)->group(function () {
+    Route::post('contact_messages/store', 'store');
+});
+Route::controller(CartController::class)->group(function () {
+    Route::get('cart', 'getCart');
+    Route::post('cart/store', 'store');
+    Route::post('/cart/increase', 'increaseQuantity');
+    Route::post('/cart/decrease', 'decreaseQuantity');
+    Route::post('/cart/remove', 'removeItem');
+    Route::post('/cart/clear', 'clearCart');
 });

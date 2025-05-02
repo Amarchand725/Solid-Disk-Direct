@@ -9,14 +9,33 @@ class CartItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['cart_token', 'product_id', 'quantity', 'unit_price', 'discount', 'sub_total', 'options'];
+    protected $fillable = [
+        'cart_id',
+        'product_id',
+        'variant_id',
+        'quantity',
+        'unit_price',
+        'sub_total',
+        'options',
+        'discount',
+    ];
+
+    protected $casts = [
+        'options' => 'array',
+    ];
 
     public function cart()
     {
-        return $this->hasOne(Cart::class, 'cart_token');
+        return $this->belongsTo(Cart::class);
     }
 
-    public function product(){
-        return $this->hasOne(Product::class, 'id', 'product_id');
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
     }
+
+    // public function variant()
+    // {
+    //     return $this->belongsTo(ProductVariant::class);
+    // }
 }

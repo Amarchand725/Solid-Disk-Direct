@@ -57,20 +57,28 @@
       "description": "All Payment Method Operations"
     },
     {
-      "name": "Privacy Policy",
-      "description": "All Privacy Policy Operations"
-    },
-    {
-      "name": "Return Policy",
-      "description": "All Return Policy Operations"
-    },
-    {
-      "name": "Term and Condition",
-      "description": "All Term and Condition Operations"
-    },
-    {
       "name": "Quote Request",
       "description": "All Quote Request Operations"
+    },
+    {
+      "name": "Policies",
+      "description": "All Policies Operations"
+    },
+    {
+      "name": "Contact Us",
+      "description": "All Contact Us Operations"
+    },
+    {
+      "name": "Cart",
+      "description": "All Cart Operations"
+    },
+    {
+      "name": "Wishlist",
+      "description": "All Wishlist Operations"
+    },
+    {
+      "name": "Order",
+      "description": "All Order Operations"
     }
   ],
   "paths": {
@@ -705,64 +713,13 @@
         }
       }
     },
-    "/privacy_policies": {
-      "get": {
-        "tags": [
-          "Privacy Policy"
-        ],
-        "summary": "Get Privacy Policies",
-        "operationId": "privacy-policy",
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "Data"
-          }
-        }
-      }
-    },
-    "/return_policies": {
-      "get": {
-        "tags": [
-          "Return Policy"
-        ],
-        "summary": "Get Return Policies",
-        "operationId": "return-policy",
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "Data"
-          }
-        }
-      }
-    },
-    "/term_and_conditions": {
-      "get": {
-        "tags": [
-          "Term and Condition"
-        ],
-        "summary": "Get Term And Conditions",
-        "operationId": "term-and-condition",
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "Data"
-          }
-        }
-      }
-    },
     "/quote_requests/store": {
       "post": {
         "tags": [
           "Quote Request"
         ],
         "summary": "Quote Request",
-        "operationId": "register",
+        "operationId": "quote-request",
         "produces": [
           "application/json"
         ],
@@ -820,6 +777,464 @@
         "responses": {
           "200": {
             "description": "Data"
+          }
+        }
+      }
+    },
+    "/policies/{title}": {
+      "get": {
+        "tags": [
+          "Policies"
+        ],
+        "summary": "Get Policies",
+        "operationId": "policy",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "title",
+            "in": "path",
+            "description": "Enter title",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/contact_messages/store": {
+      "post": {
+        "tags": [
+          "Contact Us"
+        ],
+        "summary": "Contact Us",
+        "operationId": "contact-us",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "formData",
+            "description": "Enter Name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "email",
+            "in": "formData",
+            "description": "Enter email",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "phone",
+            "in": "formData",
+            "description": "Enter phone",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "subject",
+            "in": "formData",
+            "description": "Enter subject",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "message",
+            "in": "formData",
+            "description": "Enter message",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/cart": {
+      "get": {
+        "tags": [
+          "Cart"
+        ],
+        "summary": "Get Cart",
+        "operationId": "cart",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/cart/store": {
+      "post": {
+        "tags": [
+          "Cart"
+        ],
+        "summary": "Cart",
+        "operationId": "cart-store",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "formData",
+            "description": "Enter product slug",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/cart/increase": {
+      "post": {
+        "tags": [
+          "Cart"
+        ],
+        "summary": "Increase Quantity",
+        "operationId": "increase-quantity",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "cart_item_id",
+            "in": "formData",
+            "description": "Enter cart_item_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/cart/decrease": {
+      "post": {
+        "tags": [
+          "Cart"
+        ],
+        "summary": "Decrease Quantity",
+        "operationId": "decrease-quantity",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "cart_item_id",
+            "in": "formData",
+            "description": "Enter cart_item_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/cart/remove": {
+      "post": {
+        "tags": [
+          "Cart"
+        ],
+        "summary": "Remove item",
+        "operationId": "remove-item",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "cart_item_id",
+            "in": "formData",
+            "description": "Enter cart_item_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/cart/clear": {
+      "post": {
+        "tags": [
+          "Cart"
+        ],
+        "summary": "Clear Cart",
+        "operationId": "clear-cart",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/wishlists": {
+      "get": {
+        "tags": [
+          "Wishlist"
+        ],
+        "summary": "Get Wishlist",
+        "operationId": "wishlist",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/wishlists/store": {
+      "post": {
+        "tags": [
+          "Wishlist"
+        ],
+        "summary": "Add to Wishlist",
+        "operationId": "wishlist-store",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "formData",
+            "description": "Enter product slug",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/wishlists/remove": {
+      "post": {
+        "tags": [
+          "Wishlist"
+        ],
+        "summary": "Remove From Wishlist",
+        "operationId": "remove-store",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "formData",
+            "description": "Enter product slug",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/orders/place-order": {
+      "post": {
+        "tags": ["Order"],
+        "summary": "Place Order",
+        "operationId": "orders-store",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "shipping_method_id",
+            "in": "formData",
+            "description": "Enter shipping_method_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "payment_method",
+            "in": "formData",
+            "description": "Enter payment_method",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "stripe_token",
+            "in": "formData",
+            "description": "Enter stripe_token",
+            "required": true,
+            "type": "string"
+          },
+
+          {
+            "name": "shipping_first_name",
+            "in": "formData",
+            "description": "Shipping first name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "shipping_last_name",
+            "in": "formData",
+            "description": "Shipping last name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "shipping_email",
+            "in": "formData",
+            "description": "Shipping email",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "shipping_phone",
+            "in": "formData",
+            "description": "Shipping phone number",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "shipping_address",
+            "in": "formData",
+            "description": "Shipping address",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "shipping_city",
+            "in": "formData",
+            "description": "Shipping city",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "shipping_state",
+            "in": "formData",
+            "description": "Shipping state",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "shipping_zip",
+            "in": "formData",
+            "description": "Shipping ZIP/postal code",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "shipping_country",
+            "in": "formData",
+            "description": "Shipping country",
+            "required": true,
+            "type": "string"
+          },
+
+          {
+            "name": "billing_different",
+            "in": "formData",
+            "description": "Is billing address different?",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "billing_first_name",
+            "in": "formData",
+            "description": "Billing first name",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "billing_last_name",
+            "in": "formData",
+            "description": "Billing last name",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "billing_email",
+            "in": "formData",
+            "description": "Billing email",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "billing_phone",
+            "in": "formData",
+            "description": "Billing phone number",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "billing_address",
+            "in": "formData",
+            "description": "Billing address",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "billing_city",
+            "in": "formData",
+            "description": "Billing city",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "billing_state",
+            "in": "formData",
+            "description": "Billing state",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "billing_zip",
+            "in": "formData",
+            "description": "Billing ZIP/postal code",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "billing_country",
+            "in": "formData",
+            "description": "Billing country",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order placed successfully"
           }
         }
       }

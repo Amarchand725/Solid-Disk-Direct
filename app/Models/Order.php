@@ -9,12 +9,15 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $guarded = ['id'];
-
-    public function items()
-    {
+    public function items() {
         return $this->hasMany(OrderItem::class);
     }
+    
+    public function billing() {
+        return $this->hasOne(OrderBillingAddress::class);
+    }
+    
+    public function shipping() {
+        return $this->hasOne(OrderShippingAddress::class);
+    }    
 }
-
-
