@@ -38,14 +38,17 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::controller(SettingController::class)->group(function () {
-    Route::get('settings', 'getSetting')->name('settings');
+    Route::get('business-info', 'businessInfo')->name('business-info');
 });
 
 Route::controller(ProductController::class)->group(function () {
     Route::get('products', 'index')->name('products');
     Route::get('products/featured', 'featured')->name('products.featured');
     Route::get('products/recent-viewed', 'recentViewed')->name('products.recent-viewed');
+    Route::get('products/best-selling', 'bestSelling')->name('products.best-selling');
+    Route::get('products/top-rated', 'topRated')->name('products.top-rated');
     Route::get('products/show/{slug}', 'show')->name('products.show');
+    Route::get('products/search', 'search')->name('products.search');
 });
 Route::controller(TestimonialController::class)->group(function () {
     Route::get('testimonials', 'index')->name('testimonials');
@@ -61,6 +64,7 @@ Route::controller(CustomerController::class)->group(function () {
 });
 Route::controller(BrandController::class)->group(function () {
     Route::get('brands', 'index');
+    Route::get('brands/show/{slug}', 'show');
     Route::get('brands/featured', 'featured');
 });
 Route::controller(BannerController::class)->group(function () {
@@ -68,6 +72,7 @@ Route::controller(BannerController::class)->group(function () {
 });
 Route::controller(CategoryController::class)->group(function () {
     Route::get('categories', 'index');
+    Route::get('categories/show/{slug}', 'show');
     Route::get('categories/featured', 'featured');
 });
 Route::controller(SliderController::class)->group(function () {

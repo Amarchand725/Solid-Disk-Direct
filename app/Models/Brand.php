@@ -31,4 +31,8 @@ class Brand extends Model
     {
         return $this->hasOne(User::class, 'id', 'created_by');
     }
+
+    public function hasProducts(){
+        return $this->hasMany(Product::class,'brand','id');
+    }
 }

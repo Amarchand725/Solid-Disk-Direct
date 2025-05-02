@@ -38,6 +38,24 @@ class CategoryController extends Controller
         }
     }
 
+    public function show($slug){
+        $model = $this->model->where('slug', $slug)->first();
+
+        if($model){
+            return response()->json([
+                'status'=>true,
+                'message'=>'Data found successfully.',
+                'data' => new $this->modelResource($model)
+            ]);
+        }else{
+            return response()->json([
+                'status'=>false,
+                'message'=>'Data not found.',    
+                'data'=>null
+            ]);
+        }
+    }
+
     public function featured(){
         $models = $this->model->where('is_featured', 1)->where('status', 1)->orderBy('id', 'desc')->paginate(10);
 

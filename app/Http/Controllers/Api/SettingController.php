@@ -9,7 +9,7 @@ use App\Http\Resources\SettingResource;
 
 class SettingController extends Controller
 {
-    public function getSetting(){
+    public function businessInfo(){
         $setting = Setting::select([
             'name','support_email', 'currency_symbol', 'favicon', 
             'black_logo','address', 'country', 'phone_number', 

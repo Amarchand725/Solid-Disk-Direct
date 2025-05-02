@@ -19,7 +19,7 @@ class BrandController extends Controller
     }
 
     public function index(){
-        $models = $this->model->where('status', 1)->orderBy('id', 'desc')->paginate(10);
+        $models = $this->model->where('status', 1)->orderBy('id', 'desc')->get();
 
         if ($models->count()) {
             return response()->json([
@@ -32,6 +32,23 @@ class BrandController extends Controller
                 'status' => false,
                 'message' => 'No data found.',
                 'data' => []
+            ]);
+        }
+    }
+    public function show($slug){
+        $model = $this->model->where('slug', $slug)->first();
+
+        if($model){
+            return response()->json([
+                'status'=>true,
+                'message'=>'Data found successfully.',
+                'data' => new $this->brandResource($model)
+            ]);
+        }else{
+            return response()->json([
+                'status'=>false,
+                'message'=>'Data not found.',    
+                'data'=>null
             ]);
         }
     }

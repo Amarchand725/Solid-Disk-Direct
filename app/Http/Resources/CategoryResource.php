@@ -22,6 +22,7 @@ class CategoryResource extends JsonResource
             "description" => $this->description ?? '',
             "is_featured" => $this->is_featured ?? '',
             'children' => self::collection($this->whenLoaded('children')),
+            'products' => isset($this->products) ? ProductResource::collection($this->products) : '',
         ]; 
     }
 }

@@ -9,6 +9,10 @@
   "basePath": "/api",
   "tags": [
     {
+      "name": "Business info",
+      "description": "All Business info Operations"
+    },
+    {
       "name": "Customer",
       "description": "All Customer Operations"
     },
@@ -70,6 +74,23 @@
     }
   ],
   "paths": {
+    "/business-info": {
+      "get": {
+        "tags": [
+          "Business info"
+        ],
+        "summary": "Business Info",
+        "operationId": "business-info",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
     "/customer/login": {
       "post": {
         "tags": [
@@ -380,6 +401,62 @@
         }
       }
     },
+    "/products/best-selling": {
+      "get": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Get Best Selling Products",
+        "operationId": "best-selling",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/products/top-rated": {
+      "get": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Get Top Rated Products",
+        "operationId": "top-rated",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/products/search": {
+      "get": {
+        "tags": ["Product"],
+        "summary": "Search Products",
+        "operationId": "searchProducts",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "description": "Keyword to search for products",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful product search"
+          }
+        }
+      }
+    },
     "/brands": {
       "get": {
         "tags": [
@@ -389,6 +466,32 @@
         "operationId": "brand",
         "produces": [
           "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/brands/show/{slug}": {
+      "get": {
+        "tags": [
+          "Brand"
+        ],
+        "summary": "Get Brands",
+        "operationId": "show-brand",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "Enter slug",
+            "required": true,
+            "type": "string"
+          }
         ],
         "responses": {
           "200": {
@@ -440,6 +543,32 @@
         "operationId": "category",
         "produces": [
           "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/categories/show/{slug}": {
+      "get": {
+        "tags": [
+          "Category"
+        ],
+        "summary": "Get categories",
+        "operationId": "show-categories",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "Enter slug",
+            "required": true,
+            "type": "string"
+          }
         ],
         "responses": {
           "200": {
