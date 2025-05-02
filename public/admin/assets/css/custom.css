@@ -47,3 +47,29 @@
     right: 0;
     transform: translate(50%, -50%);
 }
+
+.sidebar-progress-bar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 4px;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.05);
+    z-index: 10;
+  }
+  
+  .sidebar-progress {
+    width: 100%;
+    height: 0%;
+    background-color: #7367f0;
+    transition: height 0.2s ease;
+  }  
+  .scroll-container {
+    overflow-y: auto;
+    max-height: calc(100vh - 64px); /* Adjust to your layout */
+    padding-right: 8px; /* optional for scrollbar spacing */
+  }
+  #layout-menu {
+    position: relative;
+  }
+    
