@@ -61,11 +61,6 @@ class TagController extends Controller
         $routeInitialize = $this->routePrefix;
         $bladePath = $this->pathInitialize;
 
-        // $models = $this->model->latest()
-        //     ->where('status', 1)
-        //     ->with('createdBy:id,name')
-        //     ->select(['id', 'title', 'status', 'created_at', 'created_by']);
-
         // Get column definitions dynamically
         $getFields = getFields($this->model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'index');
         
@@ -85,7 +80,6 @@ class TagController extends Controller
         array_unshift($selectedColumns, 'id');
         
         $models = $this->model->latest()
-            ->where('status', 1)
             ->with('createdBy:id,name')
             ->select($selectedColumns);
         //select columns
@@ -285,17 +279,29 @@ class TagController extends Controller
         $routeInitialize = $this->routePrefix;
         $bladePath = $this->pathInitialize;
         $title = 'All Trashed '.Str::plural($singularLabel);
-        
-        $models = [];
-        $this->model->onlyTrashed()->latest()
-            ->chunk(100, function ($modelData) use (&$models) {
-                foreach ($modelData as $modelItem) {
-                    $models[] = $modelItem;
-                }
-        });
 
         // Get column definitions dynamically
         $getFields = getFields($this->model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'index');
+
+        //select columns
+        $selectedColumns = collect($getFields)
+        ->mapWithKeys(function ($config, $key) {
+            return [$key => $config['index']];
+        })
+        ->keys()
+        ->filter(function ($key) {
+            return $key !== 'action'; // Remove 'action'
+        })
+        ->values() // Reindex the array
+        ->toArray();
+    
+        // Optionally prepend 'id'
+        array_unshift($selectedColumns, 'id');
+        
+        $models = $this->model->onlyTrashed()->latest()
+            ->with('createdBy:id,name')
+            ->select($selectedColumns);
+        //select columns
 
         // Step 2: Check if current route is trashed
         if (Route::currentRouteName() === $routeInitialize.'.trashed') {
@@ -369,5 +375,16 @@ class TagController extends Controller
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()]);
         }
+    }
+
+    public function search(Request $request)
+    {
+        $query = $request->input('q');  // The search query
+        $tags = $this->model->where('name', 'like', "%$query%")  // Filter tags by name
+            ->select('id', 'name')  // Only select id and name
+            ->limit(20)  // Limit the number of results
+            ->get();
+        
+        return response()->json($tags);  // Return as JSON
     }
 }

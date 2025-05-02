@@ -55,18 +55,10 @@ class PermissionController extends Controller
         $routeInitialize = $this->routePrefix;
         $bladePath = $this->pathInitialize;
 
-        // $models = [];
-        // $this->model->groupBy('label')
-        //     ->latest()
-        //     ->chunk(100, function ($permissions) use (&$models) {
-        //         foreach ($permissions as $permission) {
-        //             $models[] = $permission;
-        //         }
-        // });
-
         $models = $this->model->groupBy('label')
                     ->latest()
-                    ->select(['id', 'label']);
+                    ->select(['id', 'label'])
+                    ->get();
 
         // Define the columns dynamically
         $columns = [

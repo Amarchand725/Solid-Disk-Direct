@@ -147,7 +147,6 @@
 @endsection
 @push('js')
 <script>
-    //datatable
     $(document).ready(function(){
         var page_url = $('#page_url').val();
         var columns =     {!! json_encode($columnsConfig) !!}  // Get columns dynamically from controller

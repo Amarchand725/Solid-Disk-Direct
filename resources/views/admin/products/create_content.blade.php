@@ -60,15 +60,8 @@
                                 </option>
                             @endforeach
                         </select>
-                        {{-- @elseif($name=='tags' && isset($tags) && !empty($tags))
-                        <select id="{{ $name }}" name="{{ $name }}[]" multiple class="form-control">
-                            <option value="" selected>Select {{ $name }}</option>
-                            @foreach($tags as $tag) 
-                                <option value="{{ $tag->id }}">
-                                    {{ $tag->name }}
-                                </option>
-                            @endforeach
-                        </select> --}}
+                    @elseif($name=='tags' && isset($tags) && !empty($tags))
+                        <select id="tags" name="tags[]" multiple class="form-control tags"></select>
                     @else
                         <select id="{{ $name }}" name="{{ $name }}" class="form-control">
                             @foreach($field['options'] ?? [] as $key => $option)  <!-- Safely handle 'options' -->

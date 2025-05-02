@@ -15,7 +15,6 @@ class ProductResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // return parent::toArray($request);
         return [
             "thumbnail" => $this->thumbnail ? asset(Storage::url($this->thumbnail))  : '',
             "title"  => $this->title ?? '',

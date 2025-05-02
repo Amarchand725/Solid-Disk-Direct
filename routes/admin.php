@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\{
     AdminController,
     AttributeController,
     BannerController,
+    BlogController,
     BrandController,
     CategoryController,
     ColorController,
@@ -21,15 +22,21 @@ use App\Http\Controllers\Admin\{
     PaymentModeController,
     PaymentTypeController,
     PermissionController,
+    PrivacyPolicyController,
     ProductConditionController,
     ProductController,
     QuestionAnswerController,
+    QuoteRequestController,
+    RecentViewProductController,
+    ReturnPolicyController,
     RoleController,
     SettingController,
     ShippingMethodController,
+    SliderController,
     SubscriberController,
     TagController,
     TaxTypeController,
+    TermAndConditionController,
     TestimonialController,
     UnitController
 };
@@ -68,8 +75,8 @@ Route::controller(AdminController::class)->group(function () {
     Route::get('/api_docs', 'apiDocs')->name('api_docs.index');
 });
 
-Route::middleware('auth')->group(function () {    
-    Route::controller(AdminController::class)->group(function () {
+Route::middleware('auth')->group(function () {
+Route::controller(AdminController::class)->group(function () {
         Route::get('/dashboard', 'dashboard')->name('dashboard');
         Route::get('/logout', 'logOut')->name('user.logout');
     });
@@ -140,6 +147,7 @@ Route::middleware('auth')->group(function () {
         Route::get('tags/restore/{id}', 'restore')->name('tags.restore');
         Route::get('tags/import/create', 'importCreate')->name('tags.import.create');
         Route::post('tags/import/store', 'importStore')->name('tags.import.store');
+        Route::get('tags/search', 'search')->name('tags.search');
     });
     Route::controller(PaymentMethodController::class)->group(function () {
         Route::get('payment_methods/trashed', 'trashed')->name('payment_methods.trashed');
@@ -188,6 +196,34 @@ Route::middleware('auth')->group(function () {
         Route::get('testimonials/restore/{id}', 'restore')->name('testimonials.restore');
         Route::delete('testimonials/forceDelete/{id}', 'forceDelete')->name('testimonials.forceDelete');
     });
+    Route::controller(RecentViewProductController::class)->group(function () {
+        Route::get('recent_view_products/trashed', 'trashed')->name('recent_view_products.trashed');
+        Route::get('recent_view_products/restore/{id}', 'restore')->name('recent_view_products.restore');
+    });
+    Route::controller(SliderController::class)->group(function () {
+        Route::get('sliders/trashed', 'trashed')->name('sliders.trashed');
+        Route::get('sliders/restore/{id}', 'restore')->name('sliders.restore');
+    });
+    Route::prefix('blogs')->controller(BlogController::class)->group(function () {
+        Route::get('trashed', 'trashed')->name('blogs.trashed');
+        Route::get('restore/{id}', 'restore')->name('blogs.restore');
+    });    
+    Route::prefix('privacy_policies')->controller(PrivacyPolicyController::class)->group(function () {
+        Route::get('trashed', 'trashed')->name('privacy_policies.trashed');
+        Route::get('restore/{id}', 'restore')->name('privacy_policies.restore');
+    });    
+    Route::prefix('return_policies')->controller(ReturnPolicyController::class)->group(function () {
+        Route::get('trashed', 'trashed')->name('return_policies.trashed');
+        Route::get('restore/{id}', 'restore')->name('return_policies.restore');
+    });    
+    Route::prefix('term_and_conditions')->controller(TermAndConditionController::class)->group(function () {
+        Route::get('trashed', 'trashed')->name('term_and_conditions.trashed');
+        Route::get('restore/{id}', 'restore')->name('term_and_conditions.restore');
+    });    
+    Route::prefix('quote_requests')->controller(QuoteRequestController::class)->group(function () {
+        Route::get('trashed', 'trashed')->name('quote_requests.trashed');
+        Route::get('restore/{id}', 'restore')->name('quote_requests.restore');
+    });    
 
     //Resource Routes.
     Route::resource('/roles', RoleController::class);
@@ -216,4 +252,11 @@ Route::middleware('auth')->group(function () {
     Route::resource('subscribers', SubscriberController::class);
     Route::resource('customers', CustomerController::class);
     Route::resource('testimonials', TestimonialController::class);
+    Route::resource('recent_view_products', RecentViewProductController::class);
+    Route::resource('sliders', SliderController::class);
+    Route::resource('blogs', BlogController::class);
+    Route::resource('privacy_policies', PrivacyPolicyController::class);
+    Route::resource('return_policies', ReturnPolicyController::class);
+    Route::resource('term_and_conditions', TermAndConditionController::class);
+    Route::resource('quote_requests', QuoteRequestController::class);
 });

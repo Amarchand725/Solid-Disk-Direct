@@ -15,6 +15,58 @@
     {
       "name": "Subscriber",
       "description": "All Subscriber Operations"
+    },
+    {
+      "name": "Product",
+      "description": "All Product Operations"
+    },
+    {
+      "name": "Brand",
+      "description": "All Brand Operations"
+    },
+    {
+      "name": "Banner",
+      "description": "All Banner Operations"
+    },
+    {
+      "name": "Category",
+      "description": "All Category Operations"
+    },
+    {
+      "name": "Slider",
+      "description": "All Slider Operations"
+    },
+    {
+      "name": "Blog",
+      "description": "All Blog Operations"
+    },
+    {
+      "name": "Shipping Method",
+      "description": "All Shipping Method Operations"
+    },
+    {
+      "name": "Question Answer",
+      "description": "All Question Answer Operations"
+    },
+    {
+      "name": "Payment Method",
+      "description": "All Payment Method Operations"
+    },
+    {
+      "name": "Privacy Policy",
+      "description": "All Privacy Policy Operations"
+    },
+    {
+      "name": "Return Policy",
+      "description": "All Return Policy Operations"
+    },
+    {
+      "name": "Term and Condition",
+      "description": "All Term and Condition Operations"
+    },
+    {
+      "name": "Quote Request",
+      "description": "All Quote Request Operations"
     }
   ],
   "paths": {
@@ -240,6 +292,398 @@
             "name": "email",
             "in": "formData",
             "description": "Enter Email",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Get Products",
+        "operationId": "products",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/products/show/{slug}": {
+      "get": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Get products",
+        "operationId": "show-products",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "Enter slug",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/products/featured": {
+      "get": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Get Featured Products",
+        "operationId": "featured-products",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/products/recent-viewed": {
+      "get": {
+        "tags": [
+          "Product"
+        ],
+        "summary": "Get Recent Viewed Products",
+        "operationId": "recent-viewed-products",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/brands": {
+      "get": {
+        "tags": [
+          "Brand"
+        ],
+        "summary": "Get Brands",
+        "operationId": "brand",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/brands/featured": {
+      "get": {
+        "tags": [
+          "Brand"
+        ],
+        "summary": "Get Featured Brands",
+        "operationId": "featured-brand",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/banners": {
+      "get": {
+        "tags": [
+          "Banner"
+        ],
+        "summary": "Get Banners",
+        "operationId": "banner",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/categories": {
+      "get": {
+        "tags": [
+          "Category"
+        ],
+        "summary": "Get Categories",
+        "operationId": "category",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/categories/featured": {
+      "get": {
+        "tags": [
+          "Category"
+        ],
+        "summary": "Get Featured Categories",
+        "operationId": "featured-category",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/sliders": {
+      "get": {
+        "tags": [
+          "Slider"
+        ],
+        "summary": "Get sliders",
+        "operationId": "slider",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/blogs": {
+      "get": {
+        "tags": [
+          "Blog"
+        ],
+        "summary": "Get blogs",
+        "operationId": "blogs",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/blogs/show/{slug}": {
+      "get": {
+        "tags": [
+          "Blog"
+        ],
+        "summary": "Get blogs",
+        "operationId": "show-blogs",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "Enter slug",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/shipping_methods": {
+      "get": {
+        "tags": [
+          "Shipping Method"
+        ],
+        "summary": "Get Shipping Methods",
+        "operationId": "shipping-method",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/question_answers": {
+      "get": {
+        "tags": [
+          "Question Answer"
+        ],
+        "summary": "Get Question Answers",
+        "operationId": "question-answer",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/payment_methods": {
+      "get": {
+        "tags": [
+          "Payment Method"
+        ],
+        "summary": "Get Payment Methods",
+        "operationId": "payment-method",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/privacy_policies": {
+      "get": {
+        "tags": [
+          "Privacy Policy"
+        ],
+        "summary": "Get Privacy Policies",
+        "operationId": "privacy-policy",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/return_policies": {
+      "get": {
+        "tags": [
+          "Return Policy"
+        ],
+        "summary": "Get Return Policies",
+        "operationId": "return-policy",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/term_and_conditions": {
+      "get": {
+        "tags": [
+          "Term and Condition"
+        ],
+        "summary": "Get Term And Conditions",
+        "operationId": "term-and-condition",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/quote_requests/store": {
+      "post": {
+        "tags": [
+          "Quote Request"
+        ],
+        "summary": "Quote Request",
+        "operationId": "register",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "full_name",
+            "in": "formData",
+            "description": "Enter Full Name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "company",
+            "in": "formData",
+            "description": "Enter company",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "mpn",
+            "in": "formData",
+            "description": "Enter mpn",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "email",
+            "in": "formData",
+            "description": "Enter email",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "phone_number",
+            "in": "formData",
+            "description": "Enter phone_number",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "how_soon_need",
+            "in": "formData",
+            "description": "Enter how_soon_need",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "message",
+            "in": "formData",
+            "description": "Enter message",
             "required": true,
             "type": "string"
           }

@@ -31,8 +31,8 @@ class SubscriberController extends Controller
         $this->model = $model; 
         $this->routePrefix = Str::before(Route::currentRouteName(), '.');
         $this->pathInitialize = 'admin.'.$this->routePrefix;
-        // $this->singularLabel = Str::ucfirst(Str::singular($this->routePrefix));
-        // $this->pluralLabel = 'All '.Str::ucfirst($this->routePrefix);
+        $this->singularLabel = Str::ucfirst(Str::singular($this->routePrefix));
+        $this->pluralLabel = 'All '.Str::ucfirst($this->routePrefix);
         $this->singularLabel = Str::title(str_replace('_', ' ', Str::singular($this->routePrefix)));        
         $this->pluralLabel = 'All '.Str::title(str_replace('_', ' ', $this->routePrefix));
 
@@ -59,14 +59,6 @@ class SubscriberController extends Controller
         $singularLabel = $this->singularLabel;
         $routeInitialize = $this->routePrefix;
         $bladePath = $this->pathInitialize;
-
-        // $models = [];
-        // $this->model->latest()
-        //     ->chunk(100, function ($modelData) use (&$models) {
-        //         foreach ($modelData as $modelItem) {
-        //             $models[] = $modelItem;
-        //         }
-        // });
 
         // Get column definitions dynamically
         $getFields = getFields($this->model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'index');
@@ -302,17 +294,28 @@ class SubscriberController extends Controller
         $routeInitialize = $this->routePrefix;
         $bladePath = $this->pathInitialize;
         $title = 'All Trashed '.Str::plural($singularLabel);
-        
-        $models = [];
-        $this->model->onlyTrashed()->latest()
-            ->chunk(100, function ($modelData) use (&$models) {
-                foreach ($modelData as $modelItem) {
-                    $models[] = $modelItem;
-                }
-        });
 
         // Get column definitions dynamically
         $getFields = getFields($this->model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'index');
+
+        //select columns
+        $selectedColumns = collect($getFields)
+        ->mapWithKeys(function ($config, $key) {
+            return [$key => $config['index']];
+        })
+        ->keys()
+        ->filter(function ($key) {
+            return $key !== 'action'; // Remove 'action'
+        })
+        ->values() // Reindex the array
+        ->toArray();
+    
+        // Optionally prepend 'id'
+        array_unshift($selectedColumns, 'id');
+        
+        $models = $this->model->onlyTrashed()->latest()
+            ->select($selectedColumns);
+        //select columns
 
         // Step 2: Check if current route is trashed
         if (Route::currentRouteName() === $routeInitialize.'.trashed') {

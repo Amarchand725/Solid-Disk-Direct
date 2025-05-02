@@ -3,11 +3,23 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\{
+    BrandController,
     SettingController,
     ProductController,
     SubscriberController,
     TestimonialController,
-    CustomerController
+    CustomerController,
+    BannerController,
+    BlogController,
+    CategoryController,
+    SliderController,
+    ShippingMethodController,
+    QuestionAnswerController,
+    PaymentMethodController,
+    PrivacyPolicyController,
+    ReturnPolicyController,
+    TermAndConditionController,
+    QuoteRequestController
 };
 
 /*
@@ -31,7 +43,9 @@ Route::controller(SettingController::class)->group(function () {
 
 Route::controller(ProductController::class)->group(function () {
     Route::get('products', 'index')->name('products');
-    Route::get('products/{slug}', 'show')->name('products.show');
+    Route::get('products/featured', 'featured')->name('products.featured');
+    Route::get('products/recent-viewed', 'recentViewed')->name('products.recent-viewed');
+    Route::get('products/show/{slug}', 'show')->name('products.show');
 });
 Route::controller(TestimonialController::class)->group(function () {
     Route::get('testimonials', 'index')->name('testimonials');
@@ -44,6 +58,45 @@ Route::controller(SubscriberController::class)->group(function () {
 Route::controller(CustomerController::class)->group(function () {
     Route::post('customer/register', 'store');
     Route::post('customer/login', 'login');
+});
+Route::controller(BrandController::class)->group(function () {
+    Route::get('brands', 'index');
+    Route::get('brands/featured', 'featured');
+});
+Route::controller(BannerController::class)->group(function () {
+    Route::get('banners', 'index');
+});
+Route::controller(CategoryController::class)->group(function () {
+    Route::get('categories', 'index');
+    Route::get('categories/featured', 'featured');
+});
+Route::controller(SliderController::class)->group(function () {
+    Route::get('sliders', 'index');
+});
+Route::controller(BlogController::class)->group(function () {
+    Route::get('blogs', 'index');
+    Route::get('blogs/show/{slug}', 'show');
+});
+Route::controller(ShippingMethodController::class)->group(function () {
+    Route::get('shipping_methods', 'index');
+});
+Route::controller(QuestionAnswerController::class)->group(function () {
+    Route::get('question_answers', 'index');
+});
+Route::controller(PaymentMethodController::class)->group(function () {
+    Route::get('payment_methods', 'index');
+});
+Route::controller(PrivacyPolicyController::class)->group(function () {
+    Route::get('privacy_policies', 'index');
+});
+Route::controller(ReturnPolicyController::class)->group(function () {
+    Route::get('return_policies', 'index');
+});
+Route::controller(TermAndConditionController::class)->group(function () {
+    Route::get('term_and_conditions', 'index');
+});
+Route::controller(QuoteRequestController::class)->group(function () {
+    Route::post('quote_requests/store', 'store');
 });
 
 Route::middleware('auth:customer')->group(function () {
