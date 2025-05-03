@@ -38,7 +38,8 @@ use App\Http\Controllers\Admin\{
     TaxTypeController,
     TestimonialController,
     UnitController,
-    WishlistController
+    WishlistController,
+    UserController
 };
 
 /*
@@ -224,6 +225,10 @@ Route::controller(AdminController::class)->group(function () {
         Route::get('trashed', 'trashed')->name('wishlists.trashed');
         Route::get('restore/{id}', 'restore')->name('wishlists.restore');
     });  
+    Route::prefix('users')->controller(UserController::class)->group(function () {
+        Route::get('trashed', 'trashed')->name('users.trashed');
+        Route::get('restore/{id}', 'restore')->name('users.restore');
+    });  
 
     //Resource Routes.
     Route::resource('roles', RoleController::class);
@@ -259,4 +264,5 @@ Route::controller(AdminController::class)->group(function () {
     Route::resource('policies', PolicyController::class);
     Route::resource('contact_messages', ContactMessageController::class);
     Route::resource('wishlists', WishlistController::class);
+    Route::resource('users', UserController::class);
 });

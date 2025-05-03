@@ -37,12 +37,14 @@
             <div>Dashboards</div>
         </a>
       </li>
-      @canany(['roles-list', 'permissions-list', 'menus-list', 'api_docs-list'])
+      @canany(['roles-list', 'permissions-list', 'menus-list', 'api_docs-list', 'users-list'])
         <li class="menu-header small text-uppercase">
           <span class="menu-header-text">Settings</span>
         </li>
         <li class="menu-item
             {{
+                request()->is('users') ||
+                request()->is('users/*') ||
                 request()->is('menus') ||
                 request()->is('menus/*') ||
                 request()->is('roles') ||
@@ -57,6 +59,13 @@
               <div data-i18n="Roles & Permissions">Roles & Permissions</div>
             </a>
             <ul class="menu-sub">
+                @can('users-list')
+                <li class="menu-item {{ request()->is('users') ?'active':'' }}">
+                  <a href="{{ route('users.index') }}" class="menu-link"  >
+                      <div>All Users</div>
+                  </a>
+                </li>
+                @endcan
                 @can('api_docs-list')
                 <li class="menu-item {{ request()->is('api_docs') ?'active':'' }}">
                   <a href="{{ route('api_docs.index') }}" class="menu-link" target="blank">

@@ -37,12 +37,14 @@
             <div>Dashboards</div>
         </a>
       </li>
-      <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->any(['roles-list', 'permissions-list', 'menus-list', 'api_docs-list'])): ?>
+      <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->any(['roles-list', 'permissions-list', 'menus-list', 'api_docs-list', 'users-list'])): ?>
         <li class="menu-header small text-uppercase">
           <span class="menu-header-text">Settings</span>
         </li>
         <li class="menu-item
-            <?php echo e(request()->is('menus') ||
+            <?php echo e(request()->is('users') ||
+                request()->is('users/*') ||
+                request()->is('menus') ||
                 request()->is('menus/*') ||
                 request()->is('roles') ||
                 request()->is('roles/*') ||
@@ -56,6 +58,13 @@
               <div data-i18n="Roles & Permissions">Roles & Permissions</div>
             </a>
             <ul class="menu-sub">
+                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('users-list')): ?>
+                <li class="menu-item <?php echo e(request()->is('users') ?'active':''); ?>">
+                  <a href="<?php echo e(route('users.index')); ?>" class="menu-link"  >
+                      <div>All Users</div>
+                  </a>
+                </li>
+                <?php endif; ?>
                 <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('api_docs-list')): ?>
                 <li class="menu-item <?php echo e(request()->is('api_docs') ?'active':''); ?>">
                   <a href="<?php echo e(route('api_docs.index')); ?>" class="menu-link" target="blank">
@@ -159,19 +168,18 @@
     }
   });
   // Prevent page scroll when scrolling inside sidebar
-scrollArea.addEventListener("wheel", function (e) {
-  const delta = e.deltaY;
-  const up = delta < 0;
-  const down = delta > 0;
+  scrollArea.addEventListener("wheel", function (e) {
+    const delta = e.deltaY;
+    const up = delta < 0;
+    const down = delta > 0;
 
-  const atTop = scrollArea.scrollTop === 0;
-  const atBottom = scrollArea.scrollTop + scrollArea.clientHeight >= scrollArea.scrollHeight;
+    const atTop = scrollArea.scrollTop === 0;
+    const atBottom = scrollArea.scrollTop + scrollArea.clientHeight >= scrollArea.scrollHeight;
 
-  if ((up && !atTop) || (down && !atBottom)) {
-    e.preventDefault();
-    scrollArea.scrollTop += delta;
-  }
-}, { passive: false });
-
+    if ((up && !atTop) || (down && !atBottom)) {
+      e.preventDefault();
+      scrollArea.scrollTop += delta;
+    }
+  }, { passive: false });
 </script>
 <?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/components/side-bar-menu.blade.php ENDPATH**/ ?>
