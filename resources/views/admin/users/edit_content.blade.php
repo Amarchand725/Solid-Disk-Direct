@@ -15,14 +15,12 @@
 
             </label>
 
-            @if(isset($field['type']) && $field['type'] === 'select')
-                @if($name=='parent_id')
+            @if(isset($field['type']) && $field['type'] === 'select' || $name=='role')
+                @if($name=='role')
                     <select id="{{ $name }}" name="{{ $name }}" class="form-control">
-                        <option value="" selected>Select parent category</option>
-                        @foreach($parent_categories as $key => $parent_category)
-                            <option value="{{ $parent_category->id }}">
-                                {{ $parent_category->name }}
-                            </option>
+                        <option value="" selected>Select Role</option>
+                        @foreach ($roles as $role)
+                            <option value="{{ $role->name }}" {{ $model->getRoleNames()->first()==$role->name?'selected':'' }}>{{ $role->name }}</option>                            
                         @endforeach
                     </select>
                 @else
@@ -42,11 +40,11 @@
                     id="file-uploader" 
                     name="{{ $name }}" 
                     accept="{{ isset($field['accept']) ? $field['accept'] : '' }}"
-                    class="form-control" 
+                    class="form-control uploader" 
                     autofocus
                 />
 
-                <span id="preview">
+                <span id="preview-{{ $name }}">
                     @if(!empty($field['value']))
                         <img src="{{ asset('storage/' . $field['value']) }}" style="width:60px; height:50px" alt="Avatar" class="img-avatar zoomable">
                     @endif

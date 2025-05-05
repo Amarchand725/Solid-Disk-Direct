@@ -8,14 +8,23 @@
                 @endif
             </label>
 
-            @if(isset($field['type']) && $field['type'] === 'select')
-                <select id="{{ $name }}" name="{{ $name }}" class="form-control">
-                    @foreach($field['options'] ?? [] as $key => $option)  <!-- Safely handle 'options' -->
-                        <option value="{{ $key }}" {{ old($name, $field['value']) == $key ? 'selected' : '' }}>
-                            {{ $option }}
-                        </option>
-                    @endforeach
-                </select>
+            @if(isset($field['type']) && $field['type'] === 'select' || $name=='role')
+                @if($name=='role')
+                    <select id="{{ $name }}" name="{{ $name }}" class="form-control">
+                        <option value="" selected>Select Role</option>
+                        @foreach ($roles as $role)
+                            <option value="{{ $role->name }}">{{ $role->name }}</option>                            
+                        @endforeach
+                    </select>
+                @else
+                    <select id="{{ $name }}" name="{{ $name }}" class="form-control">
+                        @foreach($field['options'] ?? [] as $key => $option)  <!-- Safely handle 'options' -->
+                            <option value="{{ $key }}" {{ old($name, $field['value']) == $key ? 'selected' : '' }}>
+                                {{ $option }}
+                            </option>
+                        @endforeach
+                    </select>
+                @endif
             @elseif(isset($field['type']) && $field['type'] === 'textarea')
                 <textarea id="{{ $name }}" name="{{ $name }}" class="form-control" placeholder="{{ $field['placeholder'] ?? '' }}">{{ old($name, $field['value'] ?? '') }}</textarea>
             @elseif(isset($field['type']) && $field['type'] === 'file')
@@ -24,13 +33,13 @@
                     id="file-uploader" 
                     name="{{ $name }}" 
                     accept="{{ isset($field['accept']) ? $field['accept'] : '' }}" 
-                    class="form-control" 
+                    class="form-control uploader" 
                     placeholder="{{ $field['placeholder'] ?? '' }}" 
                     value="{{ old($name, $field['value'] ?? '') }}" 
                     autofocus
                 />
 
-                <span id="preview">
+                <span id="preview-{{ $name }}">
                     @if(!empty($field['value']))
                         <img src="{{ asset('storage/' . $field['value']) }}" style="width:60px; height:50px" alt="Avatar" class="img-avatar zoomable">
                     @endif

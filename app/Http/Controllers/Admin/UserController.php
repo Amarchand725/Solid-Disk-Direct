@@ -10,7 +10,9 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Traits\DataTableTrait;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Role;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 
 class UserController extends Controller
@@ -18,6 +20,7 @@ class UserController extends Controller
     use DataTableTrait;
     
     protected $model;
+    protected $roleModel;
     protected $routePrefix;
     protected $pathInitialize;
     protected $singularLabel;
@@ -26,7 +29,10 @@ class UserController extends Controller
 
     public function __construct(User $model)
     {
+        parent::__construct();
+        
         $this->model = $model; 
+        $this->roleModel = new Role();
         $this->routePrefix = Str::before(Route::currentRouteName(), '.');
         $this->pathInitialize = 'admin.'.$this->routePrefix;
         $this->singularLabel = Str::ucfirst(Str::singular($this->routePrefix));
@@ -62,34 +68,41 @@ class UserController extends Controller
         $columns = DB::connection()->getDoctrineSchemaManager()->listTableColumns($table);
         
         $fieldArray = [];
-    
+
         foreach ($columns as $columnName => $column) {
             // Skip common fields
-            if (in_array($columnName, ['id', 'status', 'created_at', 'password', 'is_employee', 'email_verified_at', 'remember_token', 'action', 'deleted_at', 'updated_at'])) {
+            if (in_array($columnName, ['id', 'status', 'created_at', 'password', 'is_employee', 'email_verified_at', 'created_by', 'remember_token', 'action', 'deleted_at', 'updated_at'])) {
                 continue;
             }
-    
-            // Get the type of each column (e.g., string, integer, etc.)
-            // $type = Schema::getColumnType($table, $column);
+        
             $type = $column->getType()->getName();
-            
-            // Build the dynamic field configuration
+        
+            // Default field type
+            $fieldType = $type === 'boolean' ? 'select' : 'text';
+        
+            // Set type to 'file' if column name matches a known upload field
+            if (in_array($columnName, ['profile', 'image', 'document', 'avatar', 'file'])) {
+                $fieldType = 'file';
+            }
+        
             $fieldArray[$columnName] = [
-                'type' => $type == 'text' ? 'text' : ($type == 'boolean' ? 'select' : 'text'), // Default 'text' or 'select' for boolean
-                'label' => ucfirst(str_replace('_', ' ', $columnName)), // Use column name as label (capitalize words and replace underscores)
-                'placeholder' => "Enter $columnName", // Placeholder text
-                'required' => in_array($columnName, ['title', 'status']), // Example: Mark some fields as required
-                'value' => fn($model) => $model->{$columnName} ?? '', // Get the value from the model
-                'index' => fn($model) => $model->{$columnName} ?? '-', // Index view value
-                'index_visible' => true, // You can dynamically set visibility rules
+                'type' => $fieldType,
+                'label' => ucfirst(str_replace('_', ' ', $columnName)),
+                'placeholder' => "Enter $columnName",
+                'required' => in_array($columnName, ['title', 'status']),
+                'value' => fn($model) => $model->{$columnName} ?? '',
+                'index' => fn($model) => $fieldType === 'file'
+                    ? ($model->{$columnName} ? '<a href="' . asset('storage/' . $model->{$columnName}) . '" target="_blank">View</a>' : '-')
+                    : ($model->{$columnName} ?? '-'),
+                'index_visible' => true,
                 'create_visible' => true,
                 'edit_visible' => true,
                 'show_visible' => true,
             ];
-
-            // Specifically handle the 'description' field
+        
+            // Hide specific fields in index if needed
             if ($columnName == 'fields') {
-                $fieldArray[$columnName]['index_visible'] = false; // Hide description in index view
+                $fieldArray[$columnName]['index_visible'] = false;
             }
         }
     
@@ -98,6 +111,17 @@ class UserController extends Controller
     public function getCommonFields($model) {
         // Common fields data (status, created_at, created_by, action)
         return [
+            'role' => [
+                'type' => 'select',
+                'label' => 'Role',
+                'required' => false,
+                'value' => fn($model) => optional($model->getRoleNames())->first() ?? '-',
+                'index' => fn($model) => optional($model->getRoleNames())->first() ?? '-',
+                'index_visible' => true,
+                'create_visible' => true,  // Hide in create form
+                'edit_visible' => true,    // Hide in edit form
+                'show_visible' => true,
+            ],
             'status' => [
                 'type' => 'select',
                 'label' => 'Status',
@@ -114,17 +138,6 @@ class UserController extends Controller
                 'edit_visible' => true,
                 'show_visible' => true,
             ],
-            'created_at' => [
-                'type' => 'datetime',
-                'label' => 'Created At',
-                'required' => false,
-                'value' => fn($model) => Carbon::parse($model->created_at)->format('d, M Y | H:i A') ?? '',
-                'index' => fn($model) => Carbon::parse($model->created_at)->format('d, M Y'),
-                'index_visible' => true,
-                'create_visible' => false,  // Hide in create form
-                'edit_visible' => false,    // Hide in edit form
-                'show_visible' => true,
-            ],
             // 'created_by' => [
             //     'type' => 'text',
             //     'label' => 'Created By',
@@ -136,6 +149,17 @@ class UserController extends Controller
             //     'edit_visible' => false,    // Hide in edit form
             //     'show_visible' => true,
             // ],
+            'created_at' => [
+                'type' => 'datetime',
+                'label' => 'Created At',
+                'required' => false,
+                'value' => fn($model) => Carbon::parse($model->created_at)->format('d, M Y | H:i A') ?? '',
+                'index' => fn($model) => Carbon::parse($model->created_at)->format('d, M Y'),
+                'index_visible' => true,
+                'create_visible' => false,  // Hide in create form
+                'edit_visible' => false,    // Hide in edit form
+                'show_visible' => true,
+            ],
             'action' => [
                 'index' => fn($model) => view($this->pathInitialize . '.action', [
                     'model' => $model,
@@ -157,6 +181,7 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
+        // return $this->getFieldsAndColumns();
         $title = $this->pluralLabel;
         $singularLabel = $this->singularLabel;
         $routeInitialize = $this->routePrefix;
@@ -164,11 +189,32 @@ class UserController extends Controller
 
         // $models = [];
         $models = $this->model->latest()
-            ->select('id', 'is_employee', 'name', 'email', 'status');
+            ->with('createdBy:id,name')
+            ->select('id', 'is_employee', 'profile', 'name', 'email', 'phone', 'status');
         
         // Get column definitions dynamically
-        $getFields = getFields($this->model, $this->getFieldsAndColumns(), 'index');
+       $getFields = getFields($this->model, $this->getFieldsAndColumns(), 'index');
         
+        // Insert 'role' after 'name'
+        if (isset($getFields['role'])) {
+            $roleDefinition = $getFields['role'];
+            unset($getFields['role']);
+
+            // Rebuild the array with 'role' in the desired position
+            $reorderedFields = [];
+
+            foreach ($getFields as $key => $value) {
+                $reorderedFields[$key] = $value;
+
+                if ($key === 'name') {
+                    // Inject 'role' right after 'name'
+                    $reorderedFields['role'] = $roleDefinition;
+                }
+            }
+
+            $getFields = $reorderedFields;
+        }
+
         $columns = collect($getFields)->mapWithKeys(function ($config, $key) {
             return [$key => $config['index']];
         })->toArray();  // Convert Collection to Array
@@ -190,6 +236,7 @@ class UserController extends Controller
     }
     public function create(){
         $bladePath = $this->pathInitialize;
+        $roles = $this->roleModel->where('status', 1)->get();
         $model = $this->model;
         $fields = getFields($this->model, $this->getFieldsAndColumns(), 'create');
         return (string) view($bladePath.'.create_content', get_defined_vars());
@@ -219,16 +266,18 @@ class UserController extends Controller
             
             // Step 3: Dynamically assign fields
             foreach ($fields as $field => $config) {
-                if($field != 'created_at' && $field != 'action'){
-                    if($field=='created_by'){
-                        $saved->$field = auth()->id() ?? null;
-                    }elseif($field=='fields'){
-                        $types = $request->types;
-                        $inputTypes = $request->input_types;
-
-                        $saved->$field = mergeFieldInputTypes($validated[$field], $types, $inputTypes);
-                    }else{
-                        $saved->$field = $validated[$field] ?? null;
+                if($field != 'created_at' && $field != 'action' && $field != 'role'){
+                    if (isset($config['type']) && $config['type'] === 'file' && $request->hasFile($field)) {
+                        $uploadPath = Str::plural(Str::lower($this->singularLabel));
+                        $saved->$field = $request->file($field)->store('uploads/'.$uploadPath, 'public');
+                    } else {
+                        if($field=='created_by'){
+                            $saved->$field = auth()->id() ?? null;
+                        }elseif($field=='status'){
+                            $saved->$field = $validated[$field] ?? 1;
+                        }else{
+                            $saved->$field = $validated[$field] ?? null;
+                        }
                     }
                 }
 
@@ -236,6 +285,9 @@ class UserController extends Controller
             }
             
             if(isset($saved) && !empty($saved)){
+                $saved->password = Hash::make('admin@123'); //default password
+                $saved->save();
+                $saved->assignRole($request->role);
                 DB::commit();
                 return response()->json(['success' => true, 'message' =>'You have added successfully.']);
             }else{  
@@ -302,6 +354,25 @@ class UserController extends Controller
         $bladePath = $this->pathInitialize;
         $model = $this->model->findOrFail($id);
         $fields = getFields($model, $this->getFieldsAndColumns(), 'show');
+        // Insert 'role' after 'name'
+        if (isset($fields['role'])) {
+            $roleDefinition = $fields['role'];
+            unset($fields['role']);
+
+            // Rebuild the array with 'role' in the desired position
+            $reorderedFields = [];
+
+            foreach ($fields as $key => $value) {
+                $reorderedFields[$key] = $value;
+
+                if ($key === 'name') {
+                    // Inject 'role' right after 'name'
+                    $reorderedFields['role'] = $roleDefinition;
+                }
+            }
+
+            $fields = $reorderedFields;
+        }
         return (string) view($bladePath.'.show_content', get_defined_vars());
     }
 
@@ -312,6 +383,7 @@ class UserController extends Controller
     {
         $bladePath = $this->pathInitialize;
         $title = $this->singularLabel;
+        $roles = $this->roleModel->where('status', 1)->get();
         $model = $this->model->where('id', $id)->first();
         $fields = getFields($model, $this->getFieldsAndColumns(), 'edit');
         
@@ -338,12 +410,29 @@ class UserController extends Controller
         try{
             // Step 3: Dynamically assign fields
             foreach ($fields as $field => $config) {
-                if($field != 'created_at' && $field != 'action' && $field != 'fields' && $field != 'menu'){
-                    if($field=='created_by'){
-                        $model->$field = auth()->id() ?? null;
-                    }
-                    else{
-                        $model->$field = $validated[$field] ?? null;
+                if($field != 'created_at' && $field != 'action' && $field != 'role'){
+                    if (isset($config['type']) && $config['type'] === 'file') {
+                        // Step 2: Delete old file if it exists
+                        if($request->hasFile($field)){
+                            if ($model->$field) {
+                                $oldImagePath = storage_path('app/uploads/'.$this->pluralLabel.'/'.$model->$field);
+                                if (file_exists($oldImagePath)) {
+                                    unlink($oldImagePath); // Delete the old image
+                                }
+                            }
+
+                            // Step 3: Store the new image
+                            $uploadPath = Str::plural(Str::lower($this->singularLabel));
+                            $model->$field = $request->file($field)->store('uploads/'.$uploadPath, 'public');
+                        }
+                    }else {
+                        if($field=='created_by'){
+                            $model->$field = auth()->id() ?? null;
+                        }elseif($field=='status'){
+                            $model->$field = $validated[$field] ?? 1;
+                        }else{
+                            $model->$field = $validated[$field] ?? null;
+                        }
                     }
                 }
 
@@ -351,6 +440,10 @@ class UserController extends Controller
             }
             
             if(isset($model) && !empty($model)){
+                $model->password = Hash::make('admin@123'); //default password
+                $model->save();
+
+                $model->syncRoles($request->role);
                 DB::commit();
                 return response()->json(['success' => true, 'message' =>'You have updated '.$singularLabel.' successfully.']);
             }else{

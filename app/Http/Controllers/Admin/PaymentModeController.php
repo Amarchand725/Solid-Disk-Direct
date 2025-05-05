@@ -28,6 +28,8 @@ class PaymentModeController extends Controller
 
     public function __construct(PaymentMode $model)
     {
+        parent::__construct();
+        
         $this->model = $model; 
         $this->routePrefix = Str::before(Route::currentRouteName(), '.');
         $this->pathInitialize = 'admin.'.$this->routePrefix;

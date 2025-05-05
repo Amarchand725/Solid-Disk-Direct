@@ -13,6 +13,10 @@
                     <span class="badge bg-label-{{ $model->status ? 'success' : 'danger' }}">
                         {{ $model->status ? 'Active' : 'Deactive' }}
                     </span>
+                @elseif($name === 'role')
+                    <span class="badge bg-label-success">
+                        {{ $field['value'] }}
+                    </span>
                 @else
                     {{ $field['value'] }}
                 @endif

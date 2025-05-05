@@ -27,6 +27,8 @@ class PermissionController extends Controller
 
     public function __construct(Permission $model)
     {
+        parent::__construct();
+
         $this->model = $model; 
         $this->routePrefix = Str::before(Route::currentRouteName(), '.');
         $this->pathInitialize = 'admin.'.$this->routePrefix;

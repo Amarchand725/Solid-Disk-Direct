@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Illuminate\Support\Str;
+use Exception;
 use App\Models\User;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Traits\DataTableTrait;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Permission;
 use Yajra\DataTables\Facades\DataTables;
-use Illuminate\Support\Facades\Route;
-use App\Traits\DataTableTrait;
 
 class RoleController extends Controller
 {
@@ -33,6 +34,8 @@ class RoleController extends Controller
 
     public function __construct(Role $model)
     {
+        parent::__construct();
+        
         $this->model = $model; 
         $this->permissionModel = new Permission(); 
         $this->routePrefix = Str::before(Route::currentRouteName(), '.');

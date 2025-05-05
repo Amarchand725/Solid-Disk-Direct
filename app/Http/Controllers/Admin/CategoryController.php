@@ -30,6 +30,8 @@ class CategoryController extends Controller
 
     public function __construct(Category $model)
     {
+        parent::__construct();
+        
         $this->model = $model; 
         $this->routePrefix = Str::before(Route::currentRouteName(), '.');
         $this->pathInitialize = 'admin.'.$this->routePrefix;

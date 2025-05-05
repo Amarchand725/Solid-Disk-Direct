@@ -37,7 +37,7 @@ class AdminSeeder extends Seeder
         ]);
 
         $roles = [
-            'Admin', 'Proprietor', 'Employee'
+            'Admin', 'Developer', 'Employee'
         ];
 
         foreach($roles as $role) {

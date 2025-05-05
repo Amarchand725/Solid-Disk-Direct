@@ -49,4 +49,9 @@ class User extends Authenticatable
     {
         return $this->roles->first()->name ?? 'Guest';
     }
+
+    public function createdBy()
+    {
+        return $this->hasOne(User::class, 'id', 'created_by');
+    }
 }
