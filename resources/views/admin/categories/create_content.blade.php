@@ -51,6 +51,13 @@
                         <img src="{{ asset('storage/' . $field['value']) }}" style="width:60px; height:50px" alt="Avatar" class="img-avatar zoomable">
                     @endif
                 </span>
+            @elseif (isset($field['type']) && $field['type'] === 'checkbox')
+                <input 
+                    type="{{ $field['type'] }}" 
+                    id="{{ $name }}" 
+                    name="{{ $name }}" 
+                    value="1" 
+                />
             @else
                 <input 
                     type="{{ $field['type'] ?? 'text' }}" 

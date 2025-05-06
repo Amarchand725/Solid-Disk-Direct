@@ -18,7 +18,7 @@
                         {{ $model->status ? 'Yes' : 'No' }}
                     </span>
                 @else
-                    {{ $field['value'] ?? '-' }}
+                    {!! $field['value'] ?? '-' !!}
                 @endif
             </td>
         </tr>

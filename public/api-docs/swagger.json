@@ -529,7 +529,7 @@
       "get": {
         "tags": [
           "Banner"
-        ],
+      ],
         "summary": "Get Banners",
         "operationId": "banner",
         "produces": [
