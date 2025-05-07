@@ -16,12 +16,13 @@ class CategoryResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            "banner" => $this->banner ? asset(Storage::url($this->banner))  : '',
+            "id"  => $this->id ?? '',
+            "banner" => $this->banner ? asset(Storage::url($this->banner))  : asset(Storage::url('images/default.png')),
             "name"  => $this->name ?? '',
             "slug"  => $this->slug ?? '',
             "description" => $this->description ?? '',
             "is_featured" => $this->is_featured ?? '',
-            'children' => self::collection($this->whenLoaded('children')),
+            // 'children' => self::collection($this->whenLoaded('children')),
             'products' => isset($this->products) ? ProductResource::collection($this->products) : '',
         ]; 
     }

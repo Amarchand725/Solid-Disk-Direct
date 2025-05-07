@@ -71,16 +71,16 @@ class CategoryController extends Controller
             $getFields = ['banner' => $getFields['banner']] + $getFields;
         }
         
-        if (isset($getFields['parent'])) {
-            // Clone config from parent_id
-            // $parentConfig = $getFields['parent_id'];
-            // Customize index to pull from relation
-            // $parentConfig['index'] = fn($model) => optional($model->parent)->name ?? '-';
-            // Remove parent_id and add custom parent
-            // unset($getFields['parent_id']);
+        // if (isset($getFields['parent'])) {
+        //     // Clone config from parent_id
+        //     // $parentConfig = $getFields['parent_id'];
+        //     // Customize index to pull from relation
+        //     // $parentConfig['index'] = fn($model) => optional($model->parent)->name ?? '-';
+        //     // Remove parent_id and add custom parent
+        //     // unset($getFields['parent_id']);
 
-            $getFields['parent']['index'] = fn($model) => $model->hasParent?->name ?? '-';
-        }
+        //     $getFields['parent']['index'] = fn($model) => $model->hasParent?->name ?? '-';
+        // }
 
         //select columns
         $selectedColumns = collect($getFields)

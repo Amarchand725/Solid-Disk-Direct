@@ -20,7 +20,8 @@ class CategoryController extends Controller
 
     public function index(){
         $models = $this->model->whereDoesntHave('parents') // Get root categories
-                ->with('children')                 // Eager load children recursively
+                ->with('childrenRecursive')  
+                ->latest()               // Eager load children recursively
                 ->get();
 
         if ($models->count()) {

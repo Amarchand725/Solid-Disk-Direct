@@ -13,11 +13,15 @@
                     <span class="badge bg-label-{{ $model->status ? 'success' : 'danger' }}">
                         {{ $model->status ? 'Active' : 'Deactive' }}
                     </span>
+                @elseif($field['type'] === 'checkbox')
+                    <span class="badge bg-label-{{ $model->status ? 'success' : 'danger' }}">
+                        {{ $model->status ? 'Yes' : 'No' }}
+                    </span>
                 @else
                     @if($name=='parent' && isset($model->parents) && !empty($model->parents))                        
                         {!! $model->parents->pluck('name')->implode('<span class="highlight-arrow"> &rarr; </span>') !!}
                     @else
-                        {{ $field['value'] }}
+                        {!! $field['value'] !!}
                     @endif
                 @endif
             </td>

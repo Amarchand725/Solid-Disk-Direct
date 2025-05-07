@@ -16,29 +16,17 @@ return [
     */
 
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'supports_credentials' => true,
 
     'allowed_methods' => ['*'],
 
     'allowed_origins' => ['*'],
-    // 'allowed_origins' => [
-    //     'http://127.0.0.1:8000', // Swagger UI URL
-    //     'http://localhost:5173', // <-- Your Vue app URL (frontend domain)
-    //     // You can add production domain later like 'https://yourdomain.com'
-    // ],
 
     'allowed_origins_patterns' => [],
 
     'allowed_headers' => ['*'],
-    // 'allowed_headers' => [
-    //     'Content-Type',
-    //     'X-Requested-With',
-    //     'Authorization', // <-- VERY important for Bearer token!!
-    // ],
 
     'exposed_headers' => [],
 
     'max_age' => 0,
-
-    'supports_credentials' => false,
-
 ];

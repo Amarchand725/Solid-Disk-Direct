@@ -20,8 +20,11 @@ class ProductResource extends JsonResource
             "title"  => $this->title ?? '',
             "slug" => $this->slug ?? '',
             "unit_price" => $this->unit_price ?? '',
+            "discount_price" => $this->discount_price ?? '',
             "short_description" => $this->short_description ?? '',
             "full_description" => $this->full_description ?? '',
+            // 'last_category' => new CategoryResource($this->leafCategories()->first()),
+            // 'categories' => isset($this->categories) ? CategoryResource::collection($this->categories) : ''
         ];        
     }
 }

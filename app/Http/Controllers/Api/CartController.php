@@ -64,7 +64,7 @@ class CartController extends Controller
             if (!$cart) {
                 $cart = $this->model->create([
                     'customer_id' => auth()->check() ? auth()->id() : null, //if user is authenticated
-                    'session_id' => auth()->check() ? null : c, //if user is guest
+                    'session_id' => auth()->check() ? null : session()->getId(), //if user is guest
                 ]);
             }
 

@@ -56,6 +56,6 @@ class Category extends Model
     // Children of this category
     public function children()
     {
-        return $this->belongsToMany(Category::class, 'category_relations', 'parent_id', 'child_id')->with('children');
+        return $this->belongsToMany(Category::class, 'category_relations', 'parent_id', 'child_id');
     }
 }

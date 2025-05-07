@@ -73,18 +73,20 @@ class ProductController extends Controller
         }
     }
     public function bestSelling(){
-        $bestSellingProducts = $this->model->select('products.*', DB::raw('SUM(order_product.quantity) as total_sold'))
-        ->join('order_items', 'products.slug', '=', 'order_items.product_slug')
-        ->groupBy('products.id')
-        ->orderByDesc('total_sold')
-        ->take(10) // Top 10 best-sellers
-        ->get();
+        // $bestSellingProducts = $this->model->select('products.*', DB::raw('SUM(order_product.quantity) as total_sold'))
+        // ->join('order_items', 'products.slug', '=', 'order_items.product_slug')
+        // ->groupBy('products.id')
+        // ->orderByDesc('total_sold')
+        // ->take(10) // Top 10 best-sellers
+        // ->get();
 
-        if ($bestSellingProducts->count()) {
+        $bestSellingProduct = $this->model->first();
+
+        if ($bestSellingProduct) {
             return response()->json([
                 'status' => true,
                 'message' => 'Data found successfully.',
-                'data' => $this->productResource->collection($bestSellingProducts)
+                'data' => new $this->productResource($bestSellingProduct)
             ]);
         } else {
             return response()->json([

@@ -16,6 +16,7 @@ class BrandResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            "id" => $this->id ?? '',
             "logo" => $this->logo ? asset(Storage::url($this->logo))  : '',
             "banner" => $this->banner ? asset(Storage::url($this->banner))  : '',
             "name"  => $this->name ?? '',
