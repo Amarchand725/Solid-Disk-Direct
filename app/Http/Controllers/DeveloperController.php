@@ -125,8 +125,5 @@ class DeveloperController extends Controller
             "Antennas",
             "Wireless LAN Controller"
           ];
-          
-          
-          
     }
 }

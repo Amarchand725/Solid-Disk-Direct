@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use Exception;
 use Carbon\Carbon;
 use App\Models\Menu;
-use App\Models\Attribute;
+use App\Models\AttributeGroup;
 use App\Models\MenuField;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -14,10 +14,8 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\AttributesImport;
 
-class AttributeController extends Controller
+class AttributeGroupController extends Controller
 {
     use DataTableTrait;
     
@@ -28,7 +26,7 @@ class AttributeController extends Controller
     protected $pluralLabel;
     protected array $permissions;
 
-    public function __construct(Attribute $model)
+    public function __construct(AttributeGroup $model)
     {
         parent::__construct();
         
@@ -47,7 +45,6 @@ class AttributeController extends Controller
             'destroy' => $this->routePrefix . '-delete',
             'trashed' => $this->routePrefix . '-trashed',
             'restore' => $this->routePrefix . '-restore',
-            'import' => $this->routePrefix . '-import',
         ];
     }
     
@@ -65,7 +62,7 @@ class AttributeController extends Controller
 
         // Get column definitions dynamically
         $getFields = getFields($this->model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'index');
-        
+
         //select columns
         $selectedColumns = collect($getFields)
         ->mapWithKeys(function ($config, $key) {
@@ -122,7 +119,7 @@ class AttributeController extends Controller
     public function store(Request $request)
     {
         $singularLabel = $this->singularLabel;
-        $fields = getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix); // getFieldsAndColumns() returns dynamic field definitions
+        $fields = getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix);; // getFieldsAndColumns() returns dynamic field definitions
 
         // Step 1: Build dynamic validation rules
         $rules = buildValidationRules($fields, null, $request);
@@ -139,7 +136,7 @@ class AttributeController extends Controller
             foreach ($fields as $field => $config) {
                 if($field != 'created_at' && $field != 'action'){
                     if (isset($config['type']) && $config['type'] === 'file' && $request->hasFile($field)) {
-                        $uploadPath = $uploadPath = Str::plural(Str::lower($this->singularLabel));
+                        $uploadPath = Str::plural(Str::lower($this->singularLabel));
                         $saved->$field = $request->file($field)->store('uploads/'.$uploadPath, 'public');
                     } else {
                         if($field=='created_by'){
@@ -199,7 +196,7 @@ class AttributeController extends Controller
     {
         $model = $this->model->where('id', $modelId)->first();
         $singularLabel = $this->singularLabel;
-        $fields = getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix); // getFieldsAndColumns() returns dynamic field definitions
+        $fields = getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix);; // getFieldsAndColumns() returns dynamic field definitions
 
         // Step 1: Build dynamic validation rules
         $rules = buildValidationRules($fields, $model, $request);
@@ -281,7 +278,7 @@ class AttributeController extends Controller
         $routeInitialize = $this->routePrefix;
         $bladePath = $this->pathInitialize;
         $title = 'All Trashed '.Str::plural($singularLabel);
-
+       
         // Get column definitions dynamically
         $getFields = getFields($this->model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'index');
 
@@ -349,34 +346,6 @@ class AttributeController extends Controller
             }
         } else {
             return false;
-        }
-    }
-
-    public function importCreate(Request $request)
-    {
-        $bladePath = $this->pathInitialize;
-
-        $model = $this->model;
-        return (string) view($bladePath.'.import_create_content', get_defined_vars());
-    }
-
-    public function importStore(Request $request)
-    {
-        $singularLabel = $this->singularLabel;
-        $request->validate([
-            'file' => 'required|file|mimes:xlsx,csv',
-        ]);
-
-        try{
-            $model = Excel::import(new AttributesImport, $request->file('file'));
-
-            if(isset($model) && !empty($model)){
-                return response()->json(['success' => true, 'message' =>'You have imported '.$singularLabel.' successfully.']);
-            }else{
-                return response()->json(['success' => false, 'message' =>'You have not imported '.$singularLabel.' successfully.']);
-            }
-        } catch (Exception $e) {
-            return response()->json(['error' => $e->getMessage()]);
         }
     }
 }

@@ -20,12 +20,12 @@
                     @if($name=='mode')
                         <option value="" selected>Select mode</option>
                         @foreach (getPaymentModes() as $mode)
-                            <option value="{{ $mode }}" {{ $mode==$field['value']?'selected':'' }}>{{ ucfirst($mode) }}</option>
+                            <option value="{{ $mode->name }}" {{ Str::lower($mode->name)==$field['value']?'selected':'' }}>{{ ucfirst($mode->name) }}</option>
                         @endforeach
                     @elseif($name=='type')
                         <option value="" selected>Select type</option>
                         @foreach (getPaymentTypes() as $type)
-                            <option value="{{ $type }}" {{ $type==$field['value']?'selected':'' }}>{{ ucfirst($type) }}</option>
+                            <option value="{{ $type->name }}" {{ Str::lower($type->name)==$field['value']?'selected':'' }}>{{ ucfirst($type->name) }}</option>
                         @endforeach
                     @else
                         @foreach($field['options'] ?? [] as $key => $option)  <!-- Safely handle 'options' -->

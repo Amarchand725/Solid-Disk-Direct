@@ -10,26 +10,14 @@
 
             @if(isset($field['type']) && $field['type'] === 'select')
                 <select id="{{ $name }}" name="{{ $name }}" class="form-control">
-                    @if($name=='mode')
-                        <option value="" selected>Select mode</option>
-                        @foreach (getPaymentModes() as $mode)
-                            <option value="{{ $mode->name }}">{{ ucfirst($mode->name) }}</option>
-                        @endforeach
-                    @elseif($name=='type')
-                        <option value="" selected>Select type</option>
-                        @foreach (getPaymentTypes() as $type)
-                            <option value="{{ $type->name }}">{{ ucfirst($type->name) }}</option>
-                        @endforeach
-                    @else
-                        @foreach($field['options'] ?? [] as $key => $option)  <!-- Safely handle 'options' -->
-                            <option value="{{ $key }}" {{ old($name, $field['value']) == $key ? 'selected' : '' }}>
-                                {{ $option }}
-                            </option>
-                        @endforeach
-                    @endif
+                    @foreach($field['options'] ?? [] as $key => $option)  <!-- Safely handle 'options' -->
+                        <option value="{{ $key }}" {{ old($name, $field['value']) == $key ? 'selected' : '' }}>
+                            {{ $option }}
+                        </option>
+                    @endforeach
                 </select>
             @elseif(isset($field['type']) && $field['type'] === 'textarea')
-                <textarea id="{{ $name }}" name="{{ $name }}" class="form-control @if($name=='instructions') summernote @endif" placeholder="{{ $field['placeholder'] ?? '' }}">{{ old($name, $field['value'] ?? '') }}</textarea>
+                <textarea id="{{ $name }}" name="{{ $name }}" class="form-control summernote" placeholder="{{ $field['placeholder'] ?? '' }}">{{ old($name, $field['value'] ?? '') }}</textarea>
             @elseif(isset($field['type']) && $field['type'] === 'file')
                 <input 
                     type="{{ $field['type'] ?? 'text' }}" 
@@ -69,8 +57,5 @@
         $(this).select2({
             dropdownParent: $(this).parent(),
         });
-    });
-    $('#instructions').summernote({
-        height: 100
     });
 </script>
