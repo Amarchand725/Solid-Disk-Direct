@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Models\RecentViewProduct;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +22,7 @@ class ProductController extends Controller
     }
 
     public function index(){
-        $models = $this->model->where('status', 1)->orderBy('id', 'desc')->paginate(10);
+        $models = $this->model->with('mainCategory')->where('status', 1)->orderBy('id', 'desc')->paginate(10);
 
         if ($models->count()) {
             return response()->json([
@@ -80,7 +81,7 @@ class ProductController extends Controller
         // ->take(10) // Top 10 best-sellers
         // ->get();
 
-        $bestSellingProduct = $this->model->first();
+        $bestSellingProduct = $this->model->inRandomOrder()->first();
 
         if ($bestSellingProduct) {
             return response()->json([
@@ -121,26 +122,45 @@ class ProductController extends Controller
             ]);
         }
     }
+
+    private function getCategoryTrailFromRelations(Category $category)
+    {
+        $trail = [];
+
+        while ($category) {
+            array_unshift($trail, [
+                'name' => $category->name,
+                'slug' => $category->slug,
+            ]);
+
+            // Load first parent (assuming only 1 parent per node for trail)
+            $category = $category->parents()->first();
+        }
+
+        return $trail;
+    }
+
+
     
     public function show($slug){
-        $model = $this->model->where('slug', $slug)->first();
-        $lastCategory = $model->categories->last(); // Get last category (based on order, not created_at)
+        $model = $this->model->with('mainCategory')->where('slug', $slug)->first();
+        // $lastCategory = $model->categories->last(); // Get last category (based on order, not created_at)
 
+        $categoryTrail = $this->getCategoryTrailFromRelations($model->mainCategory);
         // Now get other products in the same category
         $relatedProducts = collect();
 
-        if ($lastCategory) {
-            $relatedProducts = $lastCategory->products()
+        if ($model) {
+            $relatedProducts = $model->mainCategory->products()
                 ->where('products.id', '!=', $model->id) // Exclude the current product
                 ->latest() // Optional: order by latest
                 ->take(10)  // Optional: limit results
                 ->get();
-        }
-
-        if($model){
+        
             $this->storeRecentViewProduct($slug);
 
             $data = [
+                'categoryTrail' => $categoryTrail,
                 'details' => new $this->productResource($model),
                 'related_products' => $this->productResource->collection($relatedProducts)
             ];
@@ -148,7 +168,7 @@ class ProductController extends Controller
             return response()->json([
                 'status'=>true,
                 'message'=>'Data found successfully.',
-                'data' => $data
+                'data' => $data,
             ]);
         }else{
             return response()->json([

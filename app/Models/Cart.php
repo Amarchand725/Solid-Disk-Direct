@@ -14,6 +14,7 @@ class Cart extends Model
         'session_id',
         'coupon_id',
         'status',
+        'subtotal',
         'total',
         'shipping_cost',
         'discount_total',

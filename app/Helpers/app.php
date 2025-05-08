@@ -68,10 +68,6 @@ function getFields($model, $fields, $view = 'index')
             $field = $key;
             $defaultImage = 'images/default.png';
             $indexCallback = match ($type) {
-                // 'file' => fn($model) => $model->$field
-                //     ? view('admin.layouts.show_image', ['image' => $model->$field])->render()
-                //     : view('admin.layouts.show_image', ['image' => $defaultImage])->render(),
-
                 'file' => fn($model) => sprintf(
                     '<img src="%s" alt="Image" class="img-thumbnail img-avatar zoomable" style="max-width: 70px;">',
                     asset('storage/' . ($model->$field ?: $defaultImage))

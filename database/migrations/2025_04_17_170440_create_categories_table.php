@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('created_by')->nullable();
-            $table->string('banner')->nullable();
+        $table->string('banner')->nullable();
             $table->bigInteger('parent')->nullable();
             $table->string('name')->nullable();
             $table->string('slug')->nullable();
@@ -25,7 +25,6 @@ return new class extends Migration
             $table->timestamps();
         });
     }
-
 
     /**
      * Reverse the migrations.

@@ -602,6 +602,23 @@
         }
       }
     },
+    "/categories/top": {
+      "get": {
+        "tags": [
+          "Category"
+        ],
+        "summary": "Get Top Categories",
+        "operationId": "top-category",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
     "/sliders": {
       "get": {
         "tags": [

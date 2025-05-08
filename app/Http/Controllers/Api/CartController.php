@@ -91,6 +91,7 @@ class CartController extends Controller
                 }
 
                 $cart->update([
+                    'subtotal' => $cart->items->sum(fn($item) => $item->quantity * $item->unit_price),
                     'total' => $cart->items->sum(fn($item) => $item->quantity * $item->unit_price),
                 ]);
 
@@ -133,6 +134,7 @@ class CartController extends Controller
 
         // Update cart total
         $cartItem->cart->update([
+            'subtotal' => $cartItem->cart->items->sum(fn($item) => $item->sub_total),
             'total' => $cartItem->cart->items->sum(fn($item) => $item->sub_total),
         ]);
 
@@ -140,8 +142,7 @@ class CartController extends Controller
             'success' => true,
             'message' => 'Quantity increased.!',
             'items' => $cartItem->fresh()->quantity,
-            'cart' => new $this->cartItemResource($cartItem->fresh()),
-            'cart_total' => $cartItem->cart->total,
+            'cart' => new $this->cartResource($cartItem->cart)
         ]);
     }
 
@@ -165,6 +166,7 @@ class CartController extends Controller
         // Update cart total
         $cart = $cartItem->cart;
         $cart->update([
+            'subtotal' => $cart->items->sum(fn($item) => $item->sub_total),
             'total' => $cart->items->sum(fn($item) => $item->sub_total),
         ]);
 
@@ -172,8 +174,7 @@ class CartController extends Controller
             'success' => true,
             'message' => 'Quantity decreased.!',
             'items' => $cartItem->fresh()->quantity,
-            'cart' => new $this->cartItemResource($cartItem->fresh()),
-            'cart_total' => $cart->total,
+            'cart' => new $this->cartResource($cartItem->cart)
         ]);
     }
 
@@ -182,7 +183,7 @@ class CartController extends Controller
         $request->validate([
             'cart_item_id' => 'required|exists:cart_items,id',
         ]);
-
+        
         $cartItem = $this->cartItemModal->findOrFail($request->cart_item_id);
         $cart = $cartItem->cart;
 
@@ -190,13 +191,15 @@ class CartController extends Controller
 
         // Recalculate cart total after deletion
         $cart->update([
+            'subtotal' => $cart->items->sum(fn($item) => $item->sub_total),
             'total' => $cart->items->sum(fn($item) => $item->sub_total),
         ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Item removed from cart.',
-            'cart_total' => $cart->total,
+            'items' => $cart->items->count(),
+            'cart' => new $this->cartResource($cart->fresh('items'))
         ]);
     }
 

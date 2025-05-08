@@ -69,4 +69,21 @@ class BrandController extends Controller
             ]);
         }
     }
+    public function top(){
+        $models = $this->model->where('is_top', 1)->where('status', 1)->orderBy('id', 'desc')->paginate(10);
+
+        if ($models->count()) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Data found successfully.',
+                'data' => $this->brandResource->collection($models)
+            ]);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'No data found.',
+                'data' => []
+            ]);
+        }
+    }
 }

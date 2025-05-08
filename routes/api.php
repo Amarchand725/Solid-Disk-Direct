@@ -84,6 +84,7 @@ Route::controller(BrandController::class)->group(function () {
     Route::get('brands', 'index');
     Route::get('brands/show/{slug}', 'show');
     Route::get('brands/featured', 'featured');
+    Route::get('brands/top', 'top');
 });
 Route::controller(BannerController::class)->group(function () {
     Route::get('banners', 'index');
@@ -92,6 +93,7 @@ Route::controller(CategoryController::class)->group(function () {
     Route::get('categories', 'index');
     Route::get('categories/show/{slug}', 'show');
     Route::get('categories/featured', 'featured');
+    Route::get('categories/top', 'top');
 });
 Route::controller(SliderController::class)->group(function () {
     Route::get('sliders', 'index');
@@ -121,8 +123,8 @@ Route::controller(ContactMessageController::class)->group(function () {
 Route::controller(CartController::class)->group(function () {
     Route::get('cart', 'getCart');
     Route::post('cart/store', 'store');
-    Route::post('/cart/increase', 'increaseQuantity');
-    Route::post('/cart/decrease', 'decreaseQuantity');
-    Route::post('/cart/remove', 'removeItem');
+    Route::put('/cart/increase', 'increaseQuantity');
+    Route::put('/cart/decrease', 'decreaseQuantity');
+    Route::delete('/cart/remove', 'removeItem');
     Route::post('/cart/clear', 'clearCart');
 });

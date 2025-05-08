@@ -102,6 +102,7 @@
                         <input 
                             type="{{ $field['type'] ?? 'text' }}" 
                             id="{{ $name }}" 
+                            step="0.01"
                             name="{{ $name }}" 
                             class="form-control numeric" 
                             placeholder="{{ $field['placeholder'] ?? '' }}" 

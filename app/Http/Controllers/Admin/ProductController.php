@@ -198,8 +198,11 @@ class ProductController extends Controller
             }
 
             if(isset($saved) && !empty($saved)){
+                $lastCategoryId = last($request->categories);
+                $saved->category = $lastCategoryId;
+                $saved->save();
+
                 // Attach a single category
-                // $saved->categories()->attach($request->categories);
                 $categories = array_filter($request->categories, function($value) {
                     return !is_null($value) && $value !== '';  // Filter out null and empty values
                 });
@@ -320,6 +323,10 @@ class ProductController extends Controller
             }
 
             if(isset($model) && !empty($model)){
+                $lastCategoryId = last($request->categories);
+                $model->category = $lastCategoryId;
+                $model->save();
+
                 $categories = array_filter($request->categories, function($value) {
                     return !is_null($value) && $value !== '';  // Clean input
                 });

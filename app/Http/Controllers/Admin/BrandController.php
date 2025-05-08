@@ -66,6 +66,36 @@ class BrandController extends Controller
         // Get column definitions dynamically
         $getFields = getFields($this->model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'index');
         
+        // Check and handle relation
+        if (isset($getFields['logo'])) {
+            $getFields = ['logo' => $getFields['logo']] + $getFields;
+        }
+
+        // Reorder is_featured and is_top after 'name'
+        if (isset($getFields['is_featured']) && isset($getFields['is_top']) && isset($getFields['name'])) {
+            $reorderedFields = [];
+            foreach ($getFields as $key => $value) {
+                $reorderedFields[$key] = $value;
+
+                if ($key === 'name') {
+                    $reorderedFields['is_featured'] = $getFields['is_featured'];
+                    $reorderedFields['is_top'] = $getFields['is_top'];
+                }
+            }   
+            $getFields = $reorderedFields;
+        }
+        
+        if (isset($getFields['is_featured'])) {
+            // Customize index to pull from relation
+            $getFields['is_featured']['index'] = fn($model) => $model->is_featured==1 ? '<span class="badge bg-success">Yes</span>'
+            : '<span class="badge bg-danger">No</span>';
+        }
+        if (isset($getFields['is_top'])) {
+            // Customize index to pull from relation
+            $getFields['is_top']['index'] = fn($model) => $model->is_top==1 ? '<span class="badge bg-success">Yes</span>'
+            : '<span class="badge bg-danger">No</span>';
+        }
+
         //select columns
         $selectedColumns = collect($getFields)
         ->mapWithKeys(function ($config, $key) {

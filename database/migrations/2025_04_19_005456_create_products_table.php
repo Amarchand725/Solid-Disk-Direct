@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('thumbnail')->nullable();
             $table->string('title')->nullable();
             $table->string('slug')->nullable();
-            $table->string('sku')->nullable();
+            $table->string('sku')->nullable()->comment('Stock Keeping Unit');
+            $table->string('mpn')->nullable()->comment('Manufacturer Part Number');
             $table->bigInteger('brand')->nullable();
             $table->bigInteger('category')->nullable();
             $table->bigInteger('stock_quantity')->nullable();
@@ -33,6 +34,7 @@ return new class extends Migration
             $table->string('tax_mode')->nullable();
             $table->string('discount_type')->nullable();
             $table->string('condition')->nullable();
+            $table->text('tags')->nullable();
             $table->boolean('status')->default(true);
             $table->string('deleted_at')->nullable();
             $table->timestamps();

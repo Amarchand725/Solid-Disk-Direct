@@ -23,8 +23,8 @@ class ProductResource extends JsonResource
             "discount_price" => $this->discount_price ?? '',
             "short_description" => $this->short_description ?? '',
             "full_description" => $this->full_description ?? '',
-            // 'last_category' => new CategoryResource($this->leafCategories()->first()),
-            // 'categories' => isset($this->categories) ? CategoryResource::collection($this->categories) : ''
+            'category' => new CategoryResource($this->whenLoaded('mainCategory')),
+            // 'categories' => CategoryResource::collection($this->whenLoaded('categories')),
         ];        
     }
 }

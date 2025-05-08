@@ -60,6 +60,17 @@
                 </span>
             @elseif(isset($name) && $name === 'fields')
                 <div class="row">
+                    <div class="col-sm-4">
+                        <input 
+                            type="{{ $field['type'] ?? 'text' }}" 
+                            id="{{ $name }}" 
+                            name="{{ $name }}[]" 
+                            class="form-control" 
+                            placeholder="{{ $field['placeholder'] ?? '' }}" 
+                            value="" 
+                            autofocus
+                        />
+                    </div>
                     <div class="col-sm-3">
                         <select name="types[]" id="type" class="form-control">
                             <option value="" selected>Choose data type</option>
@@ -76,18 +87,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-sm-5">
-                        <input 
-                            type="{{ $field['type'] ?? 'text' }}" 
-                            id="{{ $name }}" 
-                            name="{{ $name }}[]" 
-                            class="form-control" 
-                            placeholder="{{ $field['placeholder'] ?? '' }}" 
-                            value="" 
-                            autofocus
-                        />
-                    </div>
-                    <div class="col-sm-1">
+                    <div class="col-sm-2">
                         <button type="button" class="btn btn-success" id="add-more-btn">
                             <i class="fa fa-plus"></i>
                         </button>
@@ -136,45 +136,91 @@
         });
     });
     $('#add-more-btn').on('click', function(){
-        var html = '';
-        html = '<div class="row mt-2">'+
-                    '<div class="col-sm-3">'+
-                        '<select name="types[]" id="type" class="form-control">'+
-                            '<option value="" selected>Choose type</option>';
-                            @foreach (fieldTypes() as $key=>$fieldType)
-                                html += '<option value="{{ $key }}" >{{ $fieldType }}</option>';
-                            @endforeach
-                        html += '</select>'+
-                    '</div>'+
-                    '<div class="col-sm-3">'+
-                        '<select name="input_types[]" id="input_type" class="form-control">'+
-                            '<option value="" selected>Choose input type</option>';
-                            @foreach (inputTypes() as $inputKey=>$inputType)
-                                html += '<option value="{{ $inputKey }}" >{{ $inputType }}</option>';
-                            @endforeach
-                        html += '</select>'+
-                    '</div>'+
-                    '<div class="col-sm-5">'+
-                        '<input '+
-                            'type="text" '+
-                            'id="fields" '+
-                            'name="fields[]" '+
-                            'class="form-control" '+
-                            'placeholder="Enter field name" '+
-                        '/>'+
-                    '</div>'+
-                    '<div class="col-sm-1">'+
-                        '<button type="button" class="btn btn-danger remove-btn" id="remove-btn">'+
-                            '<i class="fa fa-times"></i>'+
-                        '</button>'+
-                    '</div>'+
-                '</div>';
+        // var html = '';
+        // html = '<div class="row mt-2">'+
+        //             '<div class="col-sm-3">'+
+        //                 '<select name="types[]" id="type" class="form-control">'+
+        //                     '<option value="" selected>Choose type</option>';
+        //                     @foreach (fieldTypes() as $key=>$fieldType)
+        //                         html += '<option value="{{ $key }}" >{{ $fieldType }}</option>';
+        //                     @endforeach
+        //                 html += '</select>'+
+        //             '</div>'+
+        //             '<div class="col-sm-3">'+
+        //                 '<select name="input_types[]" id="input_type" class="form-control">'+
+        //                     '<option value="" selected>Choose input type</option>';
+        //                     @foreach (inputTypes() as $inputKey=>$inputType)
+        //                         html += '<option value="{{ $inputKey }}" >{{ $inputType }}</option>';
+        //                     @endforeach
+        //                 html += '</select>'+
+        //             '</div>'+
+        //             '<div class="col-sm-5">'+
+        //                 '<input '+
+        //                     'type="text" '+
+        //                     'id="fields" '+
+        //                     'name="fields[]" '+
+        //                     'class="form-control" '+
+        //                     'placeholder="Enter field name" '+
+        //                 '/>'+
+        //             '</div>'+
+        //             '<div class="col-sm-1">'+
+        //                 '<button type="button" class="btn btn-danger remove-btn" id="remove-btn">'+
+        //                     '<i class="fa fa-times"></i>'+
+        //                 '</button>'+
+        //             '</div>'+
+        //         '</div>';
+        
+        let html = '<div class="row mt-2 dynamic-block">'+
+            '<div class="col-sm-4">'+
+                '<input type="text" name="fields[]" class="form-control" placeholder="Enter field name"/>'+
+            '</div>'+
+            '<div class="col-sm-3">'+
+                '<select name="types[]" class="form-control">'+
+                    '<option value="" selected>Choose type</option>';
+                    @foreach (fieldTypes() as $key=>$fieldType)
+                        html += '<option value="{{ $key }}">{{ $fieldType }}</option>';
+                    @endforeach
+        html += '</select>'+
+            '</div>'+
+            '<div class="col-sm-2">'+
+                '<select name="input_types[]" class="form-control">'+
+                    '<option value="" selected>Choose input type</option>';
+                    @foreach (inputTypes() as $inputKey=>$inputType)
+                        html += '<option value="{{ $inputKey }}">{{ $inputType }}</option>';
+                    @endforeach
+        html += '</select>'+
+            '</div>'+
+            
+            '<div class="col-sm-3 d-flex justify-content-end gap-1">'+
+                '<button type="button" class="btn btn-secondary move-up"><i class="fa fa-arrow-up"></i></button>'+
+                '<button type="button" class="btn btn-secondary move-down"><i class="fa fa-arrow-down"></i></button>'+
+                '<button type="button" class="btn btn-danger remove-btn"><i class="fa fa-times"></i></button>'+
+            '</div>'+
+        '</div>';
+
         $('#add-more-content').append(html);
     })
 
     // Use event delegation for dynamically added remove buttons
-    $(document).on('click', '.remove-btn', function(){
-        $(this).closest('.row').remove();
+    // $(document).on('click', '.remove-btn', function(){
+    //     $(this).closest('.row').remove();
+    // });
+
+    // Move up
+    $(document).on('click', '.move-up', function () {
+        const current = $(this).closest('.dynamic-block');
+        current.prev('.dynamic-block').before(current);
+    });
+
+    // Move down
+    $(document).on('click', '.move-down', function () {
+        const current = $(this).closest('.dynamic-block');
+        current.next('.dynamic-block').after(current);
+    });
+
+    // Remove block
+    $(document).on('click', '.remove-btn', function () {
+        $(this).closest('.dynamic-block').remove();
     });
 </script>
 <script>

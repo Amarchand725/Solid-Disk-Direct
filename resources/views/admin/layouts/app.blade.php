@@ -70,7 +70,6 @@
 
     <script src="{{ asset('admin') }}/assets/js/config.js"></script>
 
-
     @stack('css')
 
   </head>

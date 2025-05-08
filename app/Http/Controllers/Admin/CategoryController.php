@@ -70,17 +70,34 @@ class CategoryController extends Controller
         if (isset($getFields['banner'])) {
             $getFields = ['banner' => $getFields['banner']] + $getFields;
         }
-        
-        // if (isset($getFields['parent'])) {
-        //     // Clone config from parent_id
-        //     // $parentConfig = $getFields['parent_id'];
-        //     // Customize index to pull from relation
-        //     // $parentConfig['index'] = fn($model) => optional($model->parent)->name ?? '-';
-        //     // Remove parent_id and add custom parent
-        //     // unset($getFields['parent_id']);
 
-        //     $getFields['parent']['index'] = fn($model) => $model->hasParent?->name ?? '-';
-        // }
+        // Reorder is_featured and is_top after 'name'
+        if (isset($getFields['is_featured']) && isset($getFields['is_top']) && isset($getFields['name'])) {
+            $reorderedFields = [];
+            foreach ($getFields as $key => $value) {
+                $reorderedFields[$key] = $value;
+
+                if ($key === 'name') {
+                    $reorderedFields['is_featured'] = $getFields['is_featured'];
+                    $reorderedFields['is_top'] = $getFields['is_top'];
+                }
+            }
+
+            // Remove the original positions
+            // unset($reorderedFields['is_featured'], $reorderedFields['is_top']);
+            $getFields = $reorderedFields;
+        }
+        
+        if (isset($getFields['is_featured'])) {
+            // Customize index to pull from relation
+            $getFields['is_featured']['index'] = fn($model) => $model->is_featured==1 ? '<span class="badge bg-success">Yes</span>'
+            : '<span class="badge bg-danger">No</span>';
+        }
+        if (isset($getFields['is_top'])) {
+            // Customize index to pull from relation
+            $getFields['is_top']['index'] = fn($model) => $model->is_top==1 ? '<span class="badge bg-success">Yes</span>'
+            : '<span class="badge bg-danger">No</span>';
+        }
 
         //select columns
         $selectedColumns = collect($getFields)
