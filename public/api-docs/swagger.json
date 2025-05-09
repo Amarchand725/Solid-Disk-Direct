@@ -349,7 +349,7 @@
         }
       }
     },
-    "/products/show/{slug}": {
+    "/products/{slug}": {
       "get": {
         "tags": [
           "Product"
@@ -515,6 +515,23 @@
         ],
         "summary": "Get Featured Brands",
         "operationId": "featured-brand",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
+    "/brands/top": {
+      "get": {
+        "tags": [
+          "Brand"
+        ],
+        "summary": "Get Top Brands",
+        "operationId": "top-brands",
         "produces": [
           "application/json"
         ],

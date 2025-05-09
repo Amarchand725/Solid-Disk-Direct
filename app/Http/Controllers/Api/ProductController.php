@@ -123,7 +123,7 @@ class ProductController extends Controller
         }
     }
 
-    private function getCategoryTrailFromRelations(Category $category)
+    public function getCategoryTrailFromRelations(Category $category)
     {
         $trail = [];
 
@@ -140,44 +140,89 @@ class ProductController extends Controller
         return $trail;
     }
 
-
-    
-    public function show($slug){
+    public function show($categorySlugChain, $slug)
+    {
         $model = $this->model->with('mainCategory')->where('slug', $slug)->first();
-        // $lastCategory = $model->categories->last(); // Get last category (based on order, not created_at)
 
-        $categoryTrail = $this->getCategoryTrailFromRelations($model->mainCategory);
-        // Now get other products in the same category
-        $relatedProducts = collect();
-
-        if ($model) {
-            $relatedProducts = $model->mainCategory->products()
-                ->where('products.id', '!=', $model->id) // Exclude the current product
-                ->latest() // Optional: order by latest
-                ->take(10)  // Optional: limit results
-                ->get();
-        
-            $this->storeRecentViewProduct($slug);
-
-            $data = [
-                'categoryTrail' => $categoryTrail,
-                'details' => new $this->productResource($model),
-                'related_products' => $this->productResource->collection($relatedProducts)
-            ];
-            
+        if (!$model) {
             return response()->json([
-                'status'=>true,
-                'message'=>'Data found successfully.',
-                'data' => $data,
-            ]);
-        }else{
-            return response()->json([
-                'status'=>false,
-                'message'=>'Data not found.',    
-                'data'=>null
+                'status' => false,
+                'message' => 'Product not found.',
+                'data' => null
             ]);
         }
+
+        // Get the actual category trail from product's main category
+        $categoryTrail = $this->getCategoryTrailFromRelations($model->mainCategory);
+        $correctCategoryPath = implode('/', array_column($categoryTrail, 'slug'));
+
+        // Compare the path from the URL with the actual path
+        $givenCategoryPath = trim($categorySlugChain, '/');
+
+        if ($givenCategoryPath !== $correctCategoryPath) {
+            // Redirect to correct URL
+            return redirect()->to("/$correctCategoryPath/{$model->slug}", 301);
+        }
+
+        // Get related products from the same main category
+        $relatedProducts = $model->mainCategory->products()
+            ->where('products.id', '!=', $model->id)
+            ->latest()
+            ->take(10)
+            ->get();
+
+        $this->storeRecentViewProduct($slug);
+
+        $data = [
+            // 'categoryTrail' => $categoryTrail,
+            'details' => new $this->productResource($model),
+            'related_products' => $this->productResource->collection($relatedProducts)
+        ];
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data found successfully.',
+            'data' => $data,
+        ]);
     }
+
+
+    // public function show($slug){
+    //     $model = $this->model->with('mainCategory')->where('slug', $slug)->first();
+    //     // $lastCategory = $model->categories->last(); // Get last category (based on order, not created_at)
+
+    //     $categoryTrail = $this->getCategoryTrailFromRelations($model->mainCategory);
+    //     // Now get other products in the same category
+    //     $relatedProducts = collect();
+
+    //     if ($model) {
+    //         $relatedProducts = $model->mainCategory->products()
+    //             ->where('products.id', '!=', $model->id) // Exclude the current product
+    //             ->latest() // Optional: order by latest
+    //             ->take(10)  // Optional: limit results
+    //             ->get();
+        
+    //         $this->storeRecentViewProduct($slug);
+
+    //         $data = [
+    //             'categoryTrail' => $categoryTrail,
+    //             'details' => new $this->productResource($model),
+    //             'related_products' => $this->productResource->collection($relatedProducts)
+    //         ];
+            
+    //         return response()->json([
+    //             'status'=>true,
+    //             'message'=>'Data found successfully.',
+    //             'data' => $data,
+    //         ]);
+    //     }else{
+    //         return response()->json([
+    //             'status'=>false,
+    //             'message'=>'Data not found.',    
+    //             'data'=>null
+    //         ]);
+    //     }
+    // }
 
     public function storeRecentViewProduct($slug){
         $model = new RecentViewProduct();

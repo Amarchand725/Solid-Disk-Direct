@@ -54,6 +54,7 @@ class CartController extends Controller
     }
 
     public function store(Request $request){
+        // return $request;
         DB::beginTransaction();
 
         try {
@@ -76,7 +77,7 @@ class CartController extends Controller
                     ->first();
 
                 if ($cartItem) {
-                    $cartItem->quantity += 1;
+                    $cartItem->quantity += $request->quantity;
                     $cartItem->sub_total = $cartItem->quantity * $product->unit_price;
                     $cartItem->save();
                 } else {

@@ -65,7 +65,12 @@ Route::controller(ProductController::class)->group(function () {
     Route::get('products/recent-viewed', 'recentViewed')->name('products.recent-viewed');
     Route::get('products/best-selling', 'bestSelling')->name('products.best-selling');
     Route::get('products/top-rated', 'topRated')->name('products.top-rated');
-    Route::get('products/show/{slug}', 'show')->name('products.show');
+    // Route::get('products/show/{slug}', 'show')->name('products.show');
+    Route::get('products/{categorySlugChain}/{slug}', 'show')
+    ->where([
+        'categorySlugChain' => '([a-z0-9\-\/]+)',
+        'slug' => '[a-z0-9\-]+',
+    ]);
     Route::get('products/search', 'search')->name('products.search');
 });
 Route::controller(TestimonialController::class)->group(function () {
