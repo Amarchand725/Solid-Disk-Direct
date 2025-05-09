@@ -17,11 +17,10 @@ class QuoteRequestController extends Controller
 
     public function store(Request $request){
         $validator = Validator::make($request->all(), [
+            'first_name' => 'required',
             'email' => 'required',
-            'full_name' => 'required',
-            'company' => 'required',
-            'mpn' => 'required',
-            'phone_number' => 'required',
+            'phone' => 'required',
+            'quantity' => 'required',
         ]);
         
         if ($validator->fails()) {
@@ -39,7 +38,7 @@ class QuoteRequestController extends Controller
             $model->company = $request->company;
             $model->mpn = $request->mpn;
             $model->email = $request->email;
-            $model->phone_number = $request->phone_number;
+            $model->phone_number = $request->phone;
             $model->how_soon_need = $request->how_soon_need;
             $model->message = $request->message;
             $model->status = 0; //default pending request
