@@ -70,7 +70,6 @@
 
     <script src="<?php echo e(asset('admin')); ?>/assets/js/config.js"></script>
 
-
     <?php echo $__env->yieldPushContent('css'); ?>
 
   </head>

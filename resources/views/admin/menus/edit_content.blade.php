@@ -74,49 +74,7 @@
             dropdownParent: $(this).parent(),
         });
     });
-    $('#add-more-btn').on('click', function(){
-        var html = '';
-        html = '<div class="row mt-2">'+
-                    '<div class="col-sm-3">'+
-                        '<select name="types[]" id="type" class="form-control">'+
-                            '<option value="" selected>Choose type</option>';
-                            @foreach (fieldTypes() as $key=>$fieldType)
-                                html += '<option value="{{ $key }}" >{{ $fieldType }}</option>';
-                            @endforeach
-                        html += '</select>'+
-                    '</div>'+
-                    '<div class="col-sm-3">'+
-                        '<select name="input_types[]" id="input_type" class="form-control">'+
-                            '<option value="" selected>Choose input type</option>';
-                            @foreach (inputTypes() as $inputKey=>$inputType)
-                                html += '<option value="{{ $inputKey }}" >{{ $inputType }}</option>';
-                            @endforeach
-                        html += '</select>'+
-                    '</div>'+
-                    '<div class="col-sm-5">'+
-                        '<input '+
-                            'type="text" '+
-                            'id="fields" '+
-                            'name="fields[]" '+
-                            'class="form-control" '+
-                            'placeholder="Enter field name" '+
-                        '/>'+
-                    '</div>'+
-                    '<div class="col-sm-1">'+
-                        '<button type="button" class="btn btn-danger remove-btn" id="remove-btn">'+
-                            '<i class="fa fa-times"></i>'+
-                        '</button>'+
-                    '</div>'+
-                '</div>';
-        $('#add-more-content').append(html);
-    })
 
-    // Use event delegation for dynamically added remove buttons
-    $(document).on('click', '.remove-btn', function(){
-        $(this).closest('.row').remove();
-    });
-</script>
-<script>
     $(document).ready(function () {
         // If using Select2:
         $('#icon').on('change', function () {

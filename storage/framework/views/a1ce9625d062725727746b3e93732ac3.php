@@ -17,7 +17,7 @@
                 View Details
             </a>
         <?php endif; ?>
-        <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check($routeInitialize.'-edit')): ?>
+        <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('menu_fields-edit')): ?>
             <button
                 data-toggle="tooltip" data-placement="top" title="Fields of <?php echo e($model->menu); ?>"
                 data-edit-url="<?php echo e(route('menu_fields.edit', $model->id)); ?>"

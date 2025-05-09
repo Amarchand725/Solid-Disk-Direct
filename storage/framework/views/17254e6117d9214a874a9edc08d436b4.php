@@ -77,49 +77,7 @@
             dropdownParent: $(this).parent(),
         });
     });
-    $('#add-more-btn').on('click', function(){
-        var html = '';
-        html = '<div class="row mt-2">'+
-                    '<div class="col-sm-3">'+
-                        '<select name="types[]" id="type" class="form-control">'+
-                            '<option value="" selected>Choose type</option>';
-                            <?php $__currentLoopData = fieldTypes(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key=>$fieldType): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                html += '<option value="<?php echo e($key); ?>" ><?php echo e($fieldType); ?></option>';
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                        html += '</select>'+
-                    '</div>'+
-                    '<div class="col-sm-3">'+
-                        '<select name="input_types[]" id="input_type" class="form-control">'+
-                            '<option value="" selected>Choose input type</option>';
-                            <?php $__currentLoopData = inputTypes(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $inputKey=>$inputType): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                html += '<option value="<?php echo e($inputKey); ?>" ><?php echo e($inputType); ?></option>';
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                        html += '</select>'+
-                    '</div>'+
-                    '<div class="col-sm-5">'+
-                        '<input '+
-                            'type="text" '+
-                            'id="fields" '+
-                            'name="fields[]" '+
-                            'class="form-control" '+
-                            'placeholder="Enter field name" '+
-                        '/>'+
-                    '</div>'+
-                    '<div class="col-sm-1">'+
-                        '<button type="button" class="btn btn-danger remove-btn" id="remove-btn">'+
-                            '<i class="fa fa-times"></i>'+
-                        '</button>'+
-                    '</div>'+
-                '</div>';
-        $('#add-more-content').append(html);
-    })
 
-    // Use event delegation for dynamically added remove buttons
-    $(document).on('click', '.remove-btn', function(){
-        $(this).closest('.row').remove();
-    });
-</script>
-<script>
     $(document).ready(function () {
         // If using Select2:
         $('#icon').on('change', function () {
