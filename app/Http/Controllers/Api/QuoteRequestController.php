@@ -34,7 +34,7 @@ class QuoteRequestController extends Controller
 
         try{
             $model = new QuoteRequest();
-            $model->full_name = $request->full_name;
+            $model->setFullName($request->first_name, $request->last_name);
             $model->company = $request->company;
             $model->mpn = $request->mpn;
             $model->email = $request->email;
@@ -52,7 +52,8 @@ class QuoteRequestController extends Controller
                     $url = route('quote_requests.index');
                     $admin->notify(new SiteEventNotification('quote-request.png', 'New quote of ', "{$request->full_name} has received.", $url));
                 }
-                return $this->success('We have received your quote request.! We will contact you soon!', 200);
+                $message = 'We have received your quote request.! We will contact you soon!';
+                return $this->success(null, $message, 200);
             }else{
                 DB::rollBack();
 

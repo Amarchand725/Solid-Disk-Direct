@@ -19,6 +19,18 @@ trait DataTableTrait
                     return $callback($model);
                 });
             }
+            $dataTable->filter(function ($instance) use ($request, $columns) {
+                if (!empty($request->get('search'))) {
+                    $search = $request->get('search');
+                    $instance = $instance->where(function ($query) use ($search, $columns) {
+                        foreach ($columns as $column => $callback) {
+                            if($column != 'action'){
+                                $query->orWhere($column, 'LIKE', "%$search%");
+                            }
+                        }
+                    });
+                }
+            });
 
             // Identify which columns should be treated as raw HTML
             $rawColumns = array_keys($columns);

@@ -306,7 +306,19 @@ function initializeDataTable(pageUrl, columns) {
         processing: true,
         serverSide: true,
         ordering: false,
-        ajax: pageUrl + "?loaddata=yes",
+        // ajax: pageUrl + "?loaddata=yes",
+        ajax: {
+            url: pageUrl + "?loaddata=yes",
+            type: "GET",
+            data: function(d) {
+                d.search = $('input[type="search"]').val();
+            },
+            // error: function(xhr, error, code) {
+            //     console.log(xhr);
+            //     console.log(error);
+            //     console.log(code);
+            // }
+        },
         columns: columns
     });
 }

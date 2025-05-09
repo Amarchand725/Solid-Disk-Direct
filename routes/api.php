@@ -21,7 +21,9 @@ use App\Http\Controllers\Api\{
     ContactMessageController,
     CartController,
     WishlistController,
-    OrderController
+    OrderController,
+    ShippingController,
+    LocationController
 };
 
 /*
@@ -132,4 +134,14 @@ Route::controller(CartController::class)->group(function () {
     Route::put('/cart/decrease', 'decreaseQuantity');
     Route::delete('/cart/remove', 'removeItem');
     Route::post('/cart/clear', 'clearCart');
+});
+
+Route::controller(ShippingController::class)->group(function () {
+    Route::get('shipping/rates', 'getFedExRates');
+});
+
+Route::controller(LocationController::class)->group(function () {
+    Route::get('countries', 'getCountries');
+    Route::get('states/{country_id}', 'getStates');
+    Route::get('cities/{state_id}', 'getCities');
 });
