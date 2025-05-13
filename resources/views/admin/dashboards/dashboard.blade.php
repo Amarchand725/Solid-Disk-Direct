@@ -1,4 +1,4 @@
-@extends('admin.layouts.app')
+    @extends('admin.layouts.app')
 @section('title', Str::upper($title) .' | '.Str::upper(appName()))
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">

@@ -18,8 +18,8 @@ class PolicyController extends Controller
         $this->modelResource = new PolicyResource(null);
     }
 
-    public function policies($title){
-        $model = $this->model->where('status', 1)->where('title', $title)->first();
+    public function policies($slug){
+        $model = $this->model->where('status', 1)->where('slug', $slug)->first();
 
         if (!empty($model)) {
             return response()->json([

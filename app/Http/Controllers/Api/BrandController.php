@@ -19,7 +19,7 @@ class BrandController extends Controller
     }
 
     public function index(){
-        $models = $this->model->where('status', 1)->orderBy('id', 'desc')->get();
+        $models = $this->model->with('hasProducts')->where('status', 1)->orderBy('id', 'desc')->get();
 
         if ($models->count()) {
             return response()->json([
@@ -70,7 +70,7 @@ class BrandController extends Controller
         }
     }
     public function top(){
-        $models = $this->model->where('is_top', 1)->where('status', 1)->orderBy('id', 'desc')->paginate(10);
+        $models = $this->model->with('hasProducts')->where('is_top', 1)->where('status', 1)->orderBy('id', 'desc')->paginate(10);
 
         if ($models->count()) {
             return response()->json([

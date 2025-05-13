@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Policy;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 
 class DeveloperController extends Controller
@@ -125,5 +127,26 @@ class DeveloperController extends Controller
             "Antennas",
             "Wireless LAN Controller"
           ];
+    }
+
+    public function generateMissingPolicySlugs()
+    {
+        $policies = Policy::whereNull('slug')->orWhere('slug', '')->get();
+
+        foreach ($policies as $policy) {
+            $baseSlug = Str::slug($policy->title);
+            $slug = $baseSlug;
+            $count = 1;
+
+            while (Policy::where('slug', $slug)->where('id', '!=', $policy->id)->exists()) {
+                $slug = "{$baseSlug}-{$count}";
+                $count++;
+            }
+
+            $policy->slug = $slug;
+            $policy->save();
+        }
+
+        return "Slugs generated for all policies.";
     }
 }

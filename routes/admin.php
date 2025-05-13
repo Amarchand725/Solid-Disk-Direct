@@ -42,6 +42,7 @@ use App\Http\Controllers\Admin\{
     UserController,
     WishlistController
 };
+use App\Http\Controllers\DeveloperController;
 
 /*
 |--------------------------------------------------------------------------
@@ -53,6 +54,12 @@ use App\Http\Controllers\Admin\{
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
+//developer
+Route::controller(DeveloperController::class)->group(function () {
+    Route::get('/generate-policy-slugs', 'generateMissingPolicySlugs');
+});
+//developer
 
 Route::get('/', function () {
     return redirect()->route('admin.login');

@@ -40,7 +40,10 @@ class Product extends Model
     public function hasBrand(){
         return $this->hasOne(Brand::class, 'id', 'brand');
     }
-    // In Product.php
+    public function hasProductCondition(){
+        return $this->hasOne(ProductCondition::class, 'id', 'condition');
+    }
+
     public function mainCategory()
     {
         return $this->belongsTo(Category::class, 'category');
@@ -51,9 +54,6 @@ class Product extends Model
     }
     public function hasTaxType(){
         return $this->hasOne(TaxType::class, 'id', 'tax_type');
-    }
-    public function hasProductCondition(){
-        return $this->hasOne(ProductCondition::class, 'id', 'condition');
     }
 
     public function hasProductImages(){

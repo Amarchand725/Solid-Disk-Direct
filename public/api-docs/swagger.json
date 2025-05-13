@@ -636,6 +636,40 @@
         }
       }
     },
+    "/categories/{categorySlug}/products": {
+      "get": {
+        "tags": [
+          "Category"
+        ],
+        "summary": "Get Category Products",
+        "operationId": "category-product",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "categorySlug",
+            "in": "path",
+            "value": "switches",
+            "description": "Enter slug",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "search",
+            "in": "path",
+            "description": "Enter search product",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data"
+          }
+        }
+      }
+    },
     "/sliders": {
       "get": {
         "tags": [

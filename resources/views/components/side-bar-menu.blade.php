@@ -151,24 +151,26 @@
   </div>
 </aside>
 <script>
+  let scrollArea;
   document.addEventListener("DOMContentLoaded", function () {
-    const scrollArea = document.querySelector('#layout-menu .scroll-container');
-    const progressBar = document.getElementById("sidebar-progress");
+      scrollArea = document.querySelector('#layout-menu .scroll-container');
+      const progressBar = document.getElementById("sidebar-progress");
 
-    if (scrollArea && progressBar) {
-      function updateProgress() {
-        const scrollTop = scrollArea.scrollTop;
-        const scrollHeight = scrollArea.scrollHeight - scrollArea.clientHeight;
-        const percent = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
-        progressBar.style.height = percent + "%";
+      if (scrollArea && progressBar) {
+        function updateProgress() {
+          const scrollTop = scrollArea.scrollTop;
+          const scrollHeight = scrollArea.scrollHeight - scrollArea.clientHeight;
+          const percent = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+          progressBar.style.height = percent + "%";
+        }
+
+        scrollArea.addEventListener("scroll", updateProgress);
+        updateProgress();
+      } else {
+        console.warn("Progress bar or scroll container not found");
       }
-
-      scrollArea.addEventListener("scroll", updateProgress);
-      updateProgress();
-    } else {
-      console.warn("Progress bar or scroll container not found");
-    }
   });
+
   // Prevent page scroll when scrolling inside sidebar
   scrollArea.addEventListener("wheel", function (e) {
     const delta = e.deltaY;

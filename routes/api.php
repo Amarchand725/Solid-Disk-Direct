@@ -101,6 +101,7 @@ Route::controller(CategoryController::class)->group(function () {
     Route::get('categories/show/{slug}', 'show');
     Route::get('categories/featured', 'featured');
     Route::get('categories/top', 'top');
+    Route::get('categories/{categorySlug}/products', 'productsByCategory');
 });
 Route::controller(SliderController::class)->group(function () {
     Route::get('sliders', 'index');

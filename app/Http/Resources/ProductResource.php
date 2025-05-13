@@ -25,6 +25,7 @@ class ProductResource extends JsonResource
 
         return [
             "thumbnail" => $this->thumbnail ? asset(Storage::url($this->thumbnail))  : '',
+            "min_quantity"  => $this->min_quantity ?? '',
             "mpn"  => $this->mpn ?? '',
             "sku"  => $this->sku ?? '',
             "title"  => $this->title ?? '',
@@ -37,6 +38,7 @@ class ProductResource extends JsonResource
             "full_description" => $this->full_description ?? '',
             'category' => new CategoryResource($this->whenLoaded('mainCategory')),
             'brand' => new BrandResource($this->whenLoaded('hasBrand')),
+            'condition' => new ProductConditionResource($this->whenLoaded('hasProductCondition')),
             'images' => ProductImageResource::collection($this->hasProductImages),
             // 'categories' => CategoryResource::collection($this->whenLoaded('categories')),
         ];        
