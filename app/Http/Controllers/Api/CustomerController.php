@@ -21,25 +21,32 @@ class CustomerController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|unique:customers,email',
+            'phone' => 'required|max:20',
             'password' => 'required|string|min:6|confirmed',
+            'countryId' => 'required',
+            'i_have_read' => 'required',
         ]);
-    
+
         if ($validator->fails()) {
-            return $this->error(
-                $validator->errors(),
-                    422
-                    );
-        }
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong.'
+            ], 422);
+        } 
     
         DB::beginTransaction();
     
         try {
             $model = new Customer();
-            $model->name = $request->name;
+            $model->first_name = $request->first_name;
+            $model->last_name = $request->last_name;
             $model->phone = $request->phone;
             $model->email = $request->email;
+            $model->country_id = $request->countryId;
+            $model->i_have_read = $request->i_have_read;
             $model->password = Hash::make($request->password);
     
             if ($model->save()) {
@@ -106,7 +113,7 @@ class CustomerController extends Controller
     }
 
     public function show(Request $request){
-        $user = $request->user();
+        return $user = $request->user();
     
         if (!$user) {
             return response()->json(['error' => 'User not authenticated'], 401);

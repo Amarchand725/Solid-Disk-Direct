@@ -15,10 +15,13 @@ return new class extends Migration
             $table->id();
             $table->bigInteger('created_by')->nullable();
             $table->string('image')->nullable();
-            $table->string('name')->nullable();
+            $table->string('first_name')->nullable();
+            $table->string('last_name')->nullable();
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
             $table->string('password')->nullable();
+            $table->integer('country_id')->nullable();
+            $table->boolean('i_have_read')->default(0);
             $table->boolean('status')->default(true);
             $table->string('deleted_at')->nullable();
             $table->timestamps();

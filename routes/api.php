@@ -41,10 +41,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::middleware('auth:customer')->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
     Route::controller(CustomerController::class)->group(function () {
         Route::post('/customer/logout', 'logout');
-        Route::get('/customer/show', 'show');
+        Route::get('/customer/profile', 'show');
         Route::post('/customer/update', 'update');
     });
     Route::controller(WishlistController::class)->group(function () {
