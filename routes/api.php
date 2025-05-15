@@ -135,10 +135,11 @@ Route::controller(CartController::class)->group(function () {
     Route::put('/cart/decrease', 'decreaseQuantity');
     Route::delete('/cart/remove', 'removeItem');
     Route::post('/cart/clear', 'clearCart');
+    Route::put('/cart/update-shipping', 'updateShipping');
 });
 
 Route::controller(ShippingController::class)->group(function () {
-    Route::get('shipping/rates', 'getFedExRates');
+    Route::post('shipping/rates', 'getFedExRates');
 });
 
 Route::controller(LocationController::class)->group(function () {

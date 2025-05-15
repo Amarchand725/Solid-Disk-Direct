@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\{
 use App\Http\Controllers\Admin\{
     AdminController,
     AttributeController,
-    AttributeGroupController,
     BannerController,
     BlogController,
     BrandController,
@@ -58,6 +57,7 @@ use App\Http\Controllers\DeveloperController;
 //developer
 Route::controller(DeveloperController::class)->group(function () {
     Route::get('/generate-policy-slugs', 'generateMissingPolicySlugs');
+    Route::get('/add-country-code', 'addCountryCode');
 });
 //developer
 
@@ -237,10 +237,10 @@ Route::controller(AdminController::class)->group(function () {
         Route::get('trashed', 'trashed')->name('users.trashed');
         Route::get('restore/{id}', 'restore')->name('users.restore');
     });  
-    Route::prefix('attribute_groups')->controller(AttributeGroupController::class)->group(function () {
-        Route::get('trashed', 'trashed')->name('attribute_groups.trashed');
-        Route::get('restore/{id}', 'restore')->name('attribute_groups.restore');
-    });  
+    // Route::prefix('attribute_groups')->controller(AttributeGroupController::class)->group(function () {
+    //     Route::get('trashed', 'trashed')->name('attribute_groups.trashed');
+    //     Route::get('restore/{id}', 'restore')->name('attribute_groups.restore');
+    // });  
 
     //Resource Routes.
     Route::resource('roles', RoleController::class);
@@ -277,5 +277,4 @@ Route::controller(AdminController::class)->group(function () {
     Route::resource('contact_messages', ContactMessageController::class);
     Route::resource('wishlists', WishlistController::class);
     Route::resource('users', UserController::class);
-    Route::resource('attribute_groups', AttributeGroupController::class);
 });

@@ -17,6 +17,15 @@ use App\Traits\ApiResponse;
 class CustomerController extends Controller
 {
     use ApiResponse;
+
+    protected $model;
+    protected $modelResource;
+
+    public function __construct(Customer $model)
+    {
+        $this->model = $model;
+        $this->modelResource = new CustomerResource(null);
+    }
     
     public function store(Request $request)
     {
@@ -40,7 +49,7 @@ class CustomerController extends Controller
         DB::beginTransaction();
     
         try {
-            $model = new Customer();
+            $model = $this->model;
             $model->first_name = $request->first_name;
             $model->last_name = $request->last_name;
             $model->phone = $request->phone;
@@ -87,7 +96,6 @@ class CustomerController extends Controller
                     );
         }
     }
-
     public function login(Request $request)
     {
         $request->validate([
@@ -113,15 +121,17 @@ class CustomerController extends Controller
     }
 
     public function show(Request $request){
-        return $user = $request->user();
+        $customer = $request->user();
     
-        if (!$user) {
-            return response()->json(['error' => 'User not authenticated'], 401);
+        if (!$customer) {
+            return response()->json(['error' => 'Customer not authenticated'], 401);
         }
 
-        return $this->success([
-            new CustomerResource($user),
-        ], 'Customer Data');
+        return response()->json([
+            'status' => true,
+            'message' => 'Data found successfully.',
+            'data' => new $this->modelResource($customer)
+        ]);
     }
 
     public function update(Request $request){
