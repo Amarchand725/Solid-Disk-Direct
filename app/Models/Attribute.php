@@ -31,4 +31,9 @@ class Attribute extends Model
     {
         return $this->hasOne(User::class, 'id', 'created_by');
     }
+
+    public function attributeValues()
+    {
+        return $this->hasMany(AttributeValue::class);
+    }
 }

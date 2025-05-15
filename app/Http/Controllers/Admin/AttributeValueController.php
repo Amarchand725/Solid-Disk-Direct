@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin;
 use Exception;
 use Carbon\Carbon;
 use App\Models\Menu;
+use App\Models\AttributeValue;
 use App\Models\Attribute;
-use App\Models\AttributeGroup;
 use App\Models\MenuField;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -16,24 +16,24 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 
-class AttributeGroupController extends Controller
+class AttributeValueController extends Controller
 {
     use DataTableTrait;
     
     protected $model;
-    protected $attributeModel; 
+    protected $attributeModel;
     protected $routePrefix;
     protected $pathInitialize;
     protected $singularLabel;
     protected $pluralLabel;
     protected array $permissions;
 
-    public function __construct(AttributeGroup $model)
+    public function __construct(AttributeValue $model)
     {
         parent::__construct();
         
         $this->model = $model; 
-        $this->attributeModel = new Attribute();
+        $this->attributeModel = new Attribute(); 
         $this->routePrefix = Str::before(Route::currentRouteName(), '.');
         $this->pathInitialize = 'admin.'.$this->routePrefix;
         $this->singularLabel = Str::title(str_replace('_', ' ', Str::singular($this->routePrefix)));        
@@ -157,12 +157,6 @@ class AttributeGroupController extends Controller
             }
 
             if(isset($saved) && !empty($saved)){
-                if($request->attribute_id) {
-                 $attributes = $request->attribute_id;   
-                }
-                if (!empty($attributes)) {
-                    $saved->attributes()->attach($attributes);
-                }
                 DB::commit();
                 return response()->json(['success' => true, 'message' =>'You have added '.$singularLabel.' successfully.']);
             }else{

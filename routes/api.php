@@ -98,6 +98,8 @@ Route::controller(BannerController::class)->group(function () {
 });
 Route::controller(CategoryController::class)->group(function () {
     Route::get('categories', 'index');
+    Route::get('get-categories', 'getCategories');
+    Route::get('get-groups', 'getGroups');
     Route::get('categories/show/{slug}', 'show');
     Route::get('categories/featured', 'featured');
     Route::get('categories/top', 'top');

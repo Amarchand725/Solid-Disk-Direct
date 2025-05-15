@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\{
     AdminController,
     AttributeController,
     AttributeGroupController,
+    AttributeValueController,
     BannerController,
     BlogController,
     BrandController,
@@ -241,6 +242,10 @@ Route::controller(AdminController::class)->group(function () {
         Route::get('trashed', 'trashed')->name('attribute_groups.trashed');
         Route::get('restore/{id}', 'restore')->name('attribute_groups.restore');
     });  
+    Route::prefix('attribute_values')->controller(AttributeValueController::class)->group(function () {
+        Route::get('trashed', 'trashed')->name('attribute_values.trashed');
+        Route::get('restore/{id}', 'restore')->name('attribute_values.restore');
+    });  
 
     //Resource Routes.
     Route::resource('roles', RoleController::class);
@@ -277,5 +282,6 @@ Route::controller(AdminController::class)->group(function () {
     Route::resource('contact_messages', ContactMessageController::class);
     Route::resource('wishlists', WishlistController::class);
     Route::resource('users', UserController::class);
+    Route::resource('attribute_values', AttributeValueController::class);
     Route::resource('attribute_groups', AttributeGroupController::class);
 });

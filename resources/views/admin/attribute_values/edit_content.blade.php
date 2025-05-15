@@ -1,23 +1,24 @@
- <label class="form-label" for="attribute_id">All Attributes</label>
- <select id="attribute_id" name="attribute_id[]" class="form-control select2" multiple>
-            @foreach($attributes as $attribute)
-                <option value="{{$attribute->id}}">{{$attribute->name}}</option>
-            @endforeach
-</select>
+@method('PUT')
 @foreach($fields as $name => $field)
     @if($name != 'created_at')
         <div class="col-12 mb-3">
             <label class="form-label" for="{{ $name }}">
                 {{ $field['label'] ?? ucfirst($name) }}
-                @if(isset($field['required']) && $field['required']) 
-                    <span class="text-danger">*</span>  <!-- Display * if required -->
+                
+                @if(isset($field['required']) && $field['required'])
+                    @if(isset($field['type']) && $field['type'] == 'file' && empty($field['value']))
+                        <span class="text-danger">*</span>  <!-- Display * if file type and value is empty -->
+                    @elseif($field['type'] != 'file')
+                        <span class="text-danger">*</span>  <!-- Display * if required and not file type -->
+                    @endif
                 @endif
+
             </label>
 
             @if(isset($field['type']) && $field['type'] === 'select')
                 <select id="{{ $name }}" name="{{ $name }}" class="form-control">
                     @foreach($field['options'] ?? [] as $key => $option)  <!-- Safely handle 'options' -->
-                        <option value="{{ $key }}" {{ old($name, $field['value']) == $key ? 'selected' : '' }}>
+                        <option value="{{ $key }}" {{ $model->status == $key ? 'selected' : '' }}>
                             {{ $option }}
                         </option>
                     @endforeach
@@ -26,13 +27,11 @@
                 <textarea id="{{ $name }}" name="{{ $name }}" class="form-control summernote" placeholder="{{ $field['placeholder'] ?? '' }}">{{ old($name, $field['value'] ?? '') }}</textarea>
             @elseif(isset($field['type']) && $field['type'] === 'file')
                 <input 
-                    type="{{ $field['type'] ?? 'text' }}" 
+                    type="{{ $field['type'] ?? 'file' }}" 
                     id="file-uploader" 
                     name="{{ $name }}" 
-                    accept="{{ isset($field['accept']) ? $field['accept'] : '' }}" 
+                    accept="{{ isset($field['accept']) ? $field['accept'] : '' }}"
                     class="form-control uploader" 
-                    placeholder="{{ $field['placeholder'] ?? '' }}" 
-                    value="{{ old($name, $field['value'] ?? '') }}" 
                     autofocus
                 />
 

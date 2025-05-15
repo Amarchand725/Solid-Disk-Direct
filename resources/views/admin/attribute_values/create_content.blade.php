@@ -1,9 +1,3 @@
- <label class="form-label" for="attribute_id">All Attributes</label>
- <select id="attribute_id" name="attribute_id[]" class="form-control select2" multiple>
-            @foreach($attributes as $attribute)
-                <option value="{{$attribute->id}}">{{$attribute->name}}</option>
-            @endforeach
-</select>
 @foreach($fields as $name => $field)
     @if($name != 'created_at')
         <div class="col-12 mb-3">
@@ -15,13 +9,21 @@
             </label>
 
             @if(isset($field['type']) && $field['type'] === 'select')
-                <select id="{{ $name }}" name="{{ $name }}" class="form-control">
-                    @foreach($field['options'] ?? [] as $key => $option)  <!-- Safely handle 'options' -->
-                        <option value="{{ $key }}" {{ old($name, $field['value']) == $key ? 'selected' : '' }}>
-                            {{ $option }}
-                        </option>
-                    @endforeach
-                </select>
+                @if($name=='attribute_id')
+                    <select id="{{ $name }}" name="{{ $name }}" class="form-control">
+                        @foreach($attributes as $attribute)
+                            <option value="{{$attribute->id}}">{{$attribute->name}}</option>
+                        @endforeach
+                    </select>
+                @else
+                    <select id="{{ $name }}" name="{{ $name }}" class="form-control">
+                        @foreach($field['options'] ?? [] as $key => $option)  <!-- Safely handle 'options' -->
+                            <option value="{{ $key }}" {{ old($name, $field['value']) == $key ? 'selected' : '' }}>
+                                {{ $option }}
+                            </option>
+                        @endforeach
+                    </select>
+                @endif
             @elseif(isset($field['type']) && $field['type'] === 'textarea')
                 <textarea id="{{ $name }}" name="{{ $name }}" class="form-control summernote" placeholder="{{ $field['placeholder'] ?? '' }}">{{ old($name, $field['value'] ?? '') }}</textarea>
             @elseif(isset($field['type']) && $field['type'] === 'file')
