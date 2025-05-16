@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Product;
+use App\Models\AttributeGroup;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -13,12 +14,14 @@ class CategoryController extends Controller
 {
     protected $model;
     protected $productModel;
+    protected $attributeGroupModel;
     protected $modelResource;
     protected $productResource;
 
     public function __construct(Category $model)
     {
         $this->model = $model;
+        $this->attributeGroupmodel = new AttributeGroup();
         $this->productModel = new Product();
         $this->modelResource = new CategoryResource(null);
         $this->productResource = new ProductResource(null);
@@ -35,6 +38,75 @@ class CategoryController extends Controller
                 'status' => true,
                 'message' => 'Data found successfully.',
                 'data' => $this->modelResource->collection($models)
+            ]);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'No data found.',
+                'data' => []
+            ]);
+        }
+    }
+
+
+    public function getCategories(){
+        $models = $this->model->whereDoesntHave('parents')
+            ->with('childrenRecursive')
+            ->get()
+            ->map(function ($item) {
+                $item->children_recursive = collect($item->children_recursive)->unique('id')->values();
+                return $item;
+            });
+
+        if ($models->count()) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Data found successfully.',
+                'data' => $models
+            ]);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'No data found.',
+                'data' => []
+            ]);
+        }
+    }
+
+    public function getGroups(){
+        $groups = $this->attributeGroupmodel
+        ->with(['attributes.attributeValues']) // nested eager loading
+        ->get();
+
+        if ($groups->count()) {
+            $cleanData = $groups->map(function ($group) {
+                return [
+                    'id' => $group->id,
+                    'name' => $group->name,
+                    'slug' => $group->slug,
+                    'attributes' => $group->attributes->map(function ($attribute) {
+                        return [
+                            'id' => $attribute->id,
+                            'name' => $attribute->name,
+                            'slug' => $attribute->slug,
+                            'attribute_values' => $attribute->attributeValues->map(function ($value) {
+                                return [
+                                    'id' => $value->id,
+                                    'name' => $value->value,
+                                ];
+                            }),
+                        ];
+                    }),
+                ];
+            });
+        }
+
+
+        if ($groups->count()) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Data found successfully.',
+                'data' => $cleanData
             ]);
         } else {
             return response()->json([

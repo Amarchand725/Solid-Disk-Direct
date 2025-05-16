@@ -21,7 +21,7 @@ class CustomerController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            // 'name' => 'required|string|max:255',
             'email' => 'required|string|email|unique:customers,email',
             'password' => 'required|string|min:6|confirmed',
         ]);

@@ -29,13 +29,38 @@ class CartController extends Controller
         $this->cartItemResource = new CartItemResource(null); 
     }
 
+    // public function getCart()
+    // {
+    //     $cart = $this->model->with('items.product')
+    //         ->where(function ($query) {
+    //             $query->where('customer_id', auth()->id())
+    //                 ->orWhere('session_id', session()->getId());
+    //         })->first();
+
+    //     if (!$cart) {
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Cart is empty.',
+    //             'cart' => [],
+    //             'cart_total' => 0,
+    //         ]);
+    //     }
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Cart retrieved successfully.',
+    //         'cart' => new $this->cartResource($cart),
+    //     ]);
+    // }
+
     public function getCart()
     {
         $cart = $this->model->with('items.product')
-            ->where(function ($query) {
-                $query->where('customer_id', auth()->id())
-                    ->orWhere('session_id', session()->getId());
-            })->first();
+                ->where(function ($query) {
+                    $query->where('customer_id', auth()->id())
+                        ->orWhere('session_id', session()->getId());
+                })->first();
+
 
         if (!$cart) {
             return response()->json([
@@ -46,10 +71,15 @@ class CartController extends Controller
             ]);
         }
 
+        $cartTotal = $cart->items->sum(function ($item) {
+            return $item->product ? $item->quantity * $item->product->price : 0;
+        });
+
         return response()->json([
             'success' => true,
             'message' => 'Cart retrieved successfully.',
             'cart' => new $this->cartResource($cart),
+            'cart_total' => $cartTotal,
         ]);
     }
 
