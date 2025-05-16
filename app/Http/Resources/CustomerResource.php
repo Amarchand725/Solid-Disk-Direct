@@ -17,9 +17,11 @@ class CustomerResource extends JsonResource
     {
         return [
             "image" => $this->image ? asset(Storage::url($this->image))  : '',
-            "name"  => $this->name ?? '',
+            "first_name"  => $this->first_name ?? '',
+            "last_name"  => $this->last_name ?? '',
             "email"  => $this->email ?? '',
             "phone"  => $this->phone ?? '',
+            "country"  => $this->hasCountry ? $this->hasCountry->name : '',
         ];   
     }
 }

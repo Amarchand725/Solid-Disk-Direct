@@ -48,7 +48,8 @@ class ContactMessageController extends Controller
                     $url = route('contact_messages.index');
                     $admin->notify(new SiteEventNotification('contact-us.png', 'New message of ', "{$request->name} has received.", $url));
                 }
-                return $this->success('We have received your message.! We will contact you soon!', 200);
+                $message = 'We have received your message.! We will contact you soon!';
+                return $this->success(null, $message, 200);
             }else{
                 DB::rollBack();
 

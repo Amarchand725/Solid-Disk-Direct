@@ -16,26 +16,44 @@ class QuoteRequestController extends Controller
     use ApiResponse;
 
     public function store(Request $request){
-        $validator = Validator::make($request->all(), [
-            'first_name' => 'required',
-            'email' => 'required',
-            'phone' => 'required',
-            'quantity' => 'required',
-        ]);
-        
+        $formName = $request->form;
+
+        if ($formName === 'full_form') {
+             $validator = Validator::make($request->all(), [
+                'full_name' => 'required|string|max:255',
+                'mpn' => 'required|string|max:20',
+                'email' => 'required|email',
+                'phone' => 'required|string|max:20',
+                'how_soon_need' => 'required|string|max:50',
+            ]);
+        } else {
+            $validator = Validator::make($request->all(), [
+                'first_name' => 'required|string|max:255',
+                'email' => 'required|email',
+                'phone' => 'required|string|max:20',
+                'quantity' => 'required|numeric|min:1',
+            ]);
+        }
+
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong.'
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors()
             ], 422);
-        } 
+        }
         
         DB::beginTransaction();
 
         try{
             $model = new QuoteRequest();
-            $model->setFullName($request->first_name, $request->last_name);
-            $model->company = $request->company;
+            if($formName === 'full_form'){
+                $model->full_name = $request->full_name;
+                $model->company = $request->company;
+            }else{
+                $model->setFullName($request->first_name, $request->last_name);
+                $model->quantity = $request->quantity;
+            }
             $model->mpn = $request->mpn;
             $model->email = $request->email;
             $model->phone_number = $request->phone;

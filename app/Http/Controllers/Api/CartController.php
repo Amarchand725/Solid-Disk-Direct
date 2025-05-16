@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\CartItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\OrderShippingMethod;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CartResource;
 use App\Http\Resources\CartItemResource;
@@ -17,6 +18,7 @@ class CartController extends Controller
     protected $model;
     protected $productModal;
     protected $cartItemModal;
+    protected $orderShippingMethodModal;
     protected $cartResource;
     protected $cartItemResource;
 
@@ -25,6 +27,7 @@ class CartController extends Controller
         $this->model = $model; 
         $this->productModal = new Product();
         $this->cartItemModal = new CartItem(); 
+        $this->orderShippingMethodModal = new OrderShippingMethod(); 
         $this->cartResource = new CartResource(null); 
         $this->cartItemResource = new CartItemResource(null); 
     }
@@ -84,7 +87,6 @@ class CartController extends Controller
     }
 
     public function store(Request $request){
-        // return $request;
         DB::beginTransaction();
 
         try {
@@ -233,7 +235,6 @@ class CartController extends Controller
             'cart' => new $this->cartResource($cart->fresh('items'))
         ]);
     }
-
     public function clearCart()
     {
         $cart = $this->model->where('customer_id', auth()->id())
@@ -257,5 +258,62 @@ class CartController extends Controller
             'success' => true,
             'message' => 'Cart cleared successfully.',
         ]);
+    }
+    public function updateShipping(Request $request){
+        $rateObj = $request->rate;
+        DB::beginTransaction();
+
+        try {
+            $cart = $this->model->where('customer_id', auth()->id())
+                ->orWhere('session_id', session()->getId())
+                ->first();
+
+            if (!$cart) {
+                $cart = $this->model->create([
+                    'customer_id' => auth()->check() ? auth()->id() : null, //if user is authenticated
+                    'session_id' => auth()->check() ? null : session()->getId(), //if user is guest
+                ]);
+            }
+
+            $cart->shipping_cost = $rateObj['totalCharge'] ?? 0;
+            $cart->total = $cart->total+$rateObj['totalCharge'] ?? 0;
+            $cart->save();
+
+            if($cart){
+                $this->orderShippingMethodModal->updateOrCreate(
+        ['cart_id' => $cart->id], // Condition to check
+            [
+                        'service_name' => $rateObj['serviceName'] ?? '',
+                        'service_type' => $rateObj['serviceType'] ?? '',
+                        'total_net_charges' => $rateObj['totalCharge'] ?? '',
+                        'currency' => $rateObj['currency'] ?? '',
+                        'total_base_charges' => $rateObj['baseCharge'] ?? '',
+                        'fuel_surcharges' => $rateObj['fuelSurcharge'] ?? '',
+                        'delivery_surcharges' => $rateObj['deliverySurcharge'] ?? '',
+                    ]
+                );
+
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'You selected shipping method.!',
+                    'cart' => new $this->cartResource($cart)
+                ]);
+            }else{
+                DB::rollback();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Something went wrong.!'
+                ]);
+            }
+        } catch (Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong!',
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

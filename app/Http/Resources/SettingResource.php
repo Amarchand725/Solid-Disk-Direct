@@ -24,6 +24,8 @@ class SettingResource extends JsonResource
             "currency" => $this->currency_symbol ?? '',
             "country" => $this->country ?? '',
             "address" => $this->address ?? '',
+            "location_map_url" => $this->location_map_url ?? '',
+            "website_url" => $this->website_url ?? '',
             "day_range" => $this->day_range ?? '',
             "start_time" => $this->start_time 
                     ? Carbon::parse($this->start_time)->format('h:i') 

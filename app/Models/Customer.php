@@ -8,6 +8,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use PHPUnit\Framework\Constraint\Count;
 
 class Customer extends Authenticatable 
 {
@@ -20,4 +21,8 @@ class Customer extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+    public function hasCountry(){
+        return $this->hasOne(Country::class, 'id', 'country_id');
+    }
 }
