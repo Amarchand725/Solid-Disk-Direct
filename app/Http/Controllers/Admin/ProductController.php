@@ -238,7 +238,7 @@ class ProductController extends Controller
     public function show($id)
     {
         $bladePath = $this->pathInitialize;
-        $model = $this->model->with('hasBrand', 'hasCategory', 'hasUnit', 'hasTaxType', 'hasProductCondition', 'hasProductImages')->findOrFail($id);
+        $model = $this->model->with('hasBrand', 'mainCategory', 'hasUnit', 'hasTaxType', 'hasProductCondition', 'hasProductImages')->findOrFail($id);
         $fields = getFields($model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'show');
         return (string) view($bladePath.'.show_content', get_defined_vars());
     }

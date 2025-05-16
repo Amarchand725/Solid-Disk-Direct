@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Resources\CustomerResource;
 use Exception;
 use App\Models\Customer;
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
@@ -130,6 +131,54 @@ class CustomerController extends Controller
             'status' => true,
             'message' => 'Data found successfully.',
             'data' => new $this->modelResource($customer)
+        ]);
+    }
+
+    public function orders(Request $request){
+        $customer = $request->user();
+
+        $orders = Order::where('customer_id',$customer->id)->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data found successfully.',
+            'data' => $orders
+        ]);
+    }
+
+    public function cancelledOrders(Request $request){
+        $customer = $request->user();
+
+        $orders = Order::where('customer_id',$customer->id)->where('order_status','cancelled')->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data found successfully.',
+            'data' => $orders
+        ]);
+    }
+
+    public function pendingOrders(Request $request){
+        $customer = $request->user();
+
+        $orders = Order::where('customer_id',$customer->id)->where('order_status','pending')->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data found successfully.',
+            'data' => $orders
+        ]);
+    }
+
+    public function returnOrders(Request $request){
+        $customer = $request->user();
+
+        $orders = Order::where('customer_id',$customer->id)->where('order_status','returned')->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data found successfully.',
+            'data' => $orders
         ]);
     }
 

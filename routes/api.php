@@ -46,6 +46,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::controller(CustomerController::class)->group(function () {
         Route::post('/customer/logout', 'logout');
         Route::get('/customer/profile', 'show');
+        Route::get('customer/orders', 'orders');
+        Route::get('customer/cancel-orders', 'cancelledOrders');
+        Route::get('customer/pending-orders', 'pendingOrders');
+        Route::get('customer/return-orders', 'returnOrders');
         Route::post('/customer/update', 'update');
     });
     Route::controller(WishlistController::class)->group(function () {
