@@ -205,7 +205,6 @@ class CartController extends Controller
             'cart' => new $this->cartResource($cart->fresh('items'))
         ]);
     }
-
     public function clearCart()
     {
         $cart = $this->model->where('customer_id', auth()->id())
@@ -230,7 +229,6 @@ class CartController extends Controller
             'message' => 'Cart cleared successfully.',
         ]);
     }
-
     public function updateShipping(Request $request){
         $rateObj = $request->rate;
         DB::beginTransaction();
