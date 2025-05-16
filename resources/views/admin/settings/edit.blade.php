@@ -200,6 +200,14 @@
                                     </div>
                                 </div>
                                 <div class="mb-3 row">
+                                    <label for="location_map_url" class="col-md-2 col-form-label">Location Map URL</label>
+                                    <div class="col-md-10">
+                                        <textarea name="location_map_url" id="location_map_url" class="form-control" placeholder="Enter website url">{{ $model->location_map_url }}</textarea>
+                                        <div class="fv-plugins-message-container invalid-feedback"></div>
+                                        <span id="location_map_url_error" class="text-danger error"></span>
+                                    </div>
+                                </div>
+                                <div class="mb-3 row">
                                     <label for="country" class="col-md-2 col-form-label">Country</label>
                                     <div class="col-md-10">
                                         <select name="country" id="country" class="form-select" data-url="{{ route('get-states') }}">

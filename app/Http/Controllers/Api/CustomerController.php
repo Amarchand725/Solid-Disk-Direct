@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Resources\CustomerResource;
 use Exception;
 use App\Models\Customer;
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
@@ -17,29 +18,44 @@ use App\Traits\ApiResponse;
 class CustomerController extends Controller
 {
     use ApiResponse;
+
+    protected $model;
+    protected $modelResource;
+
+    public function __construct(Customer $model)
+    {
+        $this->model = $model;
+        $this->modelResource = new CustomerResource(null);
+    }
     
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             // 'name' => 'required|string|max:255',
             'email' => 'required|string|email|unique:customers,email',
+            'phone' => 'required|max:20',
             'password' => 'required|string|min:6|confirmed',
+            'countryId' => 'required',
+            'i_have_read' => 'required',
         ]);
-    
+
         if ($validator->fails()) {
-            return $this->error(
-                $validator->errors(),
-                    422
-                    );
-        }
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong.'
+            ], 422);
+        } 
     
         DB::beginTransaction();
     
         try {
-            $model = new Customer();
-            $model->name = $request->name;
+            $model = $this->model;
+            $model->first_name = $request->first_name;
+            $model->last_name = $request->last_name;
             $model->phone = $request->phone;
             $model->email = $request->email;
+            $model->country_id = $request->countryId;
+            $model->i_have_read = $request->i_have_read;
             $model->password = Hash::make($request->password);
     
             if ($model->save()) {
@@ -80,7 +96,6 @@ class CustomerController extends Controller
                     );
         }
     }
-
     public function login(Request $request)
     {
         $request->validate([
@@ -106,15 +121,65 @@ class CustomerController extends Controller
     }
 
     public function show(Request $request){
-        $user = $request->user();
+        $customer = $request->user();
     
-        if (!$user) {
-            return response()->json(['error' => 'User not authenticated'], 401);
+        if (!$customer) {
+            return response()->json(['error' => 'Customer not authenticated'], 401);
         }
 
-        return $this->success([
-            new CustomerResource($user),
-        ], 'Customer Data');
+        return response()->json([
+            'status' => true,
+            'message' => 'Data found successfully.',
+            'data' => new $this->modelResource($customer)
+        ]);
+    }
+
+    public function orders(Request $request){
+        $customer = $request->user();
+
+        $orders = Order::where('customer_id',$customer->id)->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data found successfully.',
+            'data' => $orders
+        ]);
+    }
+
+    public function cancelledOrders(Request $request){
+        $customer = $request->user();
+
+        $orders = Order::where('customer_id',$customer->id)->where('order_status','cancelled')->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data found successfully.',
+            'data' => $orders
+        ]);
+    }
+
+    public function pendingOrders(Request $request){
+        $customer = $request->user();
+
+        $orders = Order::where('customer_id',$customer->id)->where('order_status','pending')->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data found successfully.',
+            'data' => $orders
+        ]);
+    }
+
+    public function returnOrders(Request $request){
+        $customer = $request->user();
+
+        $orders = Order::where('customer_id',$customer->id)->where('order_status','returned')->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data found successfully.',
+            'data' => $orders
+        ]);
     }
 
     public function update(Request $request){

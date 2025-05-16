@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('mpn')->nullable();
             $table->string('email')->nullable();
             $table->string('phone_number')->nullable();
+            $table->integer('quantity')->nullable();
             $table->string('how_soon_need')->nullable();
             $table->text('message')->nullable();
             $table->boolean('status')->default(true);

@@ -7,12 +7,14 @@ class FedExShippingService
 {
     public function getRates($requestData)
     {
-        $url = "https://apis.fedex.com/rate/v1/rates/quotes";
+        $token = $this->getFedExAccessToken(); // get the valid token
 
-        $response = Http::withToken('l7339cad9a69b442ebb4e275e15eae7c1f')
+        $url = "https://apis-sandbox.fedex.com/rate/v1/rates/quotes";
+
+        $response = Http::withToken($token)
             ->post($url, [
                 "accountNumber" => [
-                    "value" => "6e0e352b2ee5422f8d2e83b1696e60f4"
+                    "value" => env('FEDEX_ACCOUNT_NUMBER')
                 ],
                 "requestedShipment" => [
                     "shipper" => [
@@ -41,5 +43,20 @@ class FedExShippingService
             ]);
 
         return $response->json();
+    }
+
+    public function getFedExAccessToken()
+    {
+        $response = Http::asForm()->post('https://apis-sandbox.fedex.com/oauth/token', [
+            'grant_type' => 'client_credentials',
+            'client_id' => env('FEDEX_CLIENT_ID'),
+            'client_secret' => env('FEDEX_CLIENT_SECRET'),
+        ]);
+
+        if ($response->failed()) {
+            throw new \Exception('FedEx Auth Failed: ' . $response->body());
+        }
+
+        return $response->json()['access_token'];
     }
 }
