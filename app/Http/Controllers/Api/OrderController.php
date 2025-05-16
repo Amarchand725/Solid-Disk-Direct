@@ -3,100 +3,169 @@
 namespace App\Http\Controllers\Api;
 
 use Exception;
+use Stripe\Stripe;
+use App\Models\Product;
+use App\Models\CartItem;
+use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use App\Services\PaymentService;
 use Illuminate\Support\Facades\DB;
+use App\Models\OrderBillingAddress;
+use App\Models\OrderShippingMethod;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use App\Models\OrderShippingAddress;
 use App\Http\Requests\PlaceOrderRequest;
+use Illuminate\Support\Facades\Validator;
 use App\Models\{Cart, ShippingMethod, Order};
 
 class OrderController extends Controller
 {
     protected $paymentService;
+    protected $orderModel;
+    protected $orderItemModel;
+    protected $productModel;
+    protected $orderShippingAddress;
+    protected $orderBillingAddress;
+    protected $orderShippingService;
+    protected $cartModel;
+    protected $cartItemsModel;
 
     public function __construct(PaymentService $paymentService)
     {
         $this->paymentService = $paymentService;
+        $this->cartModel = new Cart();
+        $this->cartItemsModel = new CartItem();
+        $this->orderModel = new Order();
+        $this->orderItemModel = new OrderItem();
+        $this->productModel = new Product();
+        $this->orderShippingAddress = new OrderShippingAddress();
+        $this->orderBillingAddress = new OrderBillingAddress();
+        $this->orderShippingService = new OrderShippingMethod();
     }
 
-    public function store(PlaceOrderRequest $request)
+    public function store(Request $request, PlaceOrderRequest $requestValidated)
     {
-        $customer = auth()->user();
-        $data = $request->validated();
+        $validated = $requestValidated->validated();
+        $shipping = $validated['shipping'];
+        $billing = $validated['billing'];
+        $sameAsShipping = $billing['same_as_shipping'];
+        $cart = $request->cart;
+        $cartItems = $cart['items'];
+        $order_shipping_service = $this->orderShippingService->where('cart_id', $cart['id'])->first();
 
         DB::beginTransaction();
-
         try {
-            $cart = Cart::with('items')->where('customer_id', $customer->id)->firstOrFail();
+            $order = $this->orderModel;
+            $order->order_number = 'ORD' . strtoupper(substr(bin2hex(random_bytes(2)), 0, 5));
+            $order->customer_id = auth()->id();
+            $order->coupon_id = NULL;
+            $order->same_as_shipping = $sameAsShipping;
+            $order->subtotal = $cart['subtotal'] ?? 0;
+            $order->shipping_cost = $cart['shipping_cost'] ?? 0;
+            // $order->tax = null;
+            // $order->discount = null;
+            $order->total = $cart['total'] ?? 0;
+            $order->payment_method = 'stripe';
+            $order->payment_status = 'unpaid';
+            $order->additional_note = null;
+            $order->save();
 
-            if ($cart->items->isEmpty()) {
-                return response()->json(['error' => 'Cart is empty'], 400);
+            Log::info('Order Added Successfully: '.json_encode($order));
+
+            if($order && $cartItems){
+                foreach($cartItems as $item){
+                    $product = $this->productModel->where('slug', $item['product']['slug'])->first();
+                    if(!empty($product)){
+                        $order_item = $this->orderItemModel;
+                        $order_item->order_id = $order->id;
+                        $order_item->product_id = $product->id;
+                        $order_item->variant_id = null;
+                        $order_item->unit_price = $item['unit_price'] ?? 0;
+                        $order_item->discount = null;
+                        $order_item->quantity = $item['quantity'] ?? 0;
+                        $order_item->options = null;
+                        $order_item->sub_total = $item['sub_total'] ?? 0;
+                        $order_item->save();
+                    }
+                }
+
+                Log::info('Order Item Added Successfully: '.json_encode($order_item));
+
+                if(isset($shipping) && !empty($shipping)){
+                    $order_shipping_address = $this->orderShippingAddress;
+                    $order_shipping_address->order_id = $order->id;
+                    $order_shipping_address->first_name = $shipping['first_name'];
+                    $order_shipping_address->last_name = $shipping['last_name'];
+                    $order_shipping_address->email = $shipping['email'];
+                    $order_shipping_address->phone = $shipping['phone'];
+                    $order_shipping_address->address = $shipping['address'];
+                    $order_shipping_address->city = $shipping['shippingCity'];
+                    $order_shipping_address->state = $shipping['shippingState'];
+                    $order_shipping_address->zip = $shipping['zip'];
+                    $order_shipping_address->country = $shipping['shippingCountry'];
+                    $order_shipping_address->save();
+
+                    Log::info('Order Shipping Address Added Successfully');
+                }
+
+                if(isset($sameAsShipping) && $sameAsShipping==true && !empty($billing)){
+                    $order_billing_address = $this->orderBillingAddress;  
+                    $order_billing_address->order_id = $order->id;
+                    $order_billing_address->first_name = $shipping['first_name'];
+                    $order_billing_address->last_name = $shipping['last_name'];
+                    $order_billing_address->email = $shipping['email'];
+                    $order_billing_address->phone = $shipping['phone'];
+                    $order_billing_address->address = $shipping['address'];
+                    $order_billing_address->city = $shipping['billingCity'];
+                    $order_billing_address->state = $shipping['billingState'];
+                    $order_billing_address->zip = $shipping['zip'];
+                    $order_billing_address->country = $shipping['billingCountry'];
+                    $order_billing_address->save();
+
+                    Log::info('Order Billing Address Added Successfully');
+                }
+
+                $order_shipping_service = $this->orderShippingService->where('cart_id', $cart['id'])->first();
+                if(isset($order_shipping_service) && !empty($order_shipping_service)){
+                    $order_shipping_service->order_id = $order->id;
+                    $order_shipping_service->save();
+
+                    Log::info('Order Shipping Service updated Successfully');
+                }
+
+                $paymentIntent = $this->paymentService->handleStripePayment($order->total, $request->payment_method_id);
+                Log::info('Payment Response: '.json_encode($paymentIntent));
+                if($paymentIntent->status=='succeeded'){
+                    $order->payment_status = 'paid';
+                    $order->transaction_id = $paymentIntent->id;
+                    $order->save();
+
+                    Log::info('After payment success order updated');
+
+                    // Step 1: Delete all cart items associated with the cart
+                    $cart = $this->cartModel->find($cart['id']);
+                    if ($cart) {
+                        $cart->items()->delete();
+                        $cart->delete();
+
+                        Log::info('Cart and cart item deleted successfully. ');
+                    }
+                    // Step 2: Delete the cart itself
+
+                    DB::commit();
+                    Log::info('Final Order placed success ');
+                    return response()->json([
+                        'success' => true, 
+                        'message' =>'You have placed order successfully.',
+                        'order_number' => $order->order_number,
+                    ], 200);
+                }
             }
-
-            $subtotal = $cart->items->sum(fn($item) => $item->price * $item->quantity);
-            $shippingMethod = ShippingMethod::findOrFail($data['shipping_method_id']);
-            $shippingCost = $shippingMethod->cost;
-            $total = $subtotal + $shippingCost;
-
-            if ($data['payment']['method'] === 'stripe') {
-                $this->paymentService->handleStripePayment(
-                    $total,
-                    $data['payment']['stripe_token'],
-                    $customer->email
-                );
-            }
-
-            $order = Order::create([
-                'customer_id' => $customer->id,
-                'order_number' => 'ORD' . strtoupper(uniqid()),
-                'subtotal' => $subtotal,
-                'shipping_cost' => $shippingCost,
-                'total' => $total,
-                'shipping_method_id' => $shippingMethod->id,
-                'payment_method' => $data['payment']['method'],
-                'payment_status' => 'paid',
-                'status' => 'processing'
-            ]);
-
-            $order->shipping()->create($data['shipping']);
-
-            $billing = $data['billing']['same_as_shipping']
-                ? $data['shipping']
-                : '';
-
-            if(!empty($billing)){
-                $order->billing()->create($billing);
-            }else{
-                $order->same_as_shipping = 1;
-            }
-
-            foreach ($cart->items as $item) {
-                $order->items()->create([
-                    'product_id' => $item->product_id,
-                    'quantity' => $item->quantity,
-                    'unit_price' => $item->unit_price,
-                    'discount' => $item->discount,
-                    'options' => $item->options,
-                    'sub_total' => $item->sub_total,
-                ]);
-            }
-
-            $cart->items()->delete();
-            $cart->delete();
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Order placed successfully',
-                'order_id' => $order->order_number,
-                "redirect_url" => "/thank-you?order_id=".$order->order_number
-            ]);
-
         } catch (Exception $e) {
-            DB::rollBack();
             return response()->json([
-                'error' => 'Order failed: ' . $e->getMessage()
+                'success' => false,
+                'message' => 'Payment error: ' . $e->getMessage(),
             ], 500);
         }
     }
