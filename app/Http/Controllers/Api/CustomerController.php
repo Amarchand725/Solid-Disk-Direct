@@ -224,6 +224,36 @@ class CustomerController extends Controller
                     );
         }
     }
+
+    public function changePassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'current_password' => ['required'],
+            'new_password' => ['required', 'string', 'min:8', 'confirmed'], // expects `new_password_confirmation`
+        ]);
+    
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $user = $request->user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['The current password is incorrect.'],
+            ]);
+        }
+
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json(['message' => 'Password changed successfully.']);
+    }
+
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();

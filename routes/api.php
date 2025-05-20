@@ -45,6 +45,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::middleware('auth:sanctum')->group(function () {
     Route::controller(CustomerController::class)->group(function () {
         Route::post('/customer/logout', 'logout');
+        Route::post('/customer/change-password', 'changePassword');
         Route::get('/customer/profile', 'show');
         Route::get('customer/orders', 'orders');
         Route::get('customer/cancel-orders', 'cancelledOrders');
