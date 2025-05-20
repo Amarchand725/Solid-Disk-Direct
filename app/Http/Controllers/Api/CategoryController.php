@@ -21,7 +21,7 @@ class CategoryController extends Controller
     public function __construct(Category $model)
     {
         $this->model = $model;
-        $this->attributeGroupmodel = new AttributeGroup();
+        $this->attributeGroupModel = new AttributeGroup();
         $this->productModel = new Product();
         $this->modelResource = new CategoryResource(null);
         $this->productResource = new ProductResource(null);
@@ -62,7 +62,7 @@ class CategoryController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Data found successfully.',
-                'data' => $models
+                'data' => $this->modelResource->collection($models)
             ]);
         } else {
             return response()->json([
@@ -74,7 +74,7 @@ class CategoryController extends Controller
     }
 
     public function getGroups(){
-        $groups = $this->attributeGroupmodel
+        $groups = $this->attributeGroupModel
         ->with(['attributes.attributeValues']) // nested eager loading
         ->get();
 

@@ -58,7 +58,8 @@ class OrderController extends Controller
         try {
             $order = $this->orderModel;
             $order->order_number = 'ORD' . strtoupper(substr(bin2hex(random_bytes(2)), 0, 5));
-            $order->customer_id = auth()->id();
+            $order->customer_id = auth()->check() ? auth()->id() : null;
+            $order->session_id = auth()->check() ? null : $cart['session_id'];
             $order->coupon_id = NULL;
             $order->same_as_shipping = $sameAsShipping;
             $order->subtotal = $cart['subtotal'] ?? 0;
