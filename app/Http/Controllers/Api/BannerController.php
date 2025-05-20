@@ -19,7 +19,7 @@ class BannerController extends Controller
     }
 
     public function index(){
-        $models = $this->model->where('status', 1)->orderBy('id', 'desc')->take(3)->get();
+        $models = $this->model->where('status', 1)->orderBy('id', 'desc')->take(5)->get();
 
         if ($models->count()) {
             return response()->json([
