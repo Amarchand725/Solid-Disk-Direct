@@ -24,7 +24,8 @@ use App\Http\Controllers\Api\{
     OrderController,
     ShippingController,
     LocationController,
-    PlaceOrderController
+    PlaceOrderController,
+    PaypalController
 };
 
 /*
@@ -62,6 +63,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::controller(OrderController::class)->group(function () {
     Route::post('orders/place-order', 'store');
+});
+Route::controller(PaypalController::class)->group(function () {
+    Route::get('/paypal/client-id', 'getClientId');
+    Route::post('/paypal/capture', 'captureOrder');
 });
 
 Route::controller(SettingController::class)->group(function () {

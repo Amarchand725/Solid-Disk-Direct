@@ -60,6 +60,7 @@ use App\Http\Controllers\DeveloperController;
 Route::controller(DeveloperController::class)->group(function () {
     Route::get('/generate-policy-slugs', 'generateMissingPolicySlugs');
     Route::get('/add-country-code', 'addCountryCode');
+    Route::get('/store/brands', 'storeBrands');
 });
 //developer
 

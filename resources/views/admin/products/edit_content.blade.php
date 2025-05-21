@@ -175,7 +175,7 @@
         <span id="images_error" class="text-danger error"></span>
     </div>
 </div>
-<script src="{{ asset('admin') }}/custom/product.js"></script>
+<script src="{{ asset('admin') }}/custom/multi-categories.js"></script>
 <script>
     $('#short_description').summernote({
         height: 200

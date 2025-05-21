@@ -1,5 +1,43 @@
-<?php $__env->startSection('title', $title.' -  ' . appName()); ?>
+<?php $__env->startSection('title', $title.' -  ' . appName()); ?> 
+<?php $__env->startPush('css'); ?>
+    <style>
+        .preview-wrapper {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+        .preview-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .remove-existing {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: red;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 2;
+        }
+        .swal2-container {
+            z-index: 9999 !important;
+        }
+        .highlight-arrow {
+            color: #ff5722; /* or any highlight color */
+            font-weight: bold;
+        }
 
+    </style>    
+<?php $__env->stopPush(); ?>   
 <?php $__env->startSection('content'); ?>
 <?php if(request()->is($routeInitialize.'/trashed')): ?>
     <input type="hidden" id="page_url" value="<?php echo e(route($routeInitialize.'.trashed')); ?>">
@@ -10,14 +48,14 @@
     <div class="container-xxl flex-grow-1 container-p-y">
         <div class="card mb-4">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="card-header">
                         <h4 class="fw-bold mb-0"><span class="text-muted fw-light">Home /</span> <?php echo e($title); ?></h4>
                     </div>
                 </div>
                 <?php if(request()->is($routeInitialize.'/trashed')): ?>
                     <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check($routeInitialize.'-list')): ?>
-                        <div class="col-md-6">
+                        <div class="col-md-8">
                             <div class="dt-buttons btn-group flex-wrap float-end mt-4">
                                 <a data-toggle="tooltip" data-placement="top" title="Show All Records" href="<?php echo e(route($routeInitialize.'.index')); ?>" class="btn btn-success btn-primary mx-3">
                                     <span>
@@ -29,8 +67,8 @@
                         </div>
                     <?php endif; ?>
                 <?php else: ?>
-                    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->any([$routeInitialize.'-create', $routeInitialize.'-trashed'])): ?>
-                        <div class="col-md-6">
+                    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->any([$routeInitialize.'-create', $routeInitialize.'-trashed', $routeInitialize.'-import'])): ?>
+                        <div class="col-md-8">
                             <div class="dt-buttons btn-group flex-wrap float-end mt-4">
                                 <button id="refresh-record" class="btn btn-success mx-2" title="Refresh Records"><i class="ti ti-refresh me-0 ti-xs"></i></button>
                                 <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check($routeInitialize.'-trashed')): ?>
@@ -40,6 +78,22 @@
                                             <span class="d-none d-sm-inline-block">All Trashed Records </span>
                                         </span>
                                     </a>
+                                <?php endif; ?>
+                                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check($routeInitialize.'-import')): ?>
+                                    <button
+                                        id="add-btn"
+                                        data-toggle="tooltip" data-placement="top" title="Import <?php echo e($singularLabel); ?>s"
+                                        data-url="<?php echo e(route($routeInitialize.'.import.store')); ?>"
+                                        data-create-url="<?php echo e(route($routeInitialize.'.import.create')); ?>"
+                                        class="btn btn-success add-btn mb-3 mb-md-0 mx-2"
+                                        tabindex="0" aria-controls="DataTables_Table_0"
+                                        type="button" data-bs-toggle="modal"
+                                        data-bs-target="#create-pop-up-modal-for-file">
+                                        <span>
+                                            <i class="ti ti-file me-0 me-sm-1 ti-xs"></i>
+                                            <span class="d-none d-sm-inline-block"> Import <?php echo e($singularLabel); ?>s </span>
+                                        </span>
+                                    </button>
                                 <?php endif; ?>
                                 <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check($routeInitialize.'-create')): ?>
                                     <button
@@ -110,7 +164,6 @@
 <?php $__env->stopSection(); ?>
 <?php $__env->startPush('js'); ?>
 <script>
-    //datatable
     $(document).ready(function(){
         var page_url = $('#page_url').val();
         var columns =     <?php echo json_encode($columnsConfig); ?>  // Get columns dynamically from controller
@@ -123,5 +176,4 @@
     })
 </script>
 <?php $__env->stopPush(); ?>
-
-<?php echo $__env->make('admin.layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\resources\views/admin/banners/index.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('admin.layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/admin/products/index.blade.php ENDPATH**/ ?>

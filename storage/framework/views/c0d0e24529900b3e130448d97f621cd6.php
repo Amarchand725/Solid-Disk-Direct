@@ -34,4 +34,4 @@
         <?php endif; ?>
     </div>
 </div>
-<?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\resources\views/admin/banners/action.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/admin/categories/action.blade.php ENDPATH**/ ?>

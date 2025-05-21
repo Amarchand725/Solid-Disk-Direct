@@ -77,4 +77,4 @@
             dropdownParent: $(this).parent(),
         });
     });
-</script><?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\resources\views/admin/banners/edit_content.blade.php ENDPATH**/ ?>
+</script><?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/admin/banners/edit_content.blade.php ENDPATH**/ ?>
