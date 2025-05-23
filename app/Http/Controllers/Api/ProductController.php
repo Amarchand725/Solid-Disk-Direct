@@ -186,44 +186,6 @@ class ProductController extends Controller
         ]);
     }
 
-
-    // public function show($slug){
-    //     $model = $this->model->with('mainCategory')->where('slug', $slug)->first();
-    //     // $lastCategory = $model->categories->last(); // Get last category (based on order, not created_at)
-
-    //     $categoryTrail = $this->getCategoryTrailFromRelations($model->mainCategory);
-    //     // Now get other products in the same category
-    //     $relatedProducts = collect();
-
-    //     if ($model) {
-    //         $relatedProducts = $model->mainCategory->products()
-    //             ->where('products.id', '!=', $model->id) // Exclude the current product
-    //             ->latest() // Optional: order by latest
-    //             ->take(10)  // Optional: limit results
-    //             ->get();
-        
-    //         $this->storeRecentViewProduct($slug);
-
-    //         $data = [
-    //             'categoryTrail' => $categoryTrail,
-    //             'details' => new $this->productResource($model),
-    //             'related_products' => $this->productResource->collection($relatedProducts)
-    //         ];
-            
-    //         return response()->json([
-    //             'status'=>true,
-    //             'message'=>'Data found successfully.',
-    //             'data' => $data,
-    //         ]);
-    //     }else{
-    //         return response()->json([
-    //             'status'=>false,
-    //             'message'=>'Data not found.',    
-    //             'data'=>null
-    //         ]);
-    //     }
-    // }
-
     public function storeRecentViewProduct($slug){
         $model = new RecentViewProduct();
         $model->product = $slug;
@@ -236,8 +198,6 @@ class ProductController extends Controller
 
     public function search(Request $request)
     {
-        $query = $this->model->query();
-
         if (!$request->filled('keyword')) {
             return response()->json([
                 'status' => false,
@@ -245,43 +205,33 @@ class ProductController extends Controller
                 'data' => []
             ]);
         }
-        if ($request->filled('keyword')) {
-            $keyword = $request->keyword;
-            $query->where('title', 'like', "%{$keyword}%")
-                ->orWhere('short_description', 'like', "%{$keyword}%")
-                ->orWhere('sku', 'like', "%{$keyword}%")
-                ->orWhere('unit_price', 'like', "%{$keyword}%");
-        }
 
-        if ($request->filled('category_slug')) {
-            $query->whereHas('categories', function($q) use ($request) {
-                $q->where('categories.slug', $request->category_slug);
-            });
-        }
+    $keyword = trim($request->input('keyword'));
+        $query = $this->model->query();
 
-        if ($request->filled('min_price') && $request->filled('max_price')) {
-            $query->whereBetween('price', [$request->min_price, $request->max_price]);
-        }
+        // Basic keyword search
+        $query->where(function ($q) use ($keyword) {
+            $q->where('title', 'like', "%{$keyword}%")
+            ->orWhere('short_description', 'like', "%{$keyword}%")
+            ->orWhere('sku', 'like', "%{$keyword}%")
+            ->orWhere('unit_price', 'like', "%{$keyword}%");
+        });
 
-        if ($request->filled('brand')) {
-            $query->where('brand', $request->brand);
-        }
+        // Optional: paginate or limit
+        $results = $query->limit(10)->get(); // or use ->paginate(10)
 
-        // Add relationships or filters as needed
-        $models = $query->get();
-
-        if ($models->count()) {
+        if ($results->isNotEmpty()) {
             return response()->json([
                 'status' => true,
-                'message' => 'Data found successfully.',
-                'data' => $this->productResource->collection($models)
-            ]);
-        } else {
-            return response()->json([
-                'status' => false,
-                'message' => 'No data found.',
-                'data' => []
+                'message' => 'Products found successfully.',
+                'data' => $this->productResource->collection($results),
             ]);
         }
+
+        return response()->json([
+            'status' => false,
+            'message' => 'No matching products found.',
+            'data' => []
+        ]);
     }
 }
