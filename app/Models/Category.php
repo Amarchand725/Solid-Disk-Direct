@@ -29,7 +29,7 @@ class Category extends Model
 
     public function products()
     {
-        return $this->belongsToMany(Product::class, 'category_product');
+        return $this->belongsToMany(Product::class, 'category_product')->whereNotNull('unit_price');
     }
     
     public function createdBy()

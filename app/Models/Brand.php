@@ -33,6 +33,6 @@ class Brand extends Model
     }
 
     public function hasProducts(){
-        return $this->hasMany(Product::class,'brand','id');
+        return $this->hasMany(Product::class,'brand','id')->whereNotNull('unit_price');
     }
 }
