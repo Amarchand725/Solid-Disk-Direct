@@ -103,6 +103,7 @@ Route::controller(BrandController::class)->group(function () {
     Route::get('brands/show/{slug}', 'show');
     Route::get('brands/featured', 'featured');
     Route::get('brands/top', 'top');
+    Route::get('brands/{brandSlug}/products', 'productsByBrand');
 });
 Route::controller(BannerController::class)->group(function () {
     Route::get('banners', 'index');

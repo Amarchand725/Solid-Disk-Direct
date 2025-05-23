@@ -8,15 +8,19 @@ use App\Models\Product;
 use App\Models\CartItem;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
-use App\Services\Payment\PaymentService;
+use App\Mail\OrderConfirmedAdmin;
 use Illuminate\Support\Facades\DB;
 use App\Models\OrderBillingAddress;
 use App\Models\OrderShippingMethod;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use App\Mail\OrderConfirmedCustomer;
 use App\Models\OrderShippingAddress;
+use Illuminate\Support\Facades\Mail;
 use App\Http\Requests\PlaceOrderRequest;
+use App\Services\Payment\PaymentService;
 use Illuminate\Support\Facades\Validator;
+use App\Notifications\SiteEventNotification;
 use App\Models\{Cart, ShippingMethod, Order};
 
 class OrderController extends Controller
@@ -183,6 +187,21 @@ class OrderController extends Controller
                     $order->payment_status = 'paid';
                     // $order->transaction_id = $paymentIntent->id;
                     $order->save();
+
+                    //new order notification
+                    $admin = getActiveAdminUser();
+                    if(!empty($admin)){
+                        $customerName = $shipping['first_name'].' '.$shipping['last_name'];
+                        $url = route('orders.index');
+                        $admin->notify(new SiteEventNotification('subscribe.png', 'New Order Placed', "{$customerName} has placed order.", $url));
+
+                        //order confirm email
+                        Mail::to('orders@soliddiskdirect.com')->queue(new OrderConfirmedAdmin($order));
+                    }
+
+                    //order confirm customer email
+                    Mail::to($shipping['email'])->queue(new OrderConfirmedCustomer($order));
+                    //order confirm customer emails
 
                     Log::info('After payment success order updated');
 

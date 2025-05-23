@@ -29,8 +29,18 @@ class PaypalController extends Controller
         $accessToken = $auth['access_token'];
 
         // Capture payment
+        // $response = Http::withToken($accessToken)
+        //     ->post("https://api-m.sandbox.paypal.com/v2/checkout/orders/{$orderId}/capture");
+
         $response = Http::withToken($accessToken)
             ->post("https://api-m.sandbox.paypal.com/v2/checkout/orders/{$orderId}/capture");
+
+        if (!$response->successful()) {
+            return response()->json([
+                'error' => 'Failed to capture PayPal order',
+                'details' => $response->json()
+            ], 500);
+        }
 
         return response()->json($response->json());
     }

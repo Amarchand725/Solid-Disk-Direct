@@ -79,6 +79,14 @@ class CartController extends Controller
 
             $product = $this->productModal->where('slug', $request->slug)->firstOrFail();
 
+            $productPrice = 0;
+
+            if ($product->discount_price) {
+                $productPrice = $product->discount_price;
+            } elseif ($product->unit_price) {
+                $productPrice = $product->unit_price;
+            }
+
             if(!empty($product)){
                 $cartItem = $this->cartItemModal->where('cart_id', $cart->id)
                     ->where('product_id', $product->id)
@@ -86,15 +94,15 @@ class CartController extends Controller
 
                 if ($cartItem) {
                     $cartItem->quantity += $request->quantity;
-                    $cartItem->sub_total = $cartItem->quantity * $product->discount_price;
+                    $cartItem->sub_total = $cartItem->quantity * $productPrice;
                     $cartItem->save();
                 } else {
                     $this->cartItemModal->create([
                         'cart_id' => $cart->id,
                         'product_id' => $product->id,
                         'quantity' => $request->quantity ?? 1,
-                        'unit_price' => $product->discount_price,
-                        'sub_total' => $product->discount_price * ($request->quantity ?? 1),
+                        'unit_price' => $productPrice,
+                        'sub_total' => $productPrice * ($request->quantity ?? 1),
                         'options' => $request->options ? json_encode($request->options) : null,
                     ]);
                 }

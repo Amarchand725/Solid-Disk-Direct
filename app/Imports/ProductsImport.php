@@ -24,7 +24,7 @@ class ProductsImport implements ToModel, WithHeadingRow
             'description' => $row['product_type'],
         ]);
 
-        $detectedBrand = $this->detectBrandName($row['description']);
+        $detectedBrand = $this->detectOrCreateBrand($row['description']);
 
         if (empty($model)) {
             $product = new Product([
@@ -71,18 +71,27 @@ class ProductsImport implements ToModel, WithHeadingRow
         return null;
     }
 
-    function detectBrandName($productTitle)
+    function detectOrCreateBrand($productTitle)
     {
-        $brands = Brand::all(); // get full model
+        $brands = Brand::all(); // Load all brands
 
         foreach ($brands as $brand) {
             if (Str::startsWith(strtolower($productTitle), strtolower($brand->name))) {
-                return $brand; // return the model
+                return $brand; // Return the matched brand model
             }
         }
 
-        return null;
+        // If no brand matched, extract the first word as a potential brand
+        $potentialBrand = Str::before($productTitle, ' ');
+        $potentialBrand = ucfirst(strtolower($potentialBrand)); // Normalize it
+
+        // Create the brand and return it
+        return Brand::create([
+                    'name' => $potentialBrand,
+                    'description' => $potentialBrand
+                ]);
     }
+
     private function getAllParentCategoryIds(Category $category, &$collected = [])
     {
         foreach ($category->parents as $parent) {

@@ -15,10 +15,17 @@
 
                     </span>
                 <?php elseif($field['type'] === 'checkbox'): ?>
-                    <span class="badge bg-label-<?php echo e($model->status ? 'success' : 'danger'); ?>">
-                        <?php echo e($model->status ? 'Yes' : 'No'); ?>
+                    <?php if($model->is_featured): ?>
+                        <span class="badge bg-label-<?php echo e($model->is_featured ? 'success' : 'danger'); ?>">
+                            <?php echo e($model->is_featured ? 'Yes' : 'No'); ?>
 
-                    </span>
+                        </span>
+                    <?php elseif($model->is_refundable): ?>
+                        <span class="badge bg-label-<?php echo e($model->is_refundable ? 'success' : 'danger'); ?>">
+                            <?php echo e($model->is_refundable ? 'Yes' : 'No'); ?>
+
+                        </span>
+                    <?php endif; ?>
                 <?php else: ?>
                     <?php if($name=='brand' && isset($model->hasBrand) && !empty($model->hasBrand)): ?>
                         <?php echo e($model->hasBrand->name ?? '-'); ?>
