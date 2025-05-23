@@ -12,7 +12,7 @@ class SettingController extends Controller
     public function businessInfo(){
         $setting = Setting::select([
             'name','support_email', 'sale_email', 'currency_symbol', 'favicon', 
-            'black_logo','address', 'country', 'phone_number', 'day_range', 'start_time',
+            'black_logo', 'logo','address', 'country', 'phone_number', 'day_range', 'start_time',
             'end_time', 'timezone', 'location_map_url', 'website_url', 
             'facebook_link', 'instagram_link', 'linked_in_link', 'twitter_link' 
         ])->first();

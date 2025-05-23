@@ -24,7 +24,8 @@ use App\Http\Controllers\Api\{
     OrderController,
     ShippingController,
     LocationController,
-    PlaceOrderController
+    PlaceOrderController,
+    PaypalController
 };
 
 /*
@@ -58,9 +59,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('wishlists/store', 'store');
         Route::post('wishlists/remove', 'removeFromWishlist');
     });
-    Route::controller(OrderController::class)->group(function () {
-        Route::post('orders/place-order', 'store');
-    });
+});
+
+Route::controller(OrderController::class)->group(function () {
+    Route::post('orders/place-order', 'store');
+});
+Route::controller(PaypalController::class)->group(function () {
+    Route::get('/paypal/client-id', 'getClientId');
+    Route::post('/paypal/capture', 'captureOrder');
 });
 
 Route::controller(SettingController::class)->group(function () {
@@ -97,6 +103,7 @@ Route::controller(BrandController::class)->group(function () {
     Route::get('brands/show/{slug}', 'show');
     Route::get('brands/featured', 'featured');
     Route::get('brands/top', 'top');
+    Route::get('brands/{brandSlug}/products', 'productsByBrand');
 });
 Route::controller(BannerController::class)->group(function () {
     Route::get('banners', 'index');

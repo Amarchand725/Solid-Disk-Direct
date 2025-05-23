@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('order_number')->unique();
             $table->bigInteger('customer_id')->nullable();
+            $table->string('session_id')->nullable(); // For guest cart
             $table->bigInteger('shipping_method_id')->nullable();
             $table->bigInteger('coupon_id')->nullable(); 
             $table->boolean('same_as_shipping')->default(0)->comment('0=>different address, 1=same as shipping address'); // Billing address same as shipping address

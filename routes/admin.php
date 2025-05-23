@@ -41,7 +41,8 @@ use App\Http\Controllers\Admin\{
     TestimonialController,
     UnitController,
     UserController,
-    WishlistController
+    WishlistController,
+    OrderController
 };
 use App\Http\Controllers\DeveloperController;
 
@@ -60,6 +61,7 @@ use App\Http\Controllers\DeveloperController;
 Route::controller(DeveloperController::class)->group(function () {
     Route::get('/generate-policy-slugs', 'generateMissingPolicySlugs');
     Route::get('/add-country-code', 'addCountryCode');
+    Route::get('/store/brands', 'storeBrands');
 });
 //developer
 
@@ -286,4 +288,5 @@ Route::controller(AdminController::class)->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('attribute_groups', AttributeGroupController::class);
     Route::resource('attribute_values', AttributeValueController::class);
+    Route::resource('orders', OrderController::class);
 });

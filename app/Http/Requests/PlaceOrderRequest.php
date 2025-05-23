@@ -22,7 +22,10 @@ class PlaceOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'payment_method_id' => 'required|string',
+            // 'payment' => 'required|string',
+            'payment' => 'required|array',
+            'payment.method' => 'required|string|in:paypal,payarc,stripe', // list valid methods
+            'payment.payment_method_id' => 'required|string',
             // Shipping fields (always required)
             'shipping.email' => ['required', 'email'],
             'shipping.first_name' => ['required', 'string', 'max:255'],

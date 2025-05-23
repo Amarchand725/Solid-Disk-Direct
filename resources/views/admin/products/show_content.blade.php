@@ -14,9 +14,15 @@
                         {{ $model->status ? 'Active' : 'Deactive' }}
                     </span>
                 @elseif($field['type'] === 'checkbox')
-                    <span class="badge bg-label-{{ $model->status ? 'success' : 'danger' }}">
-                        {{ $model->status ? 'Yes' : 'No' }}
-                    </span>
+                    @if($model->is_featured)
+                        <span class="badge bg-label-{{ $model->is_featured ? 'success' : 'danger' }}">
+                            {{ $model->is_featured ? 'Yes' : 'No' }}
+                        </span>
+                    @elseif($model->is_refundable)
+                        <span class="badge bg-label-{{ $model->is_refundable ? 'success' : 'danger' }}">
+                            {{ $model->is_refundable ? 'Yes' : 'No' }}
+                        </span>
+                    @endif
                 @else
                     @if($name=='brand' && isset($model->hasBrand) && !empty($model->hasBrand))
                         {{ $model->hasBrand->name ?? '-' }}

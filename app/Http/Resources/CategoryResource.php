@@ -34,7 +34,7 @@ class CategoryResource extends JsonResource
             "description" => $this->description ?? '',
             "is_featured" => $this->is_featured ?? '',
             'products' => ProductResource::collection($this->whenLoaded('products')),
-            // 'children' => self::collection($this->whenLoaded('children')),
+            'children_recursive' => self::collection($this->whenLoaded('childrenRecursive')),      
         ]; 
     }
 }

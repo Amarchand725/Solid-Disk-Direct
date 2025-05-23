@@ -8,15 +8,19 @@ use App\Models\Product;
 use App\Models\CartItem;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
-use App\Services\PaymentService;
+use App\Mail\OrderConfirmedAdmin;
 use Illuminate\Support\Facades\DB;
 use App\Models\OrderBillingAddress;
 use App\Models\OrderShippingMethod;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use App\Mail\OrderConfirmedCustomer;
 use App\Models\OrderShippingAddress;
+use Illuminate\Support\Facades\Mail;
 use App\Http\Requests\PlaceOrderRequest;
+use App\Services\Payment\PaymentService;
 use Illuminate\Support\Facades\Validator;
+use App\Notifications\SiteEventNotification;
 use App\Models\{Cart, ShippingMethod, Order};
 
 class OrderController extends Controller
@@ -31,9 +35,9 @@ class OrderController extends Controller
     protected $cartModel;
     protected $cartItemsModel;
 
-    public function __construct(PaymentService $paymentService)
+    public function __construct()
     {
-        $this->paymentService = $paymentService;
+        // $this->paymentService = $paymentService;
         $this->cartModel = new Cart();
         $this->cartItemsModel = new CartItem();
         $this->orderModel = new Order();
@@ -46,7 +50,10 @@ class OrderController extends Controller
 
     public function store(Request $request, PlaceOrderRequest $requestValidated)
     {
+        // $payment = $request->payment;
+        // return $payment['method'];
         $validated = $requestValidated->validated();
+        $payment = $request->payment;
         $shipping = $validated['shipping'];
         $billing = $validated['billing'];
         $sameAsShipping = $billing['same_as_shipping'];
@@ -58,7 +65,8 @@ class OrderController extends Controller
         try {
             $order = $this->orderModel;
             $order->order_number = 'ORD' . strtoupper(substr(bin2hex(random_bytes(2)), 0, 5));
-            $order->customer_id = auth()->id();
+            $order->customer_id = auth()->check() ? auth()->id() : null;
+            $order->session_id = auth()->check() ? null : $cart['session_id'];
             $order->coupon_id = NULL;
             $order->same_as_shipping = $sameAsShipping;
             $order->subtotal = $cart['subtotal'] ?? 0;
@@ -134,12 +142,66 @@ class OrderController extends Controller
                     Log::info('Order Shipping Service updated Successfully');
                 }
 
-                $paymentIntent = $this->paymentService->handleStripePayment($order->total, $request->payment_method_id);
-                Log::info('Payment Response: '.json_encode($paymentIntent));
-                if($paymentIntent->status=='succeeded'){
+                //paypal 
+                if($payment['method']=='paypal'){
+                    $paymentService = new PaymentService($payment['method']);
+                    $response = $paymentService->capture([
+                        'orderID' => $order->id,
+                    ]);
+
+                    Log::info('Payment Response: '.json_encode($response));
+                }elseif($payment['method']=='payarc'){
+                    $paymentService = new PaymentService($payment['method']);
+
+                    $response = $paymentService->capture([
+                        'amount' => $order->total,
+                    ]);
+
+                    return $response;
+                }
+                // else{ //if use stripe
+                //     $paymentIntent = $this->paymentService->handleStripePayment($order->total, $request->payment_method_id);
+                //     Log::info('Payment Response: '.json_encode($paymentIntent));
+                // }
+
+                //Payarc
+                // $response = $paymentService->capture([
+                    // 'amount' => $order->total,
+                    // 'card_number' => '4111111111111111',
+                    // 'expiry' => '1225',
+                    // 'cvv' => '123',
+                    // 'firstname' => $shipping['first_name'],
+                    // 'lastname' => $shipping['last_name'],
+                    // 'email' => $shipping['email'],
+                    // 'address' => $shipping['address'],
+                    // 'zip' => $shipping['zip'],
+                // ]);
+                //payarc
+
+                //Strip
+                // $paymentIntent = $this->paymentService->handleStripePayment($order->total, $request->payment_method_id);
+                // Log::info('Payment Response: '.json_encode($paymentIntent));
+                // if($paymentIntent->status=='succeeded'){
+                //Strip
+                if($response){
                     $order->payment_status = 'paid';
-                    $order->transaction_id = $paymentIntent->id;
+                    // $order->transaction_id = $paymentIntent->id;
                     $order->save();
+
+                    //new order notification
+                    $admin = getActiveAdminUser();
+                    if(!empty($admin)){
+                        $customerName = $shipping['first_name'].' '.$shipping['last_name'];
+                        $url = route('orders.index');
+                        $admin->notify(new SiteEventNotification('subscribe.png', 'New Order Placed', "{$customerName} has placed order.", $url));
+
+                        //order confirm email
+                        Mail::to('orders@soliddiskdirect.com')->queue(new OrderConfirmedAdmin($order));
+                    }
+
+                    //order confirm customer email
+                    Mail::to($shipping['email'])->queue(new OrderConfirmedCustomer($order));
+                    //order confirm customer emails
 
                     Log::info('After payment success order updated');
 
@@ -155,7 +217,7 @@ class OrderController extends Controller
 
                     DB::commit();
                     Log::info('Final Order placed success ');
-                    return response()->json([
+                    return response()->json([   
                         'success' => true, 
                         'message' =>'You have placed order successfully.',
                         'order_number' => $order->order_number,

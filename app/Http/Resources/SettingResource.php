@@ -39,6 +39,7 @@ class SettingResource extends JsonResource
             "linked_in_link" => $this->linked_in_link ?? '',
             "twitter_link" => $this->twitter_link ?? '',
             "logo" => $this->black_logo ? asset(Storage::url($this->black_logo))  : '',
+            "white_logo" => $this->logo ? asset(Storage::url($this->logo))  : '',
             "favicon" => $this->favicon ? asset(Storage::url($this->favicon))  : '',
         ];        
     }

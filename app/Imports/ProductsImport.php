@@ -2,7 +2,10 @@
 
 namespace App\Imports;
 
+use App\Models\Brand;
 use App\Models\Product;
+use App\Models\Category;
+use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -14,29 +17,90 @@ class ProductsImport implements ToModel, WithHeadingRow
     public function model(array $row)
     {
         $model = Product::where('title', $row['title'])->first();
-        if(empty($model)){
-            return new Product([
+
+        $category = Category::firstOrCreate([
+            'name' => $row['product_type'],
+        ], [
+            'description' => $row['product_type'],
+        ]);
+
+        $detectedBrand = $this->detectOrCreateBrand($row['description']);
+
+        if (empty($model)) {
+            $product = new Product([
                 'created_by' => Auth::user()->id,
-                'thumbnail' => $row['thumbnail'] ?? NULL,
-                'title' => $row['title'] ?? NULL,
-                'sku' => $row['sku'] ?? NULL,
-                'brand' => $row['brand'] ?? NULL,
-                'category' => $row['category'] ?? NULL,
-                'stock_quantity' => $row['stock_quantity'] ?? NULL,
-                'min_quantity' => $row['min_quantity'] ?? NULL,
-                'short_description' => $row['short_description'] ?? NULL,
-                'full_description' => $row['full_description'] ?? NULL,
-                'unit_price' => $row['unit_price'] ?? NULL,
-                'discount_price' => $row['discount_price'] ?? NULL,
-                'is_featured' => $row['is_featured'] ?? NULL,
-                'is_refundable' => $row['is_refundable'] ?? NULL,
-                'unit' => $row['unit'] ?? NULL,
-                'tax_type' => $row['tax_type'] ?? NULL,
-                'tax_mode' => $row['tax_mode'] ?? NULL,
-                'discount_type' => $row['discount_type'] ?? NULL,
-                'condition' => $row['condition'] ?? NULL,
+                'thumbnail' => !empty($row['image_link']) ? 'uploads/products/' . $row['image_link'] : null,
+                'title' => $row['title'] ?? null,
+                'sku' => $row['sku'] ?? null,
+                'brand' => $detectedBrand?->id,
+                'category' => $category->id,
+                'stock_quantity' => $row['stock_quantity'] ?? null,
+                'min_quantity' => $row['min_quantity'] ?? null,
+                'short_description' => $row['description'] ?? null,
+                'full_description' => $row['full_description'] ?? null,
+                'unit_price' => $row['price'] ?? null,
+                'mpn' => $row['mpn'] ?? null,
+                'discount_price' => $row['discount_price'] ?? null,
+                'is_featured' => $row['is_featured'] ?? null,
+                'is_refundable' => $row['is_refundable'] ?? null,
+                'unit' => $row['unit'] ?? null,
+                'tax_type' => $row['tax_type'] ?? null,
+                'tax_mode' => $row['tax_mode'] ?? null,
+                'discount_type' => $row['discount_type'] ?? null,
+                'condition' => $row['condition'] ?? null,
+                'product_weight' => $row['product_weight'] ?? null,
+                'shipping_weight' => $row['shipping_weight'] ?? null,
             ]);
+
+            $product->save();
+
+            // Get all parent categories
+            $allCategoryIds = [$category->id];
+            if ($category) {
+                $parentCategoryIds = $this->getAllParentCategoryIds($category);
+                $allCategoryIds = array_unique(array_merge($parentCategoryIds, [$category->id]));
+            }
+
+            if (!empty($allCategoryIds)) {
+                $product->categories()->syncWithoutDetaching($allCategoryIds);
+            }
+
+            return $product;
         }
+
+        return null;
+    }
+
+    function detectOrCreateBrand($productTitle)
+    {
+        $brands = Brand::all(); // Load all brands
+
+        foreach ($brands as $brand) {
+            if (Str::startsWith(strtolower($productTitle), strtolower($brand->name))) {
+                return $brand; // Return the matched brand model
+            }
+        }
+
+        // If no brand matched, extract the first word as a potential brand
+        $potentialBrand = Str::before($productTitle, ' ');
+        $potentialBrand = ucfirst(strtolower($potentialBrand)); // Normalize it
+
+        // Create the brand and return it
+        return Brand::create([
+                    'name' => $potentialBrand,
+                    'description' => $potentialBrand
+                ]);
+    }
+
+    private function getAllParentCategoryIds(Category $category, &$collected = [])
+    {
+        foreach ($category->parents as $parent) {
+            if (!in_array($parent->id, $collected)) {
+                $collected[] = $parent->id;
+                $this->getAllParentCategoryIds($parent, $collected);
+            }
+        }
+        return $collected;
     }
 }
 
