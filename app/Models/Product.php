@@ -38,7 +38,7 @@ class Product extends Model
     }
 
     public function hasBrand(){
-        return $this->hasOne(Brand::class, 'id', 'brand');
+        return $this->belongsTo(Brand::class, 'brand');
     }
     public function hasProductCondition(){
         return $this->hasOne(ProductCondition::class, 'id', 'condition');

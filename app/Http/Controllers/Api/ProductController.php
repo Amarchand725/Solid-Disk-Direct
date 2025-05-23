@@ -142,7 +142,7 @@ class ProductController extends Controller
 
     public function show($categorySlugChain, $slug)
     {
-        $model = $this->model->with('mainCategory')->where('slug', $slug)->first();
+        $model = $this->model->with('mainCategory','hasBrand')->where('slug', $slug)->first();
 
         if (!$model) {
             return response()->json([
