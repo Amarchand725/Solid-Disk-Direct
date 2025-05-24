@@ -65,8 +65,10 @@ Route::controller(OrderController::class)->group(function () {
     Route::post('orders/place-order', 'store');
 });
 Route::controller(PaypalController::class)->group(function () {
-    Route::get('/paypal/client-id', 'getClientId');
-    Route::post('/paypal/capture', 'captureOrder');
+    // Route::get('/paypal/client-id', 'getClientId');
+    // Route::post('/paypal/capture', 'captureOrder');
+    Route::get('/paypal/success', 'paypalSuccess')->name('paypal.success');
+    Route::get('/paypal/cancel', 'paypalCancel')->name('paypal.cancel');
 });
 
 Route::controller(SettingController::class)->group(function () {

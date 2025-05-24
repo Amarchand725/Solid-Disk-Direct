@@ -164,12 +164,12 @@ class ProductController extends Controller
             return redirect()->to("/$correctCategoryPath/{$model->slug}", 301);
         }
 
-        // Get related products from the same main category
-        $relatedProducts = $model->mainCategory->products()
-            ->where('products.id', '!=', $model->id)
-            ->latest()
-            ->take(10)
-            ->get();
+        $relatedProducts = $model->mainCategory
+        ->products()
+        ->where('products.id', '!=', $model->id)
+        ->inRandomOrder()
+        // ->take(5)
+        ->get();
 
         $this->storeRecentViewProduct($slug);
 

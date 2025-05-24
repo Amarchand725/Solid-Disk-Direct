@@ -47,7 +47,7 @@ class PaymentService
             //     ], 400);
             // }
         } catch (\Exception $e) {
-            Log::error('PaymentIntent creation failed: ' . $e->getMessage());
+            // Log::error('PaymentIntent creation failed: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
         }
 

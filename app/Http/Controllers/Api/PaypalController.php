@@ -2,46 +2,40 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Http;
+use App\Services\Payment\PaymentService;
 
 class PaypalController extends Controller
 {
-    public function getClientId()
+    public function paypalSuccess(Request $request)
     {
-        return response()->json([
-            'clientId' => env('PAYPAL_CLIENT_ID')
-        ]);
-    }
+        $token = $request->query('token');  // PayPal order ID from query param
 
-    public function captureOrder(Request $request)
-    {
-        $orderId = $request->orderID;
+        $paymentService = new PaymentService('paypal');
+        $captureResponse = $paymentService->capture($token);
 
-        // Get access token
-        $auth = Http::asForm()->withBasicAuth(
-            env('PAYPAL_CLIENT_ID'), env('PAYPAL_SECRET')
-        )->post("https://api-m.sandbox.paypal.com/v1/oauth2/token", [
-            'grant_type' => 'client_credentials'
-        ]);
+        if (!empty($captureResponse['status']) && $captureResponse['status'] === 'COMPLETED') {
+            $order = Order::where('paypal_order_id', $token)->first();
 
-        $accessToken = $auth['access_token'];
+            if ($order) {
+                $order->update([
+                    'status' => 'paid',
+                    'payment_status' => 'completed',
+                ]);
 
-        // Capture payment
-        // $response = Http::withToken($accessToken)
-        //     ->post("https://api-m.sandbox.paypal.com/v2/checkout/orders/{$orderId}/capture");
-
-        $response = Http::withToken($accessToken)
-            ->post("https://api-m.sandbox.paypal.com/v2/checkout/orders/{$orderId}/capture");
-
-        if (!$response->successful()) {
-            return response()->json([
-                'error' => 'Failed to capture PayPal order',
-                'details' => $response->json()
-            ], 500);
+                return redirect()->route('order.success', ['orderNumber' => $order->order_number]);
+            }
         }
 
-        return response()->json($response->json());
+        return redirect()->route('checkout')->with('error', 'Payment was not successful.');
+    }
+
+    public function paypalCancel(Request $request)
+    {
+        return redirect()->route('checkout')->with('error', 'You cancelled the PayPal payment.');
     }
 }

@@ -60,7 +60,7 @@ class OrderController extends Controller
         $cart = $request->cart;
         $cartItems = $cart['items'];
         $order_shipping_service = $this->orderShippingService->where('cart_id', $cart['id'])->first();
-
+        
         DB::beginTransaction();
         try {
             $order = $this->orderModel;
@@ -74,7 +74,7 @@ class OrderController extends Controller
             // $order->tax = null;
             // $order->discount = null;
             $order->total = $cart['total'] ?? 0;
-            $order->payment_method = 'stripe';
+            $order->payment_method = $payment['method'];
             $order->payment_status = 'unpaid';
             $order->additional_note = null;
             $order->save();
@@ -114,7 +114,7 @@ class OrderController extends Controller
                     $order_shipping_address->country = $shipping['shippingCountry'];
                     $order_shipping_address->save();
 
-                    Log::info('Order Shipping Address Added Successfully');
+                    // Log::info('Order Shipping Address Added Successfully');
                 }
 
                 if(isset($sameAsShipping) && $sameAsShipping==true && !empty($billing)){
@@ -143,40 +143,39 @@ class OrderController extends Controller
                 }
 
                 //paypal 
-                if($payment['method']=='paypal'){
-                    $paymentService = new PaymentService($payment['method']);
-                    $response = $paymentService->capture([
-                        'orderID' => $order->id,
-                    ]);
+                if ($payment['method'] == 'paypal') {
+                    DB::commit();
+                    $paymentService = new PaymentService('paypal');
+                    $paypalResponse = $paymentService->createPaypalOrder($order); 
 
-                    Log::info('Payment Response: '.json_encode($response));
+                    // Save PayPal order ID
+                    $order->paypal_order_id = $paypalResponse['id'];
+                    $order->save();
+
+                    $approveLink = collect($paypalResponse['links'])->firstWhere('rel', 'approve')['href'];
+                    return response()->json([
+                        'redirect_url' => $approveLink,
+                        'success' => true,
+                        'message' => 'Redirecting to PayPal for payment',
+                    ]);
                 }elseif($payment['method']=='payarc'){
                     $paymentService = new PaymentService($payment['method']);
-
                     $response = $paymentService->capture([
                         'amount' => $order->total,
+                        'card_number' => $payment['card_number'],
+                        'expiry' => $payment['expiry'],   // format MMYY or MM/YY as per Payarc spec
+                        'cvv' => $payment['cvv'],
+                        'firstname' => $shipping['first_name'] ?? '',
+                        'lastname' => $shipping['last_name'] ?? '',
+                        'email' => $shipping['email'] ?? '',
+                        'address' => $shipping['address'] ?? '',
+                        'zip' => $shipping['zip'] ?? '',
                     ]);
-
-                    return $response;
                 }
                 // else{ //if use stripe
                 //     $paymentIntent = $this->paymentService->handleStripePayment($order->total, $request->payment_method_id);
                 //     Log::info('Payment Response: '.json_encode($paymentIntent));
                 // }
-
-                //Payarc
-                // $response = $paymentService->capture([
-                    // 'amount' => $order->total,
-                    // 'card_number' => '4111111111111111',
-                    // 'expiry' => '1225',
-                    // 'cvv' => '123',
-                    // 'firstname' => $shipping['first_name'],
-                    // 'lastname' => $shipping['last_name'],
-                    // 'email' => $shipping['email'],
-                    // 'address' => $shipping['address'],
-                    // 'zip' => $shipping['zip'],
-                // ]);
-                //payarc
 
                 //Strip
                 // $paymentIntent = $this->paymentService->handleStripePayment($order->total, $request->payment_method_id);

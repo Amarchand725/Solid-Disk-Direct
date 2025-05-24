@@ -23,9 +23,10 @@ class PlaceOrderRequest extends FormRequest
     {
         return [
             // 'payment' => 'required|string',
-            'payment' => 'required|array',
-            'payment.method' => 'required|string|in:paypal,payarc,stripe', // list valid methods
-            'payment.payment_method_id' => 'required|string',
+            // 'payment' => 'required|array',
+            // 'payment.method' => 'required|string|in:paypal,payarc,stripe',
+            // 'payment.payment_method_id' => 'required|string',
+
             // Shipping fields (always required)
             'shipping.email' => ['required', 'email'],
             'shipping.first_name' => ['required', 'string', 'max:255'],
