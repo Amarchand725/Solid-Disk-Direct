@@ -231,4 +231,25 @@ class OrderController extends Controller
             ], 500);
         }
     }
+
+    public function track(Request $request)
+    {
+        $query = $request->query('query'); // order id or email from ?query=...
+
+        if (!$query) {
+            return response()->json(['error' => 'Query parameter is required.'], 400);
+        }
+
+        $order = Order::with([ 'items.product'])
+            ->where('id', $query)
+            ->first();
+
+        if (!$order) {
+            return response()->json(['error' => 'Order not found.'], 404);
+        }
+
+        // Optionally transform data before sending
+
+        return response()->json($order);
+    }
 }
