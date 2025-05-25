@@ -22,7 +22,7 @@ class ProductController extends Controller
     }
 
     public function index(){
-        $models = $this->model->with('mainCategory')->where('status', 1)->orderBy('id', 'desc')->paginate(10);
+        $models = $this->model->with('mainCategory', 'hasBrand', 'hasProductCondition', 'hasUnit')->where('status', 1)->orderBy('id', 'desc')->get();
 
         if ($models->count()) {
             return response()->json([

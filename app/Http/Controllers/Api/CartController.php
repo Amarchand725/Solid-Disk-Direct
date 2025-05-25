@@ -35,11 +35,12 @@ class CartController extends Controller
     public function getCart()
     {
         $cart = $this->model->with('items.product')
-                ->where(function ($query) {
-                    $query->where('customer_id', auth()->id())
-                        ->orWhere('session_id', session()->getId());
-                })->first();
-
+        ->when(auth()->check(), function ($query) {
+            $query->where('customer_id', auth()->id());
+        }, function ($query) {
+            $query->where('session_id', session()->getId());
+        })
+        ->first();
 
         if (!$cart) {
             return response()->json([
