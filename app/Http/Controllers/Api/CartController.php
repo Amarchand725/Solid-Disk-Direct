@@ -9,6 +9,7 @@ use App\Models\CartItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\OrderShippingMethod;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CartResource;
 use App\Http\Resources\CartItemResource;
@@ -32,15 +33,19 @@ class CartController extends Controller
         $this->cartItemResource = new CartItemResource(null); 
     }
 
-    public function getCart()
+    public function getCart(Request $request)
     {
-        $cart = $this->model->with('items.product')
-        ->when(auth()->check(), function ($query) {
-            $query->where('customer_id', auth()->id());
-        }, function ($query) {
-            $query->where('session_id', session()->getId());
-        })
-        ->first();
+        // $cart = $this->model->where('customer_id', auth()->id())
+        //         ->orWhere('session_id', session()->getId())
+        //         ->first();
+
+        $cart = $this->model->where(function ($query) use ($request) {
+            if (auth()->check()) {
+                $query->where('customer_id', auth()->id());
+            } elseif ($request->has('guest_id')) {
+                $query->where('session_id', $request->guest_id);
+            } 
+        })->first();
 
         if (!$cart) {
             return response()->json([
@@ -67,14 +72,18 @@ class CartController extends Controller
         DB::beginTransaction();
 
         try {
-            $cart = $this->model->where('customer_id', auth()->id())
-                ->orWhere('session_id', session()->getId())
-                ->first();
+            $cart = $this->model->where(function ($query) use ($request) {
+                if (auth()->check()) {
+                    $query->where('customer_id', auth()->id());
+                } elseif ($request->has('guest_id')) {
+                    $query->where('session_id', $request->guest_id);
+                } 
+            })->first();
 
             if (!$cart) {
                 $cart = $this->model->create([
                     'customer_id' => auth()->check() ? auth()->id() : null, //if user is authenticated
-                    'session_id' => auth()->check() ? null : session()->getId(), //if user is guest
+                    'session_id' => auth()->check() ? null : ($request->guest_id ?? null), //if user is guest
                 ]);
             }
 
@@ -220,11 +229,15 @@ class CartController extends Controller
             'cart' => new $this->cartResource($cart->fresh('items'))
         ]);
     }
-    public function clearCart()
+    public function clearCart(Request $request)
     {
-        $cart = $this->model->where('customer_id', auth()->id())
-            ->orWhere('session_id', session()->getId())
-            ->first();
+        $cart = $this->model->where(function ($query) use ($request) {
+            if (auth()->check()) {
+                $query->where('customer_id', auth()->id());
+            } elseif ($request->has('guest_id')) {
+                $query->where('session_id', $request->guest_id);
+            } 
+        })->first();
 
         if (!$cart) {
             return response()->json([
@@ -249,9 +262,13 @@ class CartController extends Controller
         DB::beginTransaction();
 
         try {
-            $cart = $this->model->where('customer_id', auth()->id())
-                ->orWhere('session_id', session()->getId())
-                ->first();
+            $cart = $this->model->where(function ($query) use ($request) {
+                if (auth()->check()) {
+                    $query->where('customer_id', auth()->id());
+                } elseif ($request->has('guest_id')) {
+                    $query->where('session_id', $request->guest_id);
+                } 
+            })->first();
 
             if (!$cart) {
                 $cart = $this->model->create([
