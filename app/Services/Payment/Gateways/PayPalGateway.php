@@ -59,7 +59,7 @@ class PayPalGateway implements PaymentGatewayInterface
 
     public function capture($order)
     {
-        $paypalOrderId = $order->id;
+        $paypalOrderId = $order;
 
         if (!$paypalOrderId) {
             throw new \Exception('PayPal order ID is missing');

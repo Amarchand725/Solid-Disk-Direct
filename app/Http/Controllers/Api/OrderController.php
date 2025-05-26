@@ -22,6 +22,7 @@ use App\Services\Payment\PaymentService;
 use Illuminate\Support\Facades\Validator;
 use App\Notifications\SiteEventNotification;
 use App\Models\{Cart, ShippingMethod, Order};
+use App\Services\FedExShippingService;
 
 class OrderController extends Controller
 {
@@ -60,6 +61,7 @@ class OrderController extends Controller
         $cart = $request->cart;
         $cartItems = $cart['items'];
         $order_shipping_service = $this->orderShippingService->where('cart_id', $cart['id'])->first();
+        $weight = 0;
         
         DB::beginTransaction();
         try {
@@ -94,6 +96,7 @@ class OrderController extends Controller
                         $order_item->quantity = $item['quantity'] ?? 0;
                         $order_item->options = null;
                         $order_item->sub_total = $item['sub_total'] ?? 0;
+                        $weight += $product->product_weight;
                         $order_item->save();
                     }
                 }
@@ -142,6 +145,75 @@ class OrderController extends Controller
                     Log::info('Order Shipping Service updated Successfully');
                 }
 
+                // $fedExService = new FedExShippingService();
+
+                
+                // $payload = [
+                //     "accountNumber" => [
+                //         "value" => env('FEDEX_ACCOUNT_NUMBER')
+                //     ],
+                //     "labelResponseOptions" => "URL_ONLY", // required
+                //     "requestedShipment" => [
+                //         "shipper" => [
+                //             "contact" => [
+                //                 "personName" => "John Doe",
+                //                 "phoneNumber" => "1234567890"
+                //             ],
+                //             "address" => [
+                //                 "streetLines" => ["123 Main St"],
+                //                 "city" => "New York",
+                //                 "stateOrProvinceCode" => "NY",
+                //                 "postalCode" => "10001",
+                //                 "countryCode" => "US"
+                //             ]
+                //         ],
+                //         "recipients" => [
+                //             [
+                //                 "contact" => [
+                //                     "personName" => $shipping['first_name'],
+                //                     "phoneNumber" => $shipping['phone']
+                //                 ],
+                //                 "address" => [
+                //                     "streetLines" => [$shipping['address']],
+                //                     "city" => $shipping['shippingCity'],
+                //                     "stateOrProvinceCode" => 'CA',
+                //                     "postalCode" => '94105',
+                //                     "countryCode" => 'Us'
+                //                 ]
+                //             ]
+                //         ],
+                //         "pickupType" => "DROPOFF_AT_FEDEX_LOCATION",
+                //         "serviceType" => "FEDEX_GROUND",
+                //         "packagingType" => "YOUR_PACKAGING",
+                //         "shippingChargesPayment" => [
+                //             "paymentType" => "SENDER",
+                //             "payor" => [
+                //                 "responsibleParty" => [
+                //                     "accountNumber" => [
+                //                         "value" => env('FEDEX_ACCOUNT_NUMBER')
+                //                     ]
+                //                 ]
+                //             ]
+                //         ],
+                //         "labelSpecification" => [
+                //             "labelFormatType" => "COMMON2D",
+                //             "imageType" => "PDF",
+                //             "labelStockType" => "PAPER_4X6"
+                //         ],
+                //         "requestedPackageLineItems" => [
+                //             [
+                //                 "weight" => [
+                //                     "units" => "KG",
+                //                     "value" => $weight
+                //                 ]
+                //             ]
+                //         ]
+                //     ]
+                // ];
+
+                // $fedexResponse = $fedExService->createShipment($payload);
+
+
                 //paypal 
                 if ($payment['method'] == 'paypal') {
                     DB::commit();
@@ -150,7 +222,17 @@ class OrderController extends Controller
 
                     // Save PayPal order ID
                     $order->paypal_order_id = $paypalResponse['id'];
+
+                    // $order->tracking_number = $fedexResponse['output']['transactionShipments'][0]['masterTrackingNumber'];
                     $order->save();
+
+                     $cart = $this->cartModel->find($cart['id']);
+                        if ($cart) {
+                            $cart->items()->delete();
+                            $cart->delete();
+
+                            Log::info('Cart and cart item deleted successfully. ');
+                        }
 
                     $approveLink = collect($paypalResponse['links'])->firstWhere('rel', 'approve')['href'];
                     return response()->json([

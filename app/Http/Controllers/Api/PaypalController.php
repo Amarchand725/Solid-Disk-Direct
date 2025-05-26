@@ -15,21 +15,22 @@ class PaypalController extends Controller
     {
         $token = $request->query('token');  // PayPal order ID from query param
 
-        $paymentService = new PaymentService('paypal');
-        $captureResponse = $paymentService->capture($token);
+        // $paymentService = new PaymentService('paypal');
+        // $captureResponse = $paymentService->capture($token);
 
-        if (!empty($captureResponse['status']) && $captureResponse['status'] === 'COMPLETED') {
-            $order = Order::where('paypal_order_id', $token)->first();
+        // if (!empty($captureResponse['status']) && $captureResponse['status'] === 'COMPLETED') {
+        $order = Order::where('paypal_order_id', $token)->first();
 
-            if ($order) {
-                $order->update([
-                    'status' => 'paid',
-                    'payment_status' => 'completed',
-                ]);
+        if ($order) {
+            $order->update([
+                'order_status' => 'paid',
+                'payment_status' => 'completed',
+            ]);
 
-                return redirect()->route('order.success', ['orderNumber' => $order->order_number]);
-            }
+            return redirect()->to("http://localhost:5173/order-success/{$order->order_number}");
+
         }
+        // }
 
         return redirect()->route('checkout')->with('error', 'Payment was not successful.');
     }

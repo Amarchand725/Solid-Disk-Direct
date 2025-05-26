@@ -42,7 +42,11 @@ class FedExShippingService
                 ]
             ]);
 
-        return $response->json();
+            if ($response->failed()) {
+                throw new \Exception('FedEx Rate Error: ' . $response->body());
+            }
+
+            return $response->json();
     }
 
     public function getFedExAccessToken()
@@ -58,5 +62,22 @@ class FedExShippingService
         }
 
         return $response->json()['access_token'];
+    }
+
+   public function createShipment($shipmentData)
+    {
+        $token = $this->getFedExAccessToken();
+
+        $response = Http::withToken($token)
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+            ])
+            ->post('https://apis-sandbox.fedex.com/ship/v1/shipments', $shipmentData);
+
+        if ($response->failed()) {
+            throw new \Exception('FedEx Shipment Error: ' . $response->body());
+        }
+
+        return $response->json();
     }
 }
