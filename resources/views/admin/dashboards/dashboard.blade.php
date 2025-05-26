@@ -1,4 +1,4 @@
-    @extends('admin.layouts.app')
+@extends('admin.layouts.app')
 @section('title', Str::upper($title) .' | '.Str::upper(appName()))
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
@@ -9,10 +9,10 @@
             <div class="d-flex align-items-end row">
                 <div class="col-7">
                 <div class="card-body text-nowrap">
-                    <h5 class="card-title mb-0">Congratulations John! 🎉</h5>
-                    <p class="mb-2">Best seller of the month</p>
-                    <h4 class="text-primary mb-1">$48.9k</h4>
-                    <a href="javascript:;" class="btn btn-primary">View Sales</a>
+                    <h5 class="card-title mb-0">Welcome @if(Auth::check()) {{ Auth::user()->name }} @endif! 🎉</h5>
+                    {{-- <p class="mb-2">Best seller of the month</p>
+                    <h4 class="text-primary mb-1">$48.9k</h4> --}}
+                    {{-- <a href="javascript:;" class="btn btn-primary">View Sales</a> --}}
                 </div>
                 </div>
                 <div class="col-5 text-center text-sm-left">
@@ -46,8 +46,8 @@
                         <i class="ti ti-chart-pie-2 ti-sm"></i>
                     </div>
                     <div class="card-info">
-                        <h5 class="mb-0">230k</h5>
-                        <small>Sales</small>
+                        <h5 class="mb-0">{{ $totalBlogs ?? 0 }}</h5>
+                        <small>Blogs</small>
                     </div>
                     </div>
                 </div>
@@ -57,7 +57,7 @@
                         <i class="ti ti-users ti-sm"></i>
                     </div>
                     <div class="card-info">
-                        <h5 class="mb-0">8.549k</h5>
+                        <h5 class="mb-0">{{ $totalCustomers ?? 0 }}</h5>
                         <small>Customers</small>
                     </div>
                     </div>
@@ -68,7 +68,7 @@
                         <i class="ti ti-shopping-cart ti-sm"></i>
                     </div>
                     <div class="card-info">
-                        <h5 class="mb-0">1.423k</h5>
+                        <h5 class="mb-0">{{ $totalProducts ?? 0 }}</h5>
                         <small>Products</small>
                     </div>
                     </div>
@@ -79,8 +79,8 @@
                         <i class="ti ti-currency-dollar ti-sm"></i>
                     </div>
                     <div class="card-info">
-                        <h5 class="mb-0">$9745</h5>
-                        <small>Revenue</small>
+                        <h5 class="mb-0">{{ $totalSliders ?? 0 }}</h5>
+                        <small>Sliders</small>
                     </div>
                     </div>
                 </div>
@@ -90,7 +90,7 @@
         </div>
         <!--/ Statistics -->
 
-        <div class="col-xl-4 col-12">
+        {{-- <div class="col-xl-4 col-12">
             <div class="row">
             <!-- Expenses -->
             <div class="col-xl-6 mb-4 col-md-3 col-6">
@@ -151,10 +151,10 @@
             </div>
             <!--/ Generated Leads -->
             </div>
-        </div>
+        </div> --}}
 
         <!-- Revenue Report -->
-        <div class="col-12 col-xl-8 mb-4 col-lg-7">
+        {{-- <div class="col-12 col-xl-8 mb-4 col-lg-7">
             <div class="card">
             <div class="card-header pb-3">
                 <h5 class="m-0 me-2 card-title">Revenue Report</h5>
@@ -210,11 +210,11 @@
                 </div>
             </div>
             </div>
-        </div>
+        </div> --}}
         <!--/ Revenue Report -->
 
         <!-- Earning Reports -->
-        <div class="col-xl-4 col-lg-5 col-md-6 mb-4">
+        {{-- <div class="col-xl-4 col-lg-5 col-md-6 mb-4">
             <div class="card h-100">
             <div class="card-header d-flex justify-content-between">
                 <div class="card-title mb-0">
@@ -296,11 +296,11 @@
                 <div id="reportBarChart"></div>
             </div>
             </div>
-        </div>
+        </div> --}}
         <!--/ Earning Reports -->
 
         <!-- Popular Product -->
-        <div class="col-md-6 col-xl-4 mb-4">
+        {{-- <div class="col-md-6 col-xl-4 mb-4">
             <div class="card h-100">
             <div class="card-header d-flex justify-content-between">
                 <div class="card-title m-0 me-2">
@@ -434,11 +434,11 @@
                 </ul>
             </div>
             </div>
-        </div>
+        </div> --}}
         <!--/ Popular Product -->
 
         <!-- Sales by Countries tabs-->
-        <div class="col-md-6 col-xl-4 col-xl-4 mb-4">
+        {{-- <div class="col-md-6 col-xl-4 col-xl-4 mb-4">
             <div class="card h-100">
             <div class="card-header d-flex justify-content-between pb-2 mb-1">
                 <div class="card-title mb-1">
@@ -677,11 +677,11 @@
                 </div>
             </div>
             </div>
-        </div>
+        </div> --}}
         <!--/ Sales by Countries tabs -->
 
         <!-- Transactions -->
-        <div class="col-md-6 col-lg-4 mb-4 mb-lg-0">
+        {{-- <div class="col-md-6 col-lg-4 mb-4 mb-lg-0">
             <div class="card h-100">
             <div class="card-header d-flex justify-content-between">
                 <div class="card-title m-0 me-2">
@@ -809,11 +809,11 @@
                 </ul>
             </div>
             </div>
-        </div>
+        </div> --}}
         <!--/ Transactions -->
 
         <!-- Invoice table -->
-        <div class="col-lg-8">
+        {{-- <div class="col-lg-8">
             <div class="card h-100">
             <div class="table-responsive card-datatable">
                 <table class="table datatable-invoice border-top">
@@ -831,7 +831,7 @@
                 </table>
             </div>
             </div>
-        </div>
+        </div> --}}
         <!-- /Invoice table -->
         </div>
     </div>
