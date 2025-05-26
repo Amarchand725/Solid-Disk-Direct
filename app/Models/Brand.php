@@ -32,8 +32,11 @@ class Brand extends Model
         return $this->hasOne(User::class, 'id', 'created_by');
     }
 
-    public function hasProducts(){
-        return $this->hasMany(Product::class,'brand','id')->whereNotNull('unit_price');
+    public function hasProducts()
+    {
+        return $this->hasMany(Product::class, 'brand', 'id')
+                    ->whereNotNull('unit_price')
+                    ->where('unit_price', '>', 0);
     }
 
     public function products() {

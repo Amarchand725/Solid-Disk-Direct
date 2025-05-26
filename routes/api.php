@@ -24,8 +24,8 @@ use App\Http\Controllers\Api\{
     OrderController,
     ShippingController,
     LocationController,
-    PlaceOrderController,
-    PaypalController
+    PaypalController,
+    ConfigController
 };
 
 /*
@@ -66,8 +66,6 @@ Route::controller(OrderController::class)->group(function () {
     Route::get('orders/track-order', 'track');
 });
 Route::controller(PaypalController::class)->group(function () {
-    // Route::get('/paypal/client-id', 'getClientId');
-    // Route::post('/paypal/capture', 'captureOrder');
     Route::get('/paypal/success', 'paypalSuccess')->name('paypal.success');
     Route::get('/paypal/cancel', 'paypalCancel')->name('paypal.cancel');
 });
@@ -163,4 +161,11 @@ Route::controller(LocationController::class)->group(function () {
     Route::get('countries', 'getCountries');
     Route::get('states/{country_id}', 'getStates');
     Route::get('cities/{state_id}', 'getCities');
+});
+
+Route::controller(ConfigController::class)->group(function () {
+    Route::get('/config/brands', 'getBrands');
+    Route::get('/config/categories', 'getCategories');
+    Route::get('/config/product-lines', 'getProductLines');
+    Route::get('/config/products', 'getProducts');
 });
