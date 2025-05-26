@@ -75,7 +75,6 @@ class BrandController extends Controller
         }
     }
     public function top(){
-        // $models = $this->model->with('hasProducts')->where('is_top', 1)->where('status', 1)->orderBy('id', 'desc')->paginate(10);
         $models = $this->model
             ->with(['hasProducts' => function ($query) {
                 $query->inRandomOrder()->limit(4);
@@ -106,11 +105,11 @@ class BrandController extends Controller
         $sortField = $request->get('sort_field', 'created_at');
         $sortDirection = $request->get('sort_direction', 'desc');
         $search = $request->get('search');
-        $category = $this->model->with('products')->where('slug', $brandSlug)->first();
+        $brand = $this->model->with('products')->where('slug', $brandSlug)->first();
         
-        if(!empty($category)){
-            $query = $category->products()
-                ->with('hasBrand')
+        if(!empty($brand)){
+            $query = $brand->products()
+                ->with('hasBrand', 'hasProductCondition')
                 ->where('status', 1);
 
             if ($search) {

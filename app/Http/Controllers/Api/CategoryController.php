@@ -152,7 +152,6 @@ class CategoryController extends Controller
         }
     }
     public function top(){
-        // $models = $this->model->with('products')->where('is_top', 1)->where('status', 1)->orderBy('id', 'desc')->paginate(10);
         $models = $this->model
             ->with(['products' => function ($query) {
                 $query->inRandomOrder()->limit(4);

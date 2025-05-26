@@ -6,6 +6,7 @@ use App\Models\Brand;
 use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Support\Str;
+use App\Models\ProductImage;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -63,6 +64,13 @@ class ProductsImport implements ToModel, WithHeadingRow
 
             if (!empty($allCategoryIds)) {
                 $product->categories()->syncWithoutDetaching($allCategoryIds);
+            }
+
+            if($product){
+                $productImage = new ProductImage();
+                $productImage->product_id = $product->id;
+                $productImage->image = !empty($row['image_link']) ? 'uploads/products/additional_images/' . $row['image_link'] : null;
+                $productImage->save();
             }
 
             return $product;
