@@ -5,6 +5,7 @@ namespace App\Imports;
 use App\Models\Brand;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\ProductLine;
 use Illuminate\Support\Str;
 use App\Models\ProductImage;
 use Illuminate\Support\Collection;
@@ -25,7 +26,8 @@ class ProductsImport implements ToModel, WithHeadingRow
             'description' => $row['product_type'],
         ]);
 
-        $detectedBrand = $this->detectOrCreateBrand($row['description']);
+        $detected = $this->detectOrCreateBrandAndProductLine($row['description']);
+        $brandId = $detected['brand']->id ?? null;
 
         if (empty($model)) {
             $product = new Product([
@@ -33,7 +35,7 @@ class ProductsImport implements ToModel, WithHeadingRow
                 'thumbnail' => !empty($row['image_link']) ? 'uploads/products/' . $row['image_link'] : null,
                 'title' => $row['title'] ?? null,
                 'sku' => $row['sku'] ?? null,
-                'brand' => $detectedBrand?->id,
+                'brand' => $brandId,
                 'category' => $category->id,
                 'stock_quantity' => $row['stock_quantity'] ?? null,
                 'min_quantity' => $row['min_quantity'] ?? null,
@@ -67,10 +69,11 @@ class ProductsImport implements ToModel, WithHeadingRow
             }
 
             if($product){
-                $productImage = new ProductImage();
-                $productImage->product_id = $product->id;
-                $productImage->image = !empty($row['image_link']) ? 'uploads/products/additional_images/' . $row['image_link'] : null;
-                $productImage->save();
+                if(!empty($detected['product_line'])){
+                    $productLine = new ProductLine();
+                    $productLine->name = $detected['product_line'] ?? null;
+                    $productLine->save();
+                }
             }
 
             return $product;
@@ -79,25 +82,37 @@ class ProductsImport implements ToModel, WithHeadingRow
         return null;
     }
 
-    function detectOrCreateBrand($productTitle)
+    function detectOrCreateBrandAndProductLine($productTitle)
     {
         $brands = Brand::all(); // Load all brands
 
         foreach ($brands as $brand) {
             if (Str::startsWith(strtolower($productTitle), strtolower($brand->name))) {
-                return $brand; // Return the matched brand model
+                $productLine = trim(Str::replaceFirst($brand->name, '', $productTitle));
+                return [
+                    'brand' => $brand,
+                    'product_line' => $productLine
+                ];
             }
         }
 
         // If no brand matched, extract the first word as a potential brand
-        $potentialBrand = Str::before($productTitle, ' ');
-        $potentialBrand = ucfirst(strtolower($potentialBrand)); // Normalize it
+        $potentialBrandName = Str::before($productTitle, ' ');
+        $potentialBrandName = ucfirst(strtolower($potentialBrandName));
 
-        // Create the brand and return it
-        return Brand::create([
-                    'name' => $potentialBrand,
-                    'description' => $potentialBrand
-                ]);
+        // Create the brand
+        $newBrand = Brand::create([
+            'name' => $potentialBrandName,
+            'description' => $potentialBrandName
+        ]);
+
+        // Product line is everything after the first word
+        $productLine = trim(Str::after($productTitle, $potentialBrandName));
+
+        return [
+            'brand' => $newBrand,
+            'product_line' => $productLine
+        ];
     }
 
     private function getAllParentCategoryIds(Category $category, &$collected = [])

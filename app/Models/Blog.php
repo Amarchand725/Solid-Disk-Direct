@@ -19,11 +19,13 @@ class Blog extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            $model->slug = Str::slug($model->title);
+            $plainTitle = strip_tags($model->title);
+            $model->slug = Str::slug($plainTitle);
         });
 
         static::updating(function ($model) {
-            $model->slug = Str::slug($model->title);
+            $plainTitle = strip_tags($model->title);
+            $model->slug = Str::slug($plainTitle);
         });
     }
 

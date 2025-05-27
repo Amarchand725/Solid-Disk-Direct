@@ -3,10 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use Exception;
+use App\Models\Blog;
 use App\Models\City;
 use App\Models\Menu;
 use App\Models\State;
+use App\Models\Slider;
 use App\Models\Country;
+use App\Models\Product;
+use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
@@ -19,6 +23,11 @@ class AdminController extends Controller
         if(!Auth::check()){
             return redirect()->route('admin.login');
         }
+
+        $totalBlogs = Blog::count();
+        $totalCustomers = Customer::count();
+        $totalProducts = Product::count();
+        $totalSliders = Slider::count();
         return view('admin.dashboards.dashboard', get_defined_vars());
     }
     public function loginForm()

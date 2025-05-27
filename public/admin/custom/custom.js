@@ -37,14 +37,29 @@ $(document).on('keyup', '.phoneNumber', function() {
     $(this).val(formattedPhone);
 });
 
+// function formatPhoneNumber(phone) {
+//     phone = phone.replace(/\D/g, '');
+//     if (phone.length > 3) {
+//         var areaCode = phone.substring(0, 3);
+//         var telephoneNumber = phone.substring(3, 10);
+//         phone =  "(" + areaCode + ") - " + telephoneNumber;
+//     }
+//     return phone;
+// }
+
 function formatPhoneNumber(phone) {
+    // Remove all non-digit characters
     phone = phone.replace(/\D/g, '');
-    if (phone.length > 3) {
-        var areaCode = phone.substring(0, 3);
-        var telephoneNumber = phone.substring(3, 10);
-        phone =  "(" + areaCode + ") - " + telephoneNumber;
+
+    // Format as (XXX) XXX-XXXX
+    if (phone.length >= 10) {
+        const areaCode = phone.substring(0, 3);
+        const firstPart = phone.substring(3, 6);
+        const secondPart = phone.substring(6, 10);
+        return `(${areaCode}) ${firstPart}-${secondPart}`;
     }
-    return phone;
+
+    return phone; // Return unformatted if less than 10 digits
 }
 
 $(document).on('click','i[class^="ti ti-eye"]',function(){
