@@ -86,6 +86,7 @@ Route::controller(ProductController::class)->group(function () {
         'slug' => '[a-z0-9\-]+',
     ]);
     Route::get('products/search', 'search')->name('products.search');
+    Route::get('products/search2', 'search2')->name('products.search2');
 });
 Route::controller(TestimonialController::class)->group(function () {
     Route::get('testimonials', 'index')->name('testimonials');

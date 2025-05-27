@@ -235,4 +235,44 @@ class ProductController extends Controller
             'data' => []
         ]);
     }
+
+
+    public function search2(Request $request)
+    {
+        if (!$request->filled('keyword')) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Please provide a search keyword.',
+                'data' => []
+            ]);
+        }
+
+        $keyword = trim($request->input('keyword'));
+        $query = $this->model->query();
+
+        // Basic keyword search
+        $query->where(function ($q) use ($keyword) {
+            $q->where('title', 'like', "%{$keyword}%")
+            ->orWhere('short_description', 'like', "%{$keyword}%")
+            ->orWhere('sku', 'like', "%{$keyword}%")
+            ->orWhere('unit_price', 'like', "%{$keyword}%");
+        });
+
+        // Optional: paginate or limit
+        $results = $query->paginate(10); // or use ->paginate(10)
+
+        if ($results->isNotEmpty()) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Products found successfully.',
+                'data' => $this->productResource->collection($results),
+            ]);
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => 'No matching products found.',
+            'data' => []
+        ]);
+    }
 }
