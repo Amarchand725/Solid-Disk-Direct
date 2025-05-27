@@ -23,6 +23,10 @@ class ProductResource extends JsonResource
             $trail = app(ProductController::class)->getCategoryTrailFromRelations($this->mainCategory);
         }
 
+        $thumbnailImage = [
+            'image' => $this->thumbnail ? asset(Storage::url($this->thumbnail))  : '', // ✅ match the key used in Vue
+        ];
+
         return [
             "id"  => $this->id ?? '',
             "thumbnail" => $this->thumbnail ? asset(Storage::url($this->thumbnail))  : '',
@@ -41,7 +45,8 @@ class ProductResource extends JsonResource
             'brand' => new BrandResource($this->whenLoaded('hasBrand')),
             'condition' => new ProductConditionResource($this->whenLoaded('hasProductCondition')),
             'unit' => new UnitResource($this->whenLoaded('hasUnit')),
-            'images' => ProductImageResource::collection($this->hasProductImages),
+            // 'images' => ProductImageResource::collection($this->hasProductImages),
+            'images' => collect([$thumbnailImage])->merge(ProductImageResource::collection($this->hasProductImages)),
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
         ];        
     }

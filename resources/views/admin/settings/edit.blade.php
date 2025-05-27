@@ -184,10 +184,10 @@
                                         <input class="form-control w-auto" type="time" name="end_time" value="17:00" />
                                 
                                         <select name="timezone" class="form-select w-auto">
+                                            <option value="CDT">CDT</option>
                                             <option value="EST">EST</option>
                                             <option value="PST">PST</option>
                                             <option value="UTC">UTC</option>
-                                            <!-- Add more timezones if needed -->
                                         </select>
                                     </div>
                                 </div>                                

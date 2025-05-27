@@ -74,13 +74,6 @@ class ProductsImport implements ToModel, WithHeadingRow
                     $productLine->name = $detected['product_line'] ?? null;
                     $productLine->save();
                 }
-                
-                if(!empty($row['image_link'])){
-                    $productImage = new ProductImage();
-                    $productImage->product_id = $product->id;
-                    $productImage->image = !empty($row['image_link']) ? 'uploads/products/additional_images/' . $row['image_link'] : null;
-                    $productImage->save();
-                }
             }
 
             return $product;
