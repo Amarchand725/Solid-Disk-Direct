@@ -39,6 +39,14 @@ class Brand extends Model
                     ->where('unit_price', '>', 0);
     }
 
+    public function hasProductsLimited()
+    {
+        return $this->hasMany(Product::class, 'brand_id')
+                    ->inRandomOrder()
+                    ->limit(4)->whereNotNull('unit_price')
+                    ->where('unit_price', '>', 0);
+    }
+
     public function products() {
         return $this->hasMany(Product::class, 'brand', 'id');
     }

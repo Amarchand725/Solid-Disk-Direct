@@ -76,9 +76,7 @@ class BrandController extends Controller
     }
     public function top(){
         $models = $this->model
-            ->with(['hasProducts' => function ($query) {
-                $query->inRandomOrder()->limit(4);
-            }])
+            ->with('hasProductsLimited')
             ->where('is_top', 1)
             ->where('status', 1)
             ->orderBy('id', 'desc')
