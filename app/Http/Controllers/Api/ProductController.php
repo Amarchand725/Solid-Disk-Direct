@@ -214,7 +214,8 @@ class ProductController extends Controller
             $q->where('title', 'like', "%{$keyword}%")
             ->orWhere('short_description', 'like', "%{$keyword}%")
             ->orWhere('sku', 'like', "%{$keyword}%")
-            ->orWhere('unit_price', 'like', "%{$keyword}%");
+            ->orWhere('unit_price', 'like', "%{$keyword}%")
+            ->orWhere('mpn', 'like', "%{$keyword}%");
         });
 
         // Optional: paginate or limit
