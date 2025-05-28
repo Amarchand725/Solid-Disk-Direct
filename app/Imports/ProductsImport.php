@@ -16,6 +16,8 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class ProductsImport implements ToModel, WithHeadingRow
 {
+    public $importedCount = 0;
+
     public function model(array $row)
     {
         $model = Product::where('title', $row['title'])->first();
@@ -76,6 +78,7 @@ class ProductsImport implements ToModel, WithHeadingRow
                 }
             }
 
+            $this->importedCount++;
             return $product;
         }
 
