@@ -512,18 +512,73 @@ class ProductController extends Controller
         return (string) view($bladePath.'.import_create_content', get_defined_vars());
     }
 
+    // public function importStore(Request $request)
+    // {
+    //     $singularLabel = $this->singularLabel;
+    //     $request->validate([
+    //         'file' => 'required|file|mimes:xlsx,csv',
+    //     ]);
+
+    //     try{
+    //         $model = Excel::import(new ProductsImport, $request->file('file'));
+
+    //         if(isset($model) && !empty($model)){
+    //             return response()->json(['success' => true, 'message' =>'You have imported '.$singularLabel.' successfully.']);
+    //         }else{
+    //             return response()->json(['success' => false, 'message' =>'You have not imported '.$singularLabel.' successfully.']);
+    //         }
+    //     } catch (Exception $e) {
+    //         return response()->json(['error' => $e->getMessage()]);
+    //     }
+    // }
+
     public function importStore(Request $request)
     {
         $singularLabel = $this->singularLabel;
+
         $request->validate([
-            'file' => 'required|file|mimes:xlsx,csv',
+            'files' => 'required|array',
+            'files.*' => 'file|mimes:xlsx,csv'
         ]);
 
-        try{
-            $model = Excel::import(new ProductsImport, $request->file('file'));
+        $results = [];
+        $totalInserted = 0;
 
-            if(isset($model) && !empty($model)){
-                return response()->json(['success' => true, 'message' =>'You have imported '.$singularLabel.' successfully.']);
+        // foreach ($request->file('files') as $file) {
+        //     $import = new ProductsImport;
+        //     Excel::import($import, $file);
+
+        //     $results[] = [
+        //         'file' => $file->getClientOriginalName(),
+        //         'records' => $import->importedCount ?? 0,
+        //     ];
+        // }
+
+        // return back()->with('import_results', $results);
+
+        try{
+            foreach ($request->file('files') as $file) {
+                $import = new ProductsImport;
+                Excel::import($import, $file);
+
+                $inserted = $import->importedCount ?? 0;
+                $totalInserted += $inserted;
+
+                $results[] = [
+                    'file' => $file->getClientOriginalName(),
+                    'records' => $inserted,
+                ];
+            }
+
+            if(isset($results) && !empty($results)){
+                // return response()->json(['success' => true, 'message' =>'You have imported '.$singularLabel.' successfully.', 'import_results', $results]);
+                return response()->json([
+                    'success' => true,
+                    'message' => 'You have imported ' . $singularLabel . ' successfully.',
+                    'files_count' => count($results),
+                    'total_records_inserted' => $totalInserted,
+                    'import_results' => $results,
+                ]);
             }else{
                 return response()->json(['success' => false, 'message' =>'You have not imported '.$singularLabel.' successfully.']);
             }
