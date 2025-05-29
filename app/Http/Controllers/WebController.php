@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Facades\Excel;
 class WebController extends Controller
 {
     public function SddGoogleShopping(){
-        return Excel::download(new ProductsExport, 'products.xlsx');
+        return Excel::download(new ProductsExport, 'sdd-google-shopping.csv');
 
         // $csvHeader = ['id', 'title', 'description', 'link', 'image_link', 'availability', 'price', 'google_product_category',
         //             'brand', 'mpn', 'condition', 'product_weight', 'shipping_weight', 'availability_date'];

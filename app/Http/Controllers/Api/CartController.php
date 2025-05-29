@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use Exception;
 use App\Models\Cart;
+use App\Models\State;
+use App\Models\Country;
 use App\Models\Product;
 use App\Models\CartItem;
 use Illuminate\Http\Request;
@@ -13,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CartResource;
 use App\Http\Resources\CartItemResource;
+use BcMath\Number;
 
 class CartController extends Controller
 {
@@ -112,14 +115,14 @@ class CartController extends Controller
                         'product_id' => $product->id,
                         'quantity' => $request->quantity ?? 1,
                         'unit_price' => $productPrice,
-                        'sub_total' => $productPrice * ($request->quantity ?? 1),
+                        'sub_total' => round($productPrice * ($request->quantity ?? 1), 2),
                         'options' => $request->options ? json_encode($request->options) : null,
                     ]);
                 }
 
                 $cart->update([
-                    'subtotal' => $cart->items->sum(fn($item) => $item->quantity * $item->unit_price),
-                    'total' => $cart->items->sum(fn($item) => $item->quantity * $item->unit_price),
+                    'subtotal' => round($cart->items->sum(fn($item) => $item->quantity * $item->unit_price), 2),
+                    'total' => round($cart->items->sum(fn($item) => $item->quantity * $item->unit_price), 2),
                 ]);
 
                 DB::commit();
@@ -161,8 +164,8 @@ class CartController extends Controller
 
         // Update cart total
         $cartItem->cart->update([
-            'subtotal' => $cartItem->cart->items->sum(fn($item) => $item->sub_total),
-            'total' => $cartItem->cart->items->sum(fn($item) => $item->sub_total),
+            'subtotal' => round($cartItem->cart->items->sum(fn($item) => $item->sub_total), 2),
+            'total' => round($cartItem->cart->items->sum(fn($item) => $item->sub_total), 2),
         ]);
 
         return response()->json([
@@ -183,7 +186,7 @@ class CartController extends Controller
 
         if ($cartItem->quantity > 1) {
             $cartItem->quantity -= 1;
-            $cartItem->sub_total = $cartItem->quantity * $cartItem->unit_price;
+            $cartItem->sub_total = round($cartItem->quantity * $cartItem->unit_price, 2);
             $cartItem->save();
         } else {
             // Optional: Remove item if quantity is 1
@@ -193,8 +196,8 @@ class CartController extends Controller
         // Update cart total
         $cart = $cartItem->cart;
         $cart->update([
-            'subtotal' => $cart->items->sum(fn($item) => $item->sub_total),
-            'total' => $cart->items->sum(fn($item) => $item->sub_total),
+            'subtotal' => round($cart->items->sum(fn($item) => $item->sub_total), 2),
+            'total' => round($cart->items->sum(fn($item) => $item->sub_total), 2),
         ]);
 
         return response()->json([
@@ -218,8 +221,8 @@ class CartController extends Controller
 
         // Recalculate cart total after deletion
         $cart->update([
-            'subtotal' => $cart->items->sum(fn($item) => $item->sub_total),
-            'total' => $cart->items->sum(fn($item) => $item->sub_total),
+            'subtotal' => round($cart->items->sum(fn($item) => $item->sub_total), 2),
+            'total' => round($cart->items->sum(fn($item) => $item->sub_total), 2),
         ]);
 
         return response()->json([
@@ -279,13 +282,21 @@ class CartController extends Controller
 
             // Shipping cost
             $shippingCost = $rateObj['totalCharge'] ?? 0;
+            $subtotal = $cart->items->sum(function ($item) {
+                return $item->unit_price * $item->quantity;
+            });
 
             // Subtotal (must exclude shipping and tax; implement calculateSubtotal())
-            // $taxRate = $this->getTaxRate($country, $state);
+            $country = $request->input('country'); // Make sure to pass this from frontend
+            $taxInfo = $this->getTaxInfo($country);
+            $taxRate = isset($taxInfo['rate']) ? (float)$taxInfo['rate'] : 0.0;
+            $taxAmount = round($subtotal * $taxRate, 2);
+            $total = round($subtotal + $shippingCost + $taxAmount, 2);
 
             $cart->shipping_cost = $shippingCost;
-            // $cart->shipping_cost = $shippingCost;
-            $cart->total = $cart->total+$rateObj['totalCharge'] ?? 0;
+            $cart->tax_rate = $taxRate;
+            $cart->tax_amount = $taxAmount;
+            $cart->total = $total;
             $cart->save();
 
             if($cart){
@@ -325,31 +336,56 @@ class CartController extends Controller
             ]);
         }
     }
-    public function updateTax(Request $request)
+
+    protected function getTaxInfo($country, $state = null)
     {
-        $request->validate([
-            'country' => 'required|string',
-            'state' => 'nullable|string',
-        ]);
+        $country = Country::where('id', $country)->first();
 
-        $cart = Cart::getCurrent(); // Or your method for guest/user cart
-        $country = $request->input('country');
-        $state = $request->input('state');
+        if (!$country) {
+            return ['rate' => 0, 'type' => null];
+        }
 
-        $taxRate = $this->getTaxRate($country, $state);
-        $cartSubtotal = $cart->calculateSubtotal(); // Make sure you have this logic
+        if (strtoupper($country) === 'US' && $state) {
+            $state = State::where('code', $state)
+                ->where('country_id', $country->id)
+                ->first();
 
-        $taxAmount = round(($taxRate / 100) * $cartSubtotal, 2);
-
-        $cart->update([
-            'tax_rate' => $taxRate,
-            'tax_amount' => $taxAmount,
-            'total' => $cartSubtotal + $taxAmount + $cart->shipping_cost, // Update accordingly
-        ]);
-
-        return response()->json([
-            'message' => 'Tax updated.',
-            'cart' => $cart->fresh()
-        ]);
+            if ($state && $state->tax_percentage !== null) {
+                return ['rate' => $state->tax_percentage, 'type' => $state->tax_type];
+            }
+        }
+        
+        return [
+            'rate' => $country->rate ?? 0,
+            'percent' => $country->percent ?? null
+        ];
     }
+
+    // public function updateTax(Request $request)
+    // {
+    //     $request->validate([
+    //         'country' => 'required|string',
+    //         'state' => 'nullable|string',
+    //     ]);
+
+    //     $cart = Cart::getCurrent(); // Or your method for guest/user cart
+    //     $country = $request->input('country');
+    //     $state = $request->input('state');
+
+    //     $taxRate = $this->getTaxRate($country, $state);
+    //     $cartSubtotal = $cart->calculateSubtotal(); // Make sure you have this logic
+
+    //     $taxAmount = round(($taxRate / 100) * $cartSubtotal, 2);
+
+    //     $cart->update([
+    //         'tax_rate' => $taxRate,
+    //         'tax_amount' => $taxAmount,
+    //         'total' => $cartSubtotal + $taxAmount + $cart->shipping_cost, // Update accordingly
+    //     ]);
+
+    //     return response()->json([
+    //         'message' => 'Tax updated.',
+    //         'cart' => $cart->fresh()
+    //     ]);
+    // }
 }
