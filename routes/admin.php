@@ -60,8 +60,10 @@ use App\Http\Controllers\DeveloperController;
 //developer
 Route::controller(DeveloperController::class)->group(function () {
     Route::get('/generate-policy-slugs', 'generateMissingPolicySlugs');
-    Route::get('/add-country-code', 'addCountryCode');
+    Route::get('/add-country-code', 'addCountryCode');  
     Route::get('/store/brands', 'storeBrands');
+    Route::get('/addCountryTaxRates', 'addCountryTaxRates');
+    Route::get('/addStateTaxRates', 'addStateTaxRates');
 });
 //developer
 

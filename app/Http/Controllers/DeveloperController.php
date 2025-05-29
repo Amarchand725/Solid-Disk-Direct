@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Brand;
+use App\Models\State;
 use App\Models\Policy;
 use App\Models\Country;
 use Illuminate\Support\Str;
@@ -11,127 +12,6 @@ use Illuminate\Support\Facades\DB;
 
 class DeveloperController extends Controller
 {
-    public function storeCategories(){
-        $parentCats = [
-            "Storage Devices",
-            "Memory",
-            "Network & Accessories",
-            "PC & Servers",
-            "Softwares",
-            "Motherboards",
-            "Printers & Scanners",
-            "Power Equipment",
-            "Processors",
-            "Video Components",
-            "Audio Components",
-            "Input Devices",
-            "Cameras",
-            "Cables",
-            "System Cooling Parts",
-            "Monitors",
-            "Computer Accessories",
-        ];
-
-        $storageDeviceCategories = [
-            "Hard Drives",
-            "Storage Accessories",
-            "Hard Drive Enclosure",
-            "Solid State Drives",
-            "Storage Array",
-            "Controllers",
-            "Tape Drives",
-            "Tape Media",
-            "Tape Libraries & Autoloaders",
-            "USB Flash Drives",
-            "Memory Cards",
-            "I/O Cards/Panel",
-            "Floppy Drives",
-            "Network Storage Devices",
-            "Host Bus Adapter",
-            "Host Channel Adapter",
-            "Optical Drives & Burners",
-            "Optical Media"
-          ];
-
-          $hardDrivesSubCategories = [
-            "Server Hard Drives",
-            "Desktop Hard Drives",
-            "Laptop Hard Drives",
-            "Printer Hard Drives",
-            "External Hard Drives"
-          ];
-
-          $storageAccessoriesSubCategories = [
-            "Tray/Caddy",
-            "Other Storage Accessories"
-          ];
-
-          $controllersSubCategories = [
-            "SATA/SAS Controllers",
-            "SCSI Controllers",
-            "Fibre Channel Controllers",
-            "Storage Controllers",
-            "Raid Controllers"
-          ];
-          
-          $opticalDrivesAndBurnersSubCategories = [
-            "CD & DVD Burners",
-            "CD Drives",
-            "DVD Drives",
-            "Blu-ray Drives",
-            "CD DVD & Blu-ray Accessories",
-            "Blu-ray Burners",
-            "External CD DVD & Blu-ray Drives"
-          ];
-
-          $opticalMediaSubCategories = [
-            "CD Disk",
-            "DVD Disk",
-            "Blu-ray Disk"
-          ];          
-          
-          //
-          $memoryCategories = [
-            "Server Memory",
-            "Desktop Memory",
-            "Laptop Memory",
-            "Printer Memory",
-            "Network Memory",
-            "Gaming Memory",
-            "Cache Memory",
-            "Flash Memory",
-            "Memory Boards"
-          ];
-
-          $networkAndAccessoriesCategories = [
-            "Wireless Networking",
-            "Switches",
-            "Routers",
-            "VoIP Gateways",
-            "Media Converter",
-            "Network Adapters",
-            "Network Accessories",
-            "Transceivers",
-            "Switch Module",
-            "Modems",
-            "Powerline Network Adapters",
-            "Power Over Ethernet Adapters",
-            "Network Security & Firewall Devices",
-            "IP Phones",
-            "Print Servers",
-            "Router/Switch Chassis",
-            "Terminal Servers",
-            "Networking Devices",
-            "PABX System"
-          ];
-          $wirelessNetworkingSubcategories = [
-            "Wireless Access Points",
-            "Wireless Routers",
-            "Antennas",
-            "Wireless LAN Controller"
-          ];
-    }
-
     public function generateMissingPolicySlugs()
     {
         $policies = Policy::whereNull('slug')->orWhere('slug', '')->get();
@@ -154,13 +34,6 @@ class DeveloperController extends Controller
     }
 
     public function addCountryCode(){
-      // $countries = DB::table('countries')
-      // ->whereNull('code')
-      // ->pluck('name')
-      // ->toArray();
-
-      // return $countries;
-      
       $countryCodes = [
         'Afghanistan' => 'AF',
         'Albania' => 'AL',
@@ -603,5 +476,268 @@ class DeveloperController extends Controller
       }
 
       return 'Brand added successfully.';
+    }
+
+    public function addCountryTaxRates(){
+      $countriesJson =  '{
+                          "US": {
+                            "rate": 0.0,
+                            "percent": "0%",
+                            "type": "Sales Tax"
+                          },
+                          "CA": {
+                            "rate": 0.05,
+                            "percent": "5%",
+                            "type": "GST"
+                          },
+                          "GB": {
+                            "rate": 0.2,
+                            "percent": "20%",
+                            "type": "VAT"
+                          },
+                          "DE": {
+                            "rate": 0.19,
+                            "percent": "19%",
+                            "type": "VAT"
+                          },
+                          "FR": {
+                            "rate": 0.2,
+                            "percent": "20%",
+                            "type": "VAT"
+                          },
+                          "IT": {
+                            "rate": 0.22,
+                            "percent": "22%",
+                            "type": "VAT"
+                          },
+                          "ES": {
+                            "rate": 0.21,
+                            "percent": "21%",
+                            "type": "VAT"
+                          },
+                          "AU": {
+                            "rate": 0.1,
+                            "percent": "10%",
+                            "type": "GST"
+                          },
+                          "NZ": {
+                            "rate": 0.15,
+                            "percent": "15%",
+                            "type": "GST"
+                          },
+                          "JP": {
+                            "rate": 0.1,
+                            "percent": "10%",
+                            "type": "Consumption Tax"
+                          },
+                          "CN": {
+                            "rate": 0.13,
+                            "percent": "13%",
+                            "type": "VAT"
+                          },
+                          "IN": {
+                            "rate": 0.18,
+                            "percent": "18%",
+                            "type": "GST"
+                          },
+                          "RU": {
+                            "rate": 0.2,
+                            "percent": "20%",
+                            "type": "VAT"
+                          },
+                          "BR": {
+                            "rate": 0.17,
+                            "percent": "17%",
+                            "type": "VAT"
+                          },
+                          "ZA": {
+                            "rate": 0.15,
+                            "percent": "15%",
+                            "type": "VAT"
+                          },
+                          "MX": {
+                            "rate": 0.16,
+                            "percent": "16%",
+                            "type": "VAT"
+                          },
+                          "AR": {
+                            "rate": 0.21,
+                            "percent": "21%",
+                            "type": "VAT"
+                          },
+                          "SE": {
+                            "rate": 0.25,
+                            "percent": "25%",
+                            "type": "VAT"
+                          },
+                          "NO": {
+                            "rate": 0.25,
+                            "percent": "25%",
+                            "type": "VAT"
+                          },
+                          "FI": {
+                            "rate": 0.24,
+                            "percent": "24%",
+                            "type": "VAT"
+                          },
+                          "NL": {
+                            "rate": 0.21,
+                            "percent": "21%",
+                            "type": "VAT"
+                          },
+                          "BE": {
+                            "rate": 0.21,
+                            "percent": "21%",
+                            "type": "VAT"
+                          },
+                          "CH": {
+                            "rate": 0.077,
+                            "percent": "7.7%",
+                            "type": "VAT"
+                          },
+                          "DK": {
+                            "rate": 0.25,
+                            "percent": "25%",
+                            "type": "VAT"
+                          },
+                          "PL": {
+                            "rate": 0.23,
+                            "percent": "23%",
+                            "type": "VAT"
+                          },
+                          "IE": {
+                            "rate": 0.23,
+                            "percent": "23%",
+                            "type": "VAT"
+                          },
+                          "PT": {
+                            "rate": 0.23,
+                            "percent": "23%",
+                            "type": "VAT"
+                          },
+                          "AT": {
+                            "rate": 0.2,
+                            "percent": "20%",
+                            "type": "VAT"
+                          },
+                          "GR": {
+                            "rate": 0.24,
+                            "percent": "24%",
+                            "type": "VAT"
+                          },
+                          "CZ": {
+                            "rate": 0.21,
+                            "percent": "21%",
+                            "type": "VAT"
+                          },
+                          "SK": {
+                            "rate": 0.2,
+                            "percent": "20%",
+                            "type": "VAT"
+                          },
+                          "HU": {
+                            "rate": 0.27,
+                            "percent": "27%",
+                            "type": "VAT"
+                          },
+                          "TR": {
+                            "rate": 0.18,
+                            "percent": "18%",
+                            "type": "VAT"
+                          },
+                          "KR": {
+                            "rate": 0.1,
+                            "percent": "10%",
+                            "type": "VAT"
+                          },
+                          "HK": {
+                            "rate": 0.0,
+                            "percent": "0%",
+                            "type": "None"
+                          },
+                          "SG": {
+                            "rate": 0.09,
+                            "percent": "9%",
+                            "type": "GST"
+                          },
+                          "MY": {
+                            "rate": 0.06,
+                            "percent": "6%",
+                            "type": "SST"
+                          },
+                          "TH": {
+                            "rate": 0.07,
+                            "percent": "7%",
+                            "type": "VAT"
+                          },
+                          "ID": {
+                            "rate": 0.11,
+                            "percent": "11%",
+                            "type": "VAT"
+                          },
+                          "PH": {
+                            "rate": 0.12,
+                            "percent": "12%",
+                            "type": "VAT"
+                          },
+                          "VN": {
+                            "rate": 0.1,
+                            "percent": "10%",
+                            "type": "VAT"
+                          },
+                          "SA": {
+                            "rate": 0.15,
+                            "percent": "15%",
+                            "type": "VAT"
+                          },
+                          "AE": {
+                            "rate": 0.05,
+                            "percent": "5%",
+                            "type": "VAT"
+                          },
+                          "EG": {
+                            "rate": 0.14,
+                            "percent": "14%",
+                            "type": "VAT"
+                          }
+                        }';
+
+          $countryTaxRates = json_decode($countriesJson, true);
+          
+          foreach($countryTaxRates as $key=>$countryTaxRate){
+            $country = Country::where('code', $key)->first();
+            $country->update([
+              'rate' => $countryTaxRate['rate'],
+              'percent' => $countryTaxRate['percent'],
+              'type' => $countryTaxRate['type'],
+            ]);
+          }
+
+          return 'Updated tax in '. count($countryTaxRates). ' countries successfully';
+    }
+
+    public function addStateTaxRates(){
+      $us_state_tax_rates_by_name = '{
+                                    "California": {"iso2": "US", "rate": 0.0725, "percent": "7.25%", "type": "Sales Tax"},
+                                    "New York": {"iso2": "US", "rate": 0.04, "percent": "4%", "type": "Sales Tax"},
+                                    "Texas": {"iso2": "US", "rate": 0.0625, "percent": "6.25%", "type": "Sales Tax"},
+                                    "Florida": {"iso2": "US", "rate": 0.06, "percent": "6%", "type": "Sales Tax"},
+                                    "Illinois": {"iso2": "US", "rate": 0.0625, "percent": "6.25%", "type": "Sales Tax"},
+                                    "Washington": {"iso2": "US", "rate": 0.065, "percent": "6.5%", "type": "Sales Tax"},
+                                    "Pennsylvania": {"iso2": "US", "rate": 0.06, "percent": "6%", "type": "Sales Tax"}
+                                  }';
+                    
+      $stateTaxRates = json_decode($us_state_tax_rates_by_name, true);
+      
+      foreach($stateTaxRates as $key=>$stateTaxRate){
+            $state = State::where('name', $key)->first();
+            $state->update([
+              'rate' => $stateTaxRate['rate'],
+              'percent' => $stateTaxRate['percent'],
+              'type' => $stateTaxRate['type'],
+            ]);
+          }
+
+          return 'Updated tax in '. count($stateTaxRates). ' states successfully';
     }
 }

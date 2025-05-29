@@ -152,6 +152,7 @@ Route::controller(CartController::class)->group(function () {
     Route::delete('/cart/remove', 'removeItem');
     Route::post('/cart/clear', 'clearCart');
     Route::put('/cart/update-shipping', 'updateShipping');
+    Route::put('/cart/update-tax', 'updateTax');
 });
 
 Route::controller(ShippingController::class)->group(function () {

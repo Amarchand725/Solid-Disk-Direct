@@ -273,11 +273,18 @@ class CartController extends Controller
             if (!$cart) {
                 $cart = $this->model->create([
                     'customer_id' => auth()->check() ? auth()->id() : null, //if user is authenticated
-                    'session_id' => auth()->check() ? null : session()->getId(), //if user is guest
+                    'session_id' => auth()->check() ? null : ($request->guest_id ?? null), //if user is guest
                 ]);
             }
 
-            $cart->shipping_cost = $rateObj['totalCharge'] ?? 0;
+            // Shipping cost
+            $shippingCost = $rateObj['totalCharge'] ?? 0;
+
+            // Subtotal (must exclude shipping and tax; implement calculateSubtotal())
+            // $taxRate = $this->getTaxRate($country, $state);
+
+            $cart->shipping_cost = $shippingCost;
+            // $cart->shipping_cost = $shippingCost;
             $cart->total = $cart->total+$rateObj['totalCharge'] ?? 0;
             $cart->save();
 
@@ -317,5 +324,32 @@ class CartController extends Controller
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+    public function updateTax(Request $request)
+    {
+        $request->validate([
+            'country' => 'required|string',
+            'state' => 'nullable|string',
+        ]);
+
+        $cart = Cart::getCurrent(); // Or your method for guest/user cart
+        $country = $request->input('country');
+        $state = $request->input('state');
+
+        $taxRate = $this->getTaxRate($country, $state);
+        $cartSubtotal = $cart->calculateSubtotal(); // Make sure you have this logic
+
+        $taxAmount = round(($taxRate / 100) * $cartSubtotal, 2);
+
+        $cart->update([
+            'tax_rate' => $taxRate,
+            'tax_amount' => $taxAmount,
+            'total' => $cartSubtotal + $taxAmount + $cart->shipping_cost, // Update accordingly
+        ]);
+
+        return response()->json([
+            'message' => 'Tax updated.',
+            'cart' => $cart->fresh()
+        ]);
     }
 }

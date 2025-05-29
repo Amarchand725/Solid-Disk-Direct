@@ -182,6 +182,7 @@ class CategoryController extends Controller
         $sortField = $request->get('sort_field', 'created_at');
         $sortDirection = $request->get('sort_direction', 'desc');
         $search = $request->get('search');
+        
         $category = $this->model->with('products')->where('slug', $categorySlug)->first();
         
         if(!empty($category)){

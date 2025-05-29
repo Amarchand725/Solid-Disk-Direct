@@ -20,7 +20,7 @@ class ProductsImport implements ToModel, WithHeadingRow
 
     public function model(array $row)
     {
-        $model = Product::where('title', $row['title'])->first();
+        $model = Product::where('mpn', $row['mpn'])->first();
 
         $category = Category::firstOrCreate([
             'name' => $row['product_type'],
@@ -75,6 +75,9 @@ class ProductsImport implements ToModel, WithHeadingRow
                     $productLine = new ProductLine();
                     $productLine->name = $detected['product_line'] ?? null;
                     $productLine->save();
+
+                    $product->product_line_id = $productLine->id;
+                    $product->save();
                 }
             }
 

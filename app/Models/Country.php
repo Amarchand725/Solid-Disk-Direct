@@ -9,6 +9,8 @@ class Country extends Model
 {
     use HasFactory;
 
+    protected $guarded = [];
+
     public function state(){
         return $this->hasOne(State::class,"id","state_id");
     }
