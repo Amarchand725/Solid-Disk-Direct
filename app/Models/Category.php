@@ -33,6 +33,12 @@ class Category extends Model
                     ->whereNotNull('unit_price')
                     ->where('unit_price', '>', 0);
     }
+
+    public function limitedProducts()
+    {
+        return $this->belongsToMany(Product::class,'category_product')->limit(4)->whereNotNull('unit_price')
+                    ->where('unit_price', '>', 0);
+    }
     
     public function createdBy()
     {

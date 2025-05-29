@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
 use App\Http\Resources\CategoryResource;
+use App\Http\Resources\Category2Resource;
 
 class CategoryController extends Controller
 {
@@ -16,6 +17,7 @@ class CategoryController extends Controller
     protected $productModel;
     protected $attributeGroupModel;
     protected $modelResource;
+    protected $modelResource2;
     protected $productResource;
 
     public function __construct(Category $model)
@@ -24,6 +26,7 @@ class CategoryController extends Controller
         $this->attributeGroupModel = new AttributeGroup();
         $this->productModel = new Product();
         $this->modelResource = new CategoryResource(null);
+        $this->modelResource2 = new Category2Resource(null);
         $this->productResource = new ProductResource(null);
     }
 
@@ -153,9 +156,7 @@ class CategoryController extends Controller
     }
     public function top(){
         $models = $this->model
-            ->with(['products' => function ($query) {
-                $query->inRandomOrder()->limit(4);
-            }])
+            ->with('limitedProducts')
             ->where('is_top', 1)
             ->where('status', 1)
             ->orderBy('id', 'desc')
@@ -165,7 +166,7 @@ class CategoryController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Data found successfully.',
-                'data' => $this->modelResource->collection($models)
+                'data' => $this->modelResource2->collection($models)
             ]);
         } else {
             return response()->json([
