@@ -118,7 +118,6 @@ class CategoryController extends Controller
             ]);
         }
     }
-
     public function show($slug){
         $model = $this->model->where('slug', $slug)->first();
 
@@ -155,18 +154,24 @@ class CategoryController extends Controller
         }
     }
     public function top(){
-        $models = $this->model
-            ->with('limitedProducts')
-            ->where('is_top', 1)
+        $models = $this->model->with('limitedProducts')->where('is_top', 1)
             ->where('status', 1)
             ->orderBy('id', 'desc')
-            ->paginate(10);
+            ->get();
+
+        foreach ($models as $category) {
+            $category->limitedProducts = $category->products()
+                ->where('status', 1)
+                ->orderByDesc('id')
+                ->limit(4)
+                ->get();
+        }
 
         if ($models->count()) {
             return response()->json([
                 'status' => true,
                 'message' => 'Data found successfully.',
-                'data' => $this->modelResource2->collection($models)
+                'data' => $this->modelResource->collection($models)
             ]);
         } else {
             return response()->json([

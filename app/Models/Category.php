@@ -29,15 +29,20 @@ class Category extends Model
 
     public function products()
     {
-        return $this->belongsToMany(Product::class, 'category_product')
-                    ->whereNotNull('unit_price')
-                    ->where('unit_price', '>', 0);
+        return $this->belongsToMany(Product::class, 'category_product');
     }
+
+    // public function limitedProducts()
+    // {
+    //     return $this->belongsToMany(Product::class,'category_product')->limit(4)->whereNotNull('unit_price')
+    //                 ->where('unit_price', '>', 0);
+    // }
 
     public function limitedProducts()
     {
-        return $this->belongsToMany(Product::class,'category_product')->limit(4)->whereNotNull('unit_price')
-                    ->where('unit_price', '>', 0);
+          return $this->belongsToMany(Product::class, 'category_product')
+                ->whereNotNull('unit_price')
+                ->where('unit_price', '>', 0);
     }
     
     public function createdBy()

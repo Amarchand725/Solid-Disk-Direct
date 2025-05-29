@@ -104,6 +104,21 @@ class ProductController extends Controller
             // Customize index to pull from relation
             $getFields['category']['index'] = fn($model) => optional($model->hasCategory)->name ?? '-';
         }
+
+        if (isset($getFields['title'])) {
+            $newFields = [];
+            foreach ($getFields as $key => $value) {
+                $newFields[$key] = $value;
+                if ($key === 'title') {
+                    // Insert 'mpn' column here
+                    $newFields['mpn'] = [
+                        'label' => 'MPN',
+                        'index' => fn($model) => $model->mpn ?? '-',
+                    ];
+                }
+            }
+            $getFields = $newFields;
+        }
         
         //select columns
         $selectedColumns = collect($getFields)
@@ -512,26 +527,6 @@ class ProductController extends Controller
         return (string) view($bladePath.'.import_create_content', get_defined_vars());
     }
 
-    // public function importStore(Request $request)
-    // {
-    //     $singularLabel = $this->singularLabel;
-    //     $request->validate([
-    //         'file' => 'required|file|mimes:xlsx,csv',
-    //     ]);
-
-    //     try{
-    //         $model = Excel::import(new ProductsImport, $request->file('file'));
-
-    //         if(isset($model) && !empty($model)){
-    //             return response()->json(['success' => true, 'message' =>'You have imported '.$singularLabel.' successfully.']);
-    //         }else{
-    //             return response()->json(['success' => false, 'message' =>'You have not imported '.$singularLabel.' successfully.']);
-    //         }
-    //     } catch (Exception $e) {
-    //         return response()->json(['error' => $e->getMessage()]);
-    //     }
-    // }
-
     public function importStore(Request $request)
     {
         $singularLabel = $this->singularLabel;
@@ -543,18 +538,6 @@ class ProductController extends Controller
 
         $results = [];
         $totalInserted = 0;
-
-        // foreach ($request->file('files') as $file) {
-        //     $import = new ProductsImport;
-        //     Excel::import($import, $file);
-
-        //     $results[] = [
-        //         'file' => $file->getClientOriginalName(),
-        //         'records' => $import->importedCount ?? 0,
-        //     ];
-        // }
-
-        // return back()->with('import_results', $results);
 
         try{
             foreach ($request->file('files') as $file) {
@@ -571,7 +554,6 @@ class ProductController extends Controller
             }
 
             if(isset($results) && !empty($results)){
-                // return response()->json(['success' => true, 'message' =>'You have imported '.$singularLabel.' successfully.', 'import_results', $results]);
                 return response()->json([
                     'success' => true,
                     'message' => 'You have imported ' . $singularLabel . ' successfully.',

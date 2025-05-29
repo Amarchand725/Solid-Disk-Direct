@@ -23,7 +23,7 @@ class BrandResource extends JsonResource
             "slug" => $this->slug ?? '',
             "description" => $this->description ?? '',
             "is_featured" => $this->is_featured ? 'Featured' : '',
-            'products' => ProductResource::collection($this->whenLoaded('hasProductsLimited')),
+            'products' => ProductResource::collection(collect($this->whenLoaded('limitedProducts') ?? [])),
             // 'products' => ProductResource::collection($this->hasProducts),
         ];  
     }

@@ -78,16 +78,28 @@ class CategoryController extends Controller
                 $reorderedFields[$key] = $value;
 
                 if ($key === 'name') {
+
+                    // Add products count column
+                    $reorderedFields['products_count'] = [
+                        'label' => 'Products Count',
+                        'index' => fn($model) => optional($model->products)->count() ?? 0,
+                    ];
+                    
                     $reorderedFields['is_featured'] = $getFields['is_featured'];
                     $reorderedFields['is_top'] = $getFields['is_top'];
                 }
             }
 
-            // Remove the original positions
-            // unset($reorderedFields['is_featured'], $reorderedFields['is_top']);
             $getFields = $reorderedFields;
         }
         
+        if (isset($getFields['products_count'])) {
+            $getFields['products_count']['index'] = fn($model) => 
+                $model->products->count() > 0
+                ? '<span class="badge bg-success">' . $model->products->count() . '</span>'
+                : '<span class="badge bg-danger">0</span>';
+        }
+
         if (isset($getFields['is_featured'])) {
             // Customize index to pull from relation
             $getFields['is_featured']['index'] = fn($model) => $model->is_featured==1 ? '<span class="badge bg-success">Yes</span>'
@@ -105,9 +117,7 @@ class CategoryController extends Controller
             return [$key => $config['index']];
         })
         ->keys()
-        ->filter(function ($key) {
-            return $key !== 'action'; // Remove 'action'
-        })
+        ->filter(fn($key) => !in_array($key, ['action', 'products_count']))
         ->values() // Reindex the array
         ->toArray();
     
@@ -115,7 +125,7 @@ class CategoryController extends Controller
         array_unshift($selectedColumns, 'id');
         
         $models = $this->model->latest()
-            ->with('createdBy:id,name')
+            ->with('createdBy:id,name', 'products')
             ->select($selectedColumns);
         //select columns
 

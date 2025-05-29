@@ -9,9 +9,27 @@ use App\Models\Country;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Resources\BrandResource;
+use App\Http\Resources\ProductResource;
 
 class DeveloperController extends Controller
 {
+    public function getBrandsWithProducts(){
+      $brands = Brand::where('is_top', 1)
+          ->where('status', 1)
+          ->orderBy('id', 'desc')
+          ->get();
+
+      foreach ($brands as $brand) {
+          $brand->limitedProducts = $brand->limitedProducts()
+              ->where('status', 1)
+              ->orderByDesc('id')
+              ->limit(4)
+              ->get();
+      }
+
+      return  BrandResource::collection(collect($this->limitedProducts ?? []));
+    }
     public function generateMissingPolicySlugs()
     {
         $policies = Policy::whereNull('slug')->orWhere('slug', '')->get();

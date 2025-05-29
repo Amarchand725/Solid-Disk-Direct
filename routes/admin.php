@@ -64,6 +64,7 @@ Route::controller(DeveloperController::class)->group(function () {
     Route::get('/store/brands', 'storeBrands');
     Route::get('/addCountryTaxRates', 'addCountryTaxRates');
     Route::get('/addStateTaxRates', 'addStateTaxRates');
+    Route::get('/getBrandsWithProducts', 'getBrandsWithProducts');
 });
 //developer
 

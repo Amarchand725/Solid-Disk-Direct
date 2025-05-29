@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Brand;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BrandResource;
 use App\Http\Resources\ProductResource;
@@ -75,12 +76,18 @@ class BrandController extends Controller
         }
     }
     public function top(){
-        $models = $this->model
-            ->with('hasProductsLimited')
-            ->where('is_top', 1)
+        $models = $this->model->with('limitedProducts')->where('is_top', 1)
             ->where('status', 1)
             ->orderBy('id', 'desc')
-            ->paginate(10);
+            ->get();
+
+        foreach ($models as $brand) {
+            $brand->limitedProducts = $brand->products()
+                ->where('status', 1)
+                ->orderByDesc('id')
+                ->limit(4)
+                ->get();
+        }
 
         if ($models->count()) {
             return response()->json([

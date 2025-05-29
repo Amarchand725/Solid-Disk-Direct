@@ -24,7 +24,7 @@ trait DataTableTrait
                     $search = $request->get('search');
                     $instance = $instance->where(function ($query) use ($search, $columns) {
                         foreach ($columns as $column => $callback) {
-                            if($column != 'action'){
+                            if($column != 'action' && $column != 'products_count'){
                                 $query->orWhere($column, 'LIKE', "%$search%");
                             }
                         }
