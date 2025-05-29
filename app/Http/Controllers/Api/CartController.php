@@ -38,10 +38,6 @@ class CartController extends Controller
 
     public function getCart(Request $request)
     {
-        // $cart = $this->model->where('customer_id', auth()->id())
-        //         ->orWhere('session_id', session()->getId())
-        //         ->first();
-
         $cart = $this->model->where(function ($query) use ($request) {
             if (auth()->check()) {
                 $query->where('customer_id', auth()->id());
@@ -336,22 +332,84 @@ class CartController extends Controller
             ]);
         }
     }
-
-    protected function getTaxInfo($country, $state = null)
+    
+    public function updateTax(Request $request)
     {
-        $country = Country::where('id', $country)->first();
+        $request->validate([
+            'country' => 'required',
+            'state' => 'nullable',
+            'guest_id' => 'nullable|string'
+        ]);
 
+        DB::beginTransaction();
+
+        try {
+            $cart = $this->model->where(function ($query) use ($request) {
+                if (auth()->check()) {
+                    $query->where('customer_id', auth()->id());
+                } elseif ($request->has('guest_id')) {
+                    $query->where('session_id', $request->guest_id);
+                }
+            })->first();
+
+            if (!$cart) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cart not found.',
+                ], 404);
+            }
+
+            $country = $request->input('country');
+            $state = $request->input('state');
+
+            $taxInfo = $this->getTaxInfo($country, $state); // e.g. 7.5 for 7.5%
+            $taxRate = isset($taxInfo['rate']) ? (float)$taxInfo['rate'] : 0.0;
+            $subtotal = $cart->subtotal ?? $cart->items->sum(fn ($item) => $item->unit_price * $item->quantity);
+            $shippingCost = $cart->shipping_cost ?? 0;
+
+            $taxAmount = round(($taxRate / 100) * $subtotal, 2);
+            $total = round($subtotal + $shippingCost + $taxAmount, 2);
+
+            $cart->tax_rate = $taxRate;
+            $cart->tax_amount = $taxAmount;
+            $cart->total = $total;
+            $cart->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tax updated.',
+                'cart' => new $this->cartResource($cart)
+            ]);
+        } catch (Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update tax.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    protected function getTaxInfo($countryId, $stateId = null)
+    {
+        $country = Country::where('id', $countryId)->first();
+        $countryCode = $country->code;
         if (!$country) {
-            return ['rate' => 0, 'type' => null];
+            return ['rate' => 0, 'percent' => null];
         }
 
-        if (strtoupper($country) === 'US' && $state) {
-            $state = State::where('code', $state)
+        if (strtoupper($countryCode) === 'US' && $stateId) {
+            $state = State::where('id', $stateId)
                 ->where('country_id', $country->id)
                 ->first();
 
-            if ($state && $state->tax_percentage !== null) {
-                return ['rate' => $state->tax_percentage, 'type' => $state->tax_type];
+            if ($state && $state->percent !== null) {
+                return [
+                    'rate' => $state->rate ?? 0,
+                    'percent' => $state->percent ?? null
+                ];
             }
         }
         
@@ -360,32 +418,4 @@ class CartController extends Controller
             'percent' => $country->percent ?? null
         ];
     }
-
-    // public function updateTax(Request $request)
-    // {
-    //     $request->validate([
-    //         'country' => 'required|string',
-    //         'state' => 'nullable|string',
-    //     ]);
-
-    //     $cart = Cart::getCurrent(); // Or your method for guest/user cart
-    //     $country = $request->input('country');
-    //     $state = $request->input('state');
-
-    //     $taxRate = $this->getTaxRate($country, $state);
-    //     $cartSubtotal = $cart->calculateSubtotal(); // Make sure you have this logic
-
-    //     $taxAmount = round(($taxRate / 100) * $cartSubtotal, 2);
-
-    //     $cart->update([
-    //         'tax_rate' => $taxRate,
-    //         'tax_amount' => $taxAmount,
-    //         'total' => $cartSubtotal + $taxAmount + $cart->shipping_cost, // Update accordingly
-    //     ]);
-
-    //     return response()->json([
-    //         'message' => 'Tax updated.',
-    //         'cart' => $cart->fresh()
-    //     ]);
-    // }
 }

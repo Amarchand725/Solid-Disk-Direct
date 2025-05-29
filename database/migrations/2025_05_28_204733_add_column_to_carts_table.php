@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('carts', function (Blueprint $table) {
-            $table->decimal('tax_rate')->nullable()->after('shipping_cost');
-            $table->decimal('tax_amount')->nullable()->after('tax_rate');
+            $table->decimal('tax_rate', 10, 2)->default(0.00)->after('shipping_cost');
+            $table->decimal('tax_amount', 10, 2)->default(0.00)->after('tax_rate');
         });
     }
 

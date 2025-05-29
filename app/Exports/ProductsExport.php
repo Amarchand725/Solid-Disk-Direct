@@ -13,12 +13,28 @@ class ProductsExport implements FromCollection, WithHeadings, WithMapping
 {
     public function collection()
     {
-        return Product::with(['hasBrand', 'hasProductCondition'])
-            ->where('status', 1)
-            ->whereNotNull('thumbnail')
-            ->where('unit_price', '>=', 100)
-            ->take(1)
-            ->get();
+        // return Product::with(['hasBrand', 'hasProductCondition'])
+        //     ->where('status', 1)
+        //     ->whereNotNull('thumbnail')
+        //     ->where('unit_price', '>=', 100)
+        //     ->take(1)
+        //     ->get();
+
+        $products = Product::with(['hasBrand', 'hasProductCondition'])
+        ->where('status', 1)
+        ->whereNotNull('thumbnail')
+        ->where('unit_price', '>=', 100)
+        ->orderBy('id')
+        ->skip(0) // 1 - 1
+        ->take(100)
+        ->get()
+        ->filter(function ($product) {
+            // Check if the file exists in storage/app/public/
+            return Storage::disk('public')->exists($product->thumbnail);
+        })
+        ->values(); // Re-index after filtering
+    
+        return $products;
     }
 
     public function headings(): array
