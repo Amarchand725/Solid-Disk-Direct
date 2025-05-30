@@ -281,7 +281,9 @@ class OrderController extends Controller
                     }
 
                     //order confirm customer email
-                    Mail::to($shipping['email'])->queue(new OrderConfirmedCustomer($order));
+                    if(isset($shipping['email']) && !empty($shipping['email'])){
+                        Mail::to($shipping['email'])->queue(new OrderConfirmedCustomer($order));
+                    }
                     //order confirm customer emails
 
                     Log::info('After payment success order updated');
