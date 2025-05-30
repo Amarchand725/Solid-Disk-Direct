@@ -11,24 +11,49 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\BrandResource;
 use App\Http\Resources\ProductResource;
+use Illuminate\Support\Facades\Storage;
 
 class DeveloperController extends Controller
 {
     public function getBrandsWithProducts(){
-      $brands = Brand::where('is_top', 1)
-          ->where('status', 1)
-          ->orderBy('id', 'desc')
-          ->get();
+      // $brands = Brand::where('is_top', 1)
+      //     ->where('status', 1)
+      //     ->orderBy('id', 'desc')
+      //     ->count();
 
-      foreach ($brands as $brand) {
-          $brand->limitedProducts = $brand->limitedProducts()
-              ->where('status', 1)
-              ->orderByDesc('id')
-              ->limit(4)
-              ->get();
-      }
+      // foreach ($brands as $brand) {
+      //     $brand->limitedProducts = $brand->limitedProducts()
+      //         ->where('status', 1)
+      //         ->orderByDesc('id')
+      //         ->limit(4)
+      //         ->get();
+      // }
 
-      return  BrandResource::collection(collect($this->limitedProducts ?? []));
+      $models = Brand::where('is_top', 1)
+        ->where('status', 1)
+        ->orderByDesc('id')
+        ->get()
+        ->filter(function ($category) {
+            // Get products first
+            $products = $category->limitedProducts()
+                ->where('status', 1)
+                ->orderByDesc('id')
+                ->get()
+                ->filter(function ($product) {
+                    return !empty($product->thumbnail) && Storage::disk('public')->exists($product->thumbnail);
+                });
+    
+            // Only keep brands that have at least 1 product with valid thumbnail
+            if ($products->isNotEmpty()) {
+                // Set the relation with up to 4 valid products
+                $category->setRelation('limitedProducts', $products->take(4)->values());
+                return true;
+            }
+    
+            return false; // Exclude brand
+        })->values(); // Reindex the result
+
+      return $models;
     }
     public function generateMissingPolicySlugs()
     {

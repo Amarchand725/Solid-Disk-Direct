@@ -171,7 +171,9 @@
       }
   });
 
-  // Prevent page scroll when scrolling inside sidebar
+scrollArea = document.getElementById('scrollArea'); // or querySelector('.scroll-area') depending on your HTML
+
+if (scrollArea) {
   scrollArea.addEventListener("wheel", function (e) {
     const delta = e.deltaY;
     const up = delta < 0;
@@ -185,4 +187,5 @@
       scrollArea.scrollTop += delta;
     }
   }, { passive: false });
+}
 </script>

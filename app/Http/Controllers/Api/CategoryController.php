@@ -3,11 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Product;
-use App\Models\AttributeGroup;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use App\Models\AttributeGroup;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\Category2Resource;
 
@@ -154,18 +155,42 @@ class CategoryController extends Controller
         }
     }
     public function top(){
-        $models = $this->model->with('limitedProducts')->where('is_top', 1)
-            ->where('status', 1)
-            ->orderBy('id', 'desc')
-            ->get();
+        // $models = $this->model->with('limitedProducts')->where('is_top', 1)
+        //     ->where('status', 1)
+        //     ->orderBy('id', 'desc')
+        //     ->get();
 
-        foreach ($models as $category) {
-            $category->limitedProducts = $category->products()
+        // foreach ($models as $category) {
+        //     $category->limitedProducts = $category->products()
+        //         ->where('status', 1)
+        //         ->orderByDesc('id')
+        //         ->limit(4)
+        //         ->get();
+        // }
+
+        $models = $this->model->where('is_top', 1)
+        ->where('status', 1)
+        ->orderByDesc('id')
+        ->get()
+        ->filter(function ($category) {
+            // Get products first
+            $products = $category->limitedProducts()
                 ->where('status', 1)
                 ->orderByDesc('id')
-                ->limit(4)
-                ->get();
-        }
+                ->get()
+                ->filter(function ($product) {
+                    return !empty($product->thumbnail) && Storage::disk('public')->exists($product->thumbnail);
+                });
+    
+            // Only keep brands that have at least 1 product with valid thumbnail
+            if ($products->isNotEmpty()) {
+                // Set the relation with up to 4 valid products
+                $category->setRelation('limitedProducts', $products->take(4)->values());
+                return true;
+            }
+    
+            return false; // Exclude brand
+        })->values(); // Reindex the result
 
         if ($models->count()) {
             return response()->json([

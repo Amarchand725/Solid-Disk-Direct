@@ -1,8 +1,8 @@
-<table class="table table-flush-spacing">
+<table class="table table-flush-spacing" style="table-layout: fixed; width: 100%;">
     <?php $__currentLoopData = $fields; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $name => $field): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
         <tr>
-            <td class="text-nowrap fw-semibold"><?php echo e($field['label'] ?? ucfirst($name)); ?></td>
-            <td>
+            <td class="text-nowrap fw-semibold" style="width: 100px;"><?php echo e($field['label'] ?? ucfirst($name)); ?></td>
+            <td style="max-width: 200px; word-break: break-word; white-space: normal; overflow-wrap: break-word; overflow: hidden;">
                 <?php if($field['type'] === 'file'): ?>
                     <?php if(!empty($field['value'])): ?>
                         <img src="<?php echo e(asset('storage/' . $field['value'])); ?>" width="80" class="zoomable">
@@ -14,17 +14,11 @@
                         <?php echo e($model->status ? 'Active' : 'Deactive'); ?>
 
                     </span>
-                <?php elseif($field['type'] === 'checkbox'): ?>
-                    <span class="badge bg-label-<?php echo e($model->status ? 'success' : 'danger'); ?>">
-                        <?php echo e($model->status ? 'Yes' : 'No'); ?>
-
-                    </span>
                 <?php else: ?>
-                    <?php echo $field['value'] ?? '-'; ?>
+                    <?php echo $field['value']; ?>
 
                 <?php endif; ?>
             </td>
         </tr>
     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-</table>
-<?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/admin/brands/show_content.blade.php ENDPATH**/ ?>
+</table><?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/admin/blogs/show_content.blade.php ENDPATH**/ ?>

@@ -39,6 +39,7 @@
     <link rel="stylesheet" href="{{ asset('admin') }}/assets/vendor/fonts/fontawesome.css" />
     <link rel="stylesheet" href="{{ asset('admin') }}/assets/vendor/fonts/tabler-icons.css" />
     <link rel="stylesheet" href="{{ asset('admin') }}/assets/vendor/fonts/flag-icons.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans&display=swap" rel="stylesheet">
 
     <!-- Core CSS -->
     <link rel="stylesheet" href="{{ asset('admin') }}/assets/vendor/css/rtl/core.css" />

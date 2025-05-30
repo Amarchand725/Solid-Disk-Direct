@@ -13,13 +13,6 @@ class ProductsExport implements FromCollection, WithHeadings, WithMapping
 {
     public function collection()
     {
-        // return Product::with(['hasBrand', 'hasProductCondition'])
-        //     ->where('status', 1)
-        //     ->whereNotNull('thumbnail')
-        //     ->where('unit_price', '>=', 100)
-        //     ->take(1)
-        //     ->get();
-
         $products = Product::with(['hasBrand', 'hasProductCondition'])
         ->where('status', 1)
         ->whereNotNull('thumbnail')
