@@ -1,11 +1,5 @@
 <?php $__env->startSection('title', $title.' -  ' . appName()); ?>
-<?php $__env->startPush('css'); ?>
-    <style>
-        .ck-editor__editable_inline {
-            min-height: 300px !important;
-        }
-    </style>
-<?php $__env->stopPush(); ?>
+
 <?php $__env->startSection('content'); ?>
 <?php if(request()->is($routeInitialize.'/trashed')): ?>
     <input type="hidden" id="page_url" value="<?php echo e(route($routeInitialize.'.trashed')); ?>">
@@ -38,7 +32,7 @@
                     <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->any([$routeInitialize.'-create', $routeInitialize.'-trashed'])): ?>
                         <div class="col-md-6">
                             <div class="dt-buttons btn-group flex-wrap float-end mt-4">
-                                <button id="refresh-record" class="btn btn-success mx-2" title="Refresh Records"><i class="ti ti-refresh me-0 ti-xs"></i></button>
+                                <button id="refresh-record" class="btn btn-success mx-2" title="Refresh Records"><i class="ti ti-refresh me-0 ti-xs"></i></button>                                 
                                 <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check($routeInitialize.'-trashed')): ?>
                                     <a data-toggle="tooltip" data-placement="top" title="All Trashed Records" href="<?php echo e(route($routeInitialize.'.trashed')); ?>" class="btn btn-label-danger mx-2">
                                         <span>
@@ -130,4 +124,4 @@
 </script>
 <?php $__env->stopPush(); ?>
 
-<?php echo $__env->make('admin.layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/admin/blogs/index.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('admin.layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/admin/testimonials/index.blade.php ENDPATH**/ ?>

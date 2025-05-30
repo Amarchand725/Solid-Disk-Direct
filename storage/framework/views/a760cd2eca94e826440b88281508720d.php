@@ -53,11 +53,14 @@
         </div>
     <?php endif; ?>
 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-<script src="<?php echo e(asset('admin')); ?>/custom/summernote.js"></script> 
+
 <script>
+    $('#description').summernote({
+        height: 200
+    });
     $('select').each(function () {
         $(this).select2({
             dropdownParent: $(this).parent(),
         });
     });
-</script><?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/admin/blogs/create_content.blade.php ENDPATH**/ ?>
+</script><?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/admin/sliders/create_content.blade.php ENDPATH**/ ?>

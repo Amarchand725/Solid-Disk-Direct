@@ -1,11 +1,5 @@
 <?php $__env->startSection('title', $title.' -  ' . appName()); ?>
-<?php $__env->startPush('css'); ?>
-    <style>
-        .ck-editor__editable_inline {
-            min-height: 300px !important;
-        }
-    </style>
-<?php $__env->stopPush(); ?>
+
 <?php $__env->startSection('content'); ?>
 <?php if(request()->is($routeInitialize.'/trashed')): ?>
     <input type="hidden" id="page_url" value="<?php echo e(route($routeInitialize.'.trashed')); ?>">
@@ -130,4 +124,4 @@
 </script>
 <?php $__env->stopPush(); ?>
 
-<?php echo $__env->make('admin.layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/admin/blogs/index.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('admin.layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/admin/currencies/index.blade.php ENDPATH**/ ?>

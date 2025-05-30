@@ -1,7 +1,13 @@
 @extends('admin.layouts.app')
 
 @section('title', $title.' -  ' . appName())
-
+@push('css')
+    <style>
+        .ck-editor__editable_inline {
+            min-height: 300px !important;
+        }
+    </style>
+@endpush
 @section('content')
 @if (request()->is($routeInitialize.'/trashed'))
     <input type="hidden" id="page_url" value="{{ route($routeInitialize.'.trashed') }}">

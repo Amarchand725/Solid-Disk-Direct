@@ -56,11 +56,8 @@
         </div>
     @endif
 @endforeach
-
+<script src="{{ asset('admin') }}/custom/summernote.js"></script>
 <script>
-    $('#content').summernote({
-        height: 300
-    });
     $('select').each(function () {
         $(this).select2({
             dropdownParent: $(this).parent(),

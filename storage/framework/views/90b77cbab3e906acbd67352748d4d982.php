@@ -172,7 +172,6 @@
     <!-- / Dashboard Layout wrapper -->
 
     <!-- Core JS -->
-    <!-- build:js assets/vendor/js/core.js -->
     <script src="<?php echo e(asset('admin')); ?>/assets/vendor/libs/jquery/jquery.js"></script>
     <script src="<?php echo e(asset('admin')); ?>/assets/vendor/libs/popper/popper.js"></script>
     <script src="<?php echo e(asset('admin')); ?>/assets/vendor/js/bootstrap.js"></script>
@@ -181,8 +180,6 @@
     <!-- Include Select2 library -->
     <script src="<?php echo e(asset('admin/assets/js/select2.min.js')); ?>"></script>
     <script src="<?php echo e(asset('admin')); ?>/custom/ajax-request.js"></script>
-    <!-- Multi date picker to filter summary -->
-    
 
     <script src="<?php echo e(asset('admin')); ?>/assets/vendor/libs/hammer/hammer.js"></script>
     <script src="<?php echo e(asset('admin')); ?>/assets/vendor/libs/i18n/i18n.js"></script>
@@ -194,16 +191,16 @@
     <!-- Vendors JS -->
     <script src="<?php echo e(asset('admin')); ?>/assets/vendor/libs/bs-stepper/bs-stepper.js"></script>
     <script src="<?php echo e(asset('admin')); ?>/assets/vendor/libs/apex-charts/apexcharts.js"></script>
-    
     <script src="<?php echo e(asset('admin')); ?>/assets/datatables/jquery.dataTables.min.js"></script>
 
     <!-- Main JS -->
     <script src="<?php echo e(asset('admin')); ?>/assets/js/main.js"></script>
-    
 
-    <!-- Include Summernote -->
-    <link href="<?php echo e(asset('admin')); ?>/assets/summernote/summernote.min.css" rel="stylesheet">
-    <script src="<?php echo e(asset('admin')); ?>/assets/summernote/summernote.min.js"></script>
+    <!-- Summernote CSS for Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
+
+    <!-- Summernote JS -->
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
 
     <!-- Page JS -->
     <script src="<?php echo e(asset('admin/assets/js/toastr.min.js')); ?>"></script>
