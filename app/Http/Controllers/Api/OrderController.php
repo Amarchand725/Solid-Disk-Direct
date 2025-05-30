@@ -51,8 +51,6 @@ class OrderController extends Controller
 
     public function store(Request $request, PlaceOrderRequest $requestValidated)
     {
-        // $payment = $request->payment;
-        // return $payment['method'];
         $validated = $requestValidated->validated();
         $payment = $request->payment;
         $shipping = $validated['shipping'];
@@ -71,9 +69,8 @@ class OrderController extends Controller
             $order->session_id = auth()->check() ? null : $cart['session_id'];
             $order->coupon_id = NULL;
             $order->same_as_shipping = $sameAsShipping;
-            $order->subtotal = $cart['subtotal'] ?? 0;
+            $order->tax = $cart['tax_amount'] ?? 0;
             $order->shipping_cost = $cart['shipping_cost'] ?? 0;
-            // $order->tax = null;
             // $order->discount = null;
             $order->total = $cart['total'] ?? 0;
             $order->payment_method = $payment['method'];
@@ -145,75 +142,6 @@ class OrderController extends Controller
                     Log::info('Order Shipping Service updated Successfully');
                 }
 
-                // $fedExService = new FedExShippingService();
-
-                
-                // $payload = [
-                //     "accountNumber" => [
-                //         "value" => env('FEDEX_ACCOUNT_NUMBER')
-                //     ],
-                //     "labelResponseOptions" => "URL_ONLY", // required
-                //     "requestedShipment" => [
-                //         "shipper" => [
-                //             "contact" => [
-                //                 "personName" => "John Doe",
-                //                 "phoneNumber" => "1234567890"
-                //             ],
-                //             "address" => [
-                //                 "streetLines" => ["123 Main St"],
-                //                 "city" => "New York",
-                //                 "stateOrProvinceCode" => "NY",
-                //                 "postalCode" => "10001",
-                //                 "countryCode" => "US"
-                //             ]
-                //         ],
-                //         "recipients" => [
-                //             [
-                //                 "contact" => [
-                //                     "personName" => $shipping['first_name'],
-                //                     "phoneNumber" => $shipping['phone']
-                //                 ],
-                //                 "address" => [
-                //                     "streetLines" => [$shipping['address']],
-                //                     "city" => $shipping['shippingCity'],
-                //                     "stateOrProvinceCode" => 'CA',
-                //                     "postalCode" => '94105',
-                //                     "countryCode" => 'Us'
-                //                 ]
-                //             ]
-                //         ],
-                //         "pickupType" => "DROPOFF_AT_FEDEX_LOCATION",
-                //         "serviceType" => "FEDEX_GROUND",
-                //         "packagingType" => "YOUR_PACKAGING",
-                //         "shippingChargesPayment" => [
-                //             "paymentType" => "SENDER",
-                //             "payor" => [
-                //                 "responsibleParty" => [
-                //                     "accountNumber" => [
-                //                         "value" => env('FEDEX_ACCOUNT_NUMBER')
-                //                     ]
-                //                 ]
-                //             ]
-                //         ],
-                //         "labelSpecification" => [
-                //             "labelFormatType" => "COMMON2D",
-                //             "imageType" => "PDF",
-                //             "labelStockType" => "PAPER_4X6"
-                //         ],
-                //         "requestedPackageLineItems" => [
-                //             [
-                //                 "weight" => [
-                //                     "units" => "KG",
-                //                     "value" => $weight
-                //                 ]
-                //             ]
-                //         ]
-                //     ]
-                // ];
-
-                // $fedexResponse = $fedExService->createShipment($payload);
-
-
                 //paypal 
                 if ($payment['method'] == 'paypal') {
                     DB::commit();
@@ -222,17 +150,15 @@ class OrderController extends Controller
 
                     // Save PayPal order ID
                     $order->paypal_order_id = $paypalResponse['id'];
-
-                    // $order->tracking_number = $fedexResponse['output']['transactionShipments'][0]['masterTrackingNumber'];
                     $order->save();
 
-                     $cart = $this->cartModel->find($cart['id']);
-                        if ($cart) {
-                            $cart->items()->delete();
-                            $cart->delete();
+                    $cart = $this->cartModel->find($cart['id']);
+                    if ($cart) {
+                        $cart->items()->delete();
+                        $cart->delete();
 
-                            Log::info('Cart and cart item deleted successfully. ');
-                        }
+                        Log::info('Cart and cart item deleted successfully. ');
+                    }
 
                     $approveLink = collect($paypalResponse['links'])->firstWhere('rel', 'approve')['href'];
                     return response()->json([
@@ -254,37 +180,15 @@ class OrderController extends Controller
                         'zip' => $shipping['zip'] ?? '',
                     ]);
                 }
-                // else{ //if use stripe
-                //     $paymentIntent = $this->paymentService->handleStripePayment($order->total, $request->payment_method_id);
-                //     Log::info('Payment Response: '.json_encode($paymentIntent));
-                // }
-
-                //Strip
-                // $paymentIntent = $this->paymentService->handleStripePayment($order->total, $request->payment_method_id);
-                // Log::info('Payment Response: '.json_encode($paymentIntent));
-                // if($paymentIntent->status=='succeeded'){
-                //Strip
+                
                 if($response){
                     $order->payment_status = 'paid';
-                    // $order->transaction_id = $paymentIntent->id;
                     $order->save();
 
                     //new order notification
-                    $admin = getActiveAdminUser();
-                    if(!empty($admin)){
-                        $customerName = $shipping['first_name'].' '.$shipping['last_name'];
-                        $url = route('orders.index');
-                        $admin->notify(new SiteEventNotification('subscribe.png', 'New Order Placed', "{$customerName} has placed order.", $url));
-
-                        //order confirm email
-                        Mail::to('orders@soliddiskdirect.com')->queue(new OrderConfirmedAdmin($order));
+                    if(sendOrderNotificationAndEmails($order)){
+                        Log::info('Payarc Order Emails Sent to Admin & Customer Successfully ! Order Number: '.$order->order_number);
                     }
-
-                    //order confirm customer email
-                    if(isset($shipping['email']) && !empty($shipping['email'])){
-                        Mail::to($shipping['email'])->queue(new OrderConfirmedCustomer($order));
-                    }
-                    //order confirm customer emails
 
                     Log::info('After payment success order updated');
 
@@ -304,6 +208,7 @@ class OrderController extends Controller
                         'success' => true, 
                         'message' =>'You have placed order successfully.',
                         'order_number' => $order->order_number,
+                        'amount' => $order->total,
                     ], 200);
                 }
             }
@@ -334,5 +239,30 @@ class OrderController extends Controller
         // Optionally transform data before sending
 
         return response()->json($order);
+    }
+
+    public function orderSuccessInfo(Request $request){
+        $order = Order::where('order_number', $request->order_number)->firstOrFail();
+
+        $data = [
+            'order_number' => $order->order_number,
+            'total' => $order->total,
+            'payment_status' => $order->payment_status,
+            'order_status' => $order->order_status,
+        ];
+        
+        if ($order) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Order found successfully.',
+                'data' =>  $data
+            ]);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'No order data found.',
+                'data' => NULL
+            ]);
+        }
     }
 }

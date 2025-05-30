@@ -6,31 +6,27 @@ use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Http;
-use App\Services\Payment\PaymentService;
 
 class PaypalController extends Controller
 {
     public function paypalSuccess(Request $request)
     {
-        $token = $request->query('token');  // PayPal order ID from query param
-
-        // $paymentService = new PaymentService('paypal');
-        // $captureResponse = $paymentService->capture($token);
-
-        // if (!empty($captureResponse['status']) && $captureResponse['status'] === 'COMPLETED') {
+        $token = $request->query('token'); 
         $order = Order::where('paypal_order_id', $token)->first();
-
+        
         if ($order) {
             $order->update([
-                'order_status' => 'paid',
-                'payment_status' => 'completed',
+                'order_status' => 'pending',
+                'payment_status' => 'paid',
             ]);
 
-            return redirect()->to("http://localhost:5173/order-success/{$order->order_number}");
+            if(sendOrderNotificationAndEmails($order)){
+                Log::info('Paypal Order Emails Sent to Admin & Customer Successfully ! Order Number: '.$order->order_number);
+            }
+
+            return redirect()->to(env('FRONTEND_BASE_URL') . "/order-success/{$order->order_number}");
 
         }
-        // }
 
         return redirect()->route('checkout')->with('error', 'Payment was not successful.');
     }

@@ -55,6 +55,7 @@ class CategoryController extends Controller
     public function getCategories(){
         $models = $this->model->whereDoesntHave('parents')
             ->with('childrenRecursive')
+            ->orderby('priority', 'desc')
             ->get()
             ->map(function ($item) {
                 $item->children_recursive = collect($item->children_recursive)->unique('id')->values();

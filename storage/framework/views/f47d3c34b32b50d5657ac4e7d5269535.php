@@ -146,14 +146,6 @@
 <script src="<?php echo e(asset('admin')); ?>/custom/multi-categories.js"></script> 
 <script src="<?php echo e(asset('admin')); ?>/custom/summernote.js"></script>
 <script>
-    // $('#short_description').summernote({
-    //     height: 200
-    // });
-    
-    // $('#full_description').summernote({
-    //     height: 200
-    // });
-
     $('select').each(function () {
         $(this).select2({
             dropdownParent: $(this).parent(),

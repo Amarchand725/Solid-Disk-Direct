@@ -3,7 +3,7 @@ $('.summernote').summernote({
     tabsize: 2,
     height: 300,
     toolbar: [
-        ['style', ['bold', 'italic', 'underline', 'clear']],
+        ['style', ['style', 'bold', 'italic', 'underline', 'clear']], 
         ['font', ['strikethrough', 'superscript', 'subscript', 'fontsize', 'fontname']],
         ['color', ['color']],
         ['para', ['ul', 'ol', 'paragraph']],

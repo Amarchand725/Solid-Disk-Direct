@@ -2,12 +2,17 @@
 
 use Carbon\Carbon;
 use App\Models\Menu;
-use App\Models\PaymentMode;
-use App\Models\PaymentType;
 use App\Models\User;
 use App\Models\Setting;
+use App\Models\PaymentMode;
+use App\Models\PaymentType;
 use Illuminate\Support\Str;
+use App\Mail\OrderConfirmedAdmin;
+use App\Mail\OrderConfirmedCustomer;
+use App\Models\OrderShippingAddress;
+use Illuminate\Support\Facades\Mail;
 use Spatie\Permission\Models\Permission;
+use App\Notifications\SiteEventNotification;
 
 function appName(){
     return settings()->name ?? '';
@@ -432,4 +437,27 @@ function getPaymentTypes(){
     }else{
         return [];
     }
+}
+
+function sendOrderNotificationAndEmails($order){
+    $shipping = OrderShippingAddress::where('order_id', $order->id)->first();
+    $admin = getActiveAdminUser();
+    $bool = false;
+    if(!empty($admin)){
+        $customerName = $shipping->first_name.' '.$shipping->last_name;
+        $url = route('orders.index');
+        $admin->notify(new SiteEventNotification('subscribe.png', 'New Order Placed', "{$customerName} has placed order.", $url));
+
+        //order confirm email
+        Mail::to('orders@soliddiskdirect.com')->queue(new OrderConfirmedAdmin($order));
+        $bool = true;
+    }
+
+    //order confirm customer email
+    if(isset($shipping->email) && !empty($shipping->email)){
+        Mail::to($shipping->email)->queue(new OrderConfirmedCustomer($order));
+        $bool = true;
+    }
+
+    return $bool;
 }

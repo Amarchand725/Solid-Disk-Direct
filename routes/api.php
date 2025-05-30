@@ -64,6 +64,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::controller(OrderController::class)->group(function () {
     Route::post('orders/place-order', 'store');
     Route::get('orders/track-order', 'track');
+    Route::get('orders/order-success-info', 'orderSuccessInfo');
 });
 Route::controller(PaypalController::class)->group(function () {
     Route::get('/paypal/success', 'paypalSuccess')->name('paypal.success');

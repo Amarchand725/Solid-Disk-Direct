@@ -1,6 +1,7 @@
 <?php 
 namespace App\Services\Payment\Gateways;
 
+use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use App\Services\Payment\Contracts\PaymentGatewayInterface;
@@ -26,7 +27,7 @@ class PayPalGateway implements PaymentGatewayInterface
             ]);
 
         if (!$response->successful()) {
-            throw new \Exception('Failed to get PayPal access token: ' . $response->body());
+            throw new Exception('Failed to get PayPal access token: ' . $response->body());
         }
 
         return $response->json();
@@ -51,7 +52,7 @@ class PayPalGateway implements PaymentGatewayInterface
         ]);
 
         if (!$response->successful()) {
-            throw new \Exception('Failed to create PayPal order: ' . $response->body());
+            throw new Exception('Failed to create PayPal order: ' . $response->body());
         }
 
         return $response->json();
@@ -62,23 +63,20 @@ class PayPalGateway implements PaymentGatewayInterface
         $paypalOrderId = $order;
 
         if (!$paypalOrderId) {
-            throw new \Exception('PayPal order ID is missing');
+            throw new Exception('PayPal order ID is missing');
         }
 
         $tokenData = $this->getAccessToken();
         if (!isset($tokenData['access_token'])) {
-            throw new \Exception('Access token missing in PayPal response: ' . json_encode($tokenData));
+            throw new Exception('Access token missing in PayPal response: ' . json_encode($tokenData));
         }
         $accessToken = $tokenData['access_token'];
 
         $response = Http::withToken($accessToken)       
             ->post("{$this->baseUrl}/v2/checkout/orders/{$paypalOrderId}/capture", []);
 
-        // Log::info('PayPal Capture API Status: ' . $response->status());
-        // Log::info('PayPal Capture API Response: ' . $response->body());
-
         if (!$response->successful()) {
-            throw new \Exception('Failed to capture PayPal order: ' . $response->body());
+            throw new Exception('Failed to capture PayPal order: ' . $response->body());
         }
 
         return $response->json();
