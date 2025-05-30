@@ -59,7 +59,6 @@ class OrderController extends Controller
         $cart = $request->cart;
         $cartItems = $cart['items'];
         $order_shipping_service = $this->orderShippingService->where('cart_id', $cart['id'])->first();
-        $weight = 0;
         
         DB::beginTransaction();
         try {
@@ -93,7 +92,6 @@ class OrderController extends Controller
                         $order_item->quantity = $item['quantity'] ?? 0;
                         $order_item->options = null;
                         $order_item->sub_total = $item['sub_total'] ?? 0;
-                        $weight += $product->product_weight;
                         $order_item->save();
                     }
                 }
