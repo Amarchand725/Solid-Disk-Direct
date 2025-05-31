@@ -151,7 +151,7 @@
         var page_url = $('#page_url').val();
         var columns =     {!! json_encode($columnsConfig) !!}  // Get columns dynamically from controller
         initializeDataTable(page_url, columns);
-    })
+    })  
     $('#refresh-record').on('click', function(){
         var page_url = $('#page_url').val();
         var columns =     {!! json_encode($columnsConfig) !!}  // Get columns dynamically from controller

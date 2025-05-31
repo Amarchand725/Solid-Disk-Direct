@@ -38,7 +38,6 @@ class OrderController extends Controller
 
     public function __construct()
     {
-        // $this->paymentService = $paymentService;
         $this->cartModel = new Cart();
         $this->cartItemsModel = new CartItem();
         $this->orderModel = new Order();
@@ -68,6 +67,7 @@ class OrderController extends Controller
             $order->session_id = auth()->check() ? null : $cart['session_id'];
             $order->coupon_id = NULL;
             $order->same_as_shipping = $sameAsShipping;
+            $order->subtotal = $cart['subtotal'] ?? 0;
             $order->tax = $cart['tax_amount'] ?? 0;
             $order->shipping_cost = $cart['shipping_cost'] ?? 0;
             // $order->discount = null;
@@ -177,15 +177,19 @@ class OrderController extends Controller
                         'address' => $shipping['address'] ?? '',
                         'zip' => $shipping['zip'] ?? '',
                     ]);
+
+                    Log::info('Response Data: '.json_encode($response));
                 }
                 
-                if($response){
+                if (isset($response) && $response['response_code'] == 100 && $response['response'] == "1") {
                     $order->payment_status = 'paid';
                     $order->save();
 
                     //new order notification
                     if(sendOrderNotificationAndEmails($order)){
                         Log::info('Payarc Order Emails Sent to Admin & Customer Successfully ! Order Number: '.$order->order_number);
+                    }else{
+                        Log::info('Payarc Order Emails not sent to Admin & Customer Failed ! Order Number: '.$order->order_number);
                     }
 
                     Log::info('After payment success order updated');
@@ -208,9 +212,17 @@ class OrderController extends Controller
                         'order_number' => $order->order_number,
                         'amount' => $order->total,
                     ], 200);
+                }else{
+                    DB::rollback();
+                    $errorMessage = $response['responsetext'] ?? 'Unknown error occurred.';
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Payment failed: '.$errorMessage,
+                    ], 500);
                 }
             }
         } catch (Exception $e) {
+            DB::rollback();
             return response()->json([
                 'success' => false,
                 'message' => 'Payment error: ' . $e->getMessage(),
@@ -241,7 +253,6 @@ class OrderController extends Controller
 
     public function orderSuccessInfo(Request $request){
         $order = Order::where('order_number', $request->order_number)->firstOrFail();
-
         $data = [
             'order_number' => $order->order_number,
             'total' => $order->total,

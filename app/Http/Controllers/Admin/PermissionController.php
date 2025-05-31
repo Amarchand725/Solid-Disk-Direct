@@ -59,8 +59,8 @@ class PermissionController extends Controller
 
         $models = $this->model->groupBy('label')
                     ->latest()
-                    ->select(['id', 'label'])
-                    ->get();
+                    ->select(['id', 'label', 'name', 'created_at']);
+                    // ->get();
 
         // Define the columns dynamically
         $columns = [

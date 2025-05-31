@@ -254,6 +254,13 @@ Route::controller(AdminController::class)->group(function () {
         Route::get('restore/{id}', 'restore')->name('attribute_values.restore');
     });
 
+    Route::prefix('orders')->controller(OrderController::class)->group(function () {
+        Route::get('trashed', 'trashed')->name('orders.trashed');
+        Route::get('restore/{id}', 'restore')->name('orders.restore');
+        Route::get('invoice', 'invoice')->name('orders.invoice');
+        Route::get('changeStatus', 'changeStatus')->name('orders.changeStatus');
+    });
+
     //Resource Routes.
     Route::resource('roles', RoleController::class);
     Route::resource('permissions', PermissionController::class);

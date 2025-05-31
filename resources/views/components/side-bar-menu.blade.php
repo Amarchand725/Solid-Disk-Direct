@@ -103,12 +103,42 @@
         </li>
       @endcanany
 
+      <li class="menu-header small text-uppercase">
+        <span class="menu-header-text">Administration</span>
+      </li>
+
+      @canany(['orders-list'])
+        <li class="menu-header small text-uppercase">
+          <span class="menu-header-text">Orders</span>
+        </li>
+        <li class="menu-item
+            {{
+                request()->is('orders')
+                ?'open active':''
+            }}
+        ">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+              <i class="menu-icon tf-icons ti ti-file"></i>
+              <div data-i18n="Orders & Invoices">Orders & Invoices</div>
+            </a>
+            <ul class="menu-sub">
+                @can('orders-list')
+                <li class="menu-item {{ request()->is('orders') ?'active':'' }}">
+                  <a href="{{ route('orders.index') }}" class="menu-link"  >  
+                      <div>All Orders</div>
+                  </a>
+                </li>
+                @endcan
+            </ul>
+        </li>
+      @endcanany
+
       @php 
         $menuGroups = getDynamicMenuGroups();
       @endphp 
 
       <li class="menu-header small text-uppercase">
-        <span class="menu-header-text">Administration</span>
+        <span class="menu-header-text">System</span>
       </li>
       @foreach ($menuGroups as $menuGroup)  
         @php

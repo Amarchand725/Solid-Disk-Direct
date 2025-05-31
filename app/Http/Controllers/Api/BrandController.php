@@ -77,42 +77,42 @@ class BrandController extends Controller
         }
     }
     public function top(){
-        // $models = $this->model->with('limitedProducts')->where('is_top', 1)
-        //     ->where('status', 1)
-        //     ->orderBy('id', 'desc')
-        //     ->get();
+        $models = $this->model->with('limitedProducts')->where('is_top', 1)
+            ->where('status', 1)
+            ->orderBy('id', 'desc')
+            ->get();
 
-        // foreach ($models as $brand) {
-        //     $brand->limitedProducts = $brand->products()
-        //         ->where('status', 1)
-        //         ->orderByDesc('id')
-        //         ->limit(4)
-        //         ->get();
-        // }
-
-        $models = Brand::where('is_top', 1)
-        ->where('status', 1)
-        ->orderByDesc('id')
-        ->get()
-        ->filter(function ($brand) {
-            // Get products first
-            $products = $brand->limitedProducts()
+        foreach ($models as $brand) {
+            $brand->limitedProducts = $brand->products()
                 ->where('status', 1)
                 ->orderByDesc('id')
-                ->get()
-                ->filter(function ($product) {
-                    return !empty($product->thumbnail) && Storage::disk('public')->exists($product->thumbnail);
-                });
+                ->limit(4)
+                ->get();
+        }
+
+        // $models = Brand::where('is_top', 1)
+        // ->where('status', 1)
+        // ->orderByDesc('id')
+        // ->get()
+        // ->filter(function ($brand) {
+        //     // Get products first
+        //     $products = $brand->limitedProducts()
+        //         ->where('status', 1)
+        //         ->orderByDesc('id')
+        //         ->get()
+        //         ->filter(function ($product) {
+        //             return !empty($product->thumbnail) && Storage::disk('public')->exists($product->thumbnail);
+        //         });
     
-            // Only keep brands that have at least 1 product with valid thumbnail
-            if ($products->isNotEmpty()) {
-                // Set the relation with up to 4 valid products
-                $brand->setRelation('limitedProducts', $products->take(4)->values());
-                return true;
-            }
+        //     // Only keep brands that have at least 1 product with valid thumbnail
+        //     if ($products->isNotEmpty()) {
+        //         // Set the relation with up to 4 valid products
+        //         $brand->setRelation('limitedProducts', $products->take(4)->values());
+        //         return true;
+        //     }
     
-            return false; // Exclude brand
-        })->values(); // Reindex the result
+        //     return false; // Exclude brand
+        // })->values(); // Reindex the result
 
         if ($models->count()) {
             return response()->json([

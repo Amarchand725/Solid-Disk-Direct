@@ -102,12 +102,41 @@
         </li>
       <?php endif; ?>
 
+      <li class="menu-header small text-uppercase">
+        <span class="menu-header-text">Administration</span>
+      </li>
+
+      <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->any(['orders-list'])): ?>
+        <li class="menu-header small text-uppercase">
+          <span class="menu-header-text">Orders</span>
+        </li>
+        <li class="menu-item
+            <?php echo e(request()->is('orders')
+                ?'open active':''); ?>
+
+        ">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+              <i class="menu-icon tf-icons ti ti-file"></i>
+              <div data-i18n="Orders & Invoices">Orders & Invoices</div>
+            </a>
+            <ul class="menu-sub">
+                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('orders-list')): ?>
+                <li class="menu-item <?php echo e(request()->is('orders') ?'active':''); ?>">
+                  <a href="<?php echo e(route('orders.index')); ?>" class="menu-link"  >  
+                      <div>All Orders</div>
+                  </a>
+                </li>
+                <?php endif; ?>
+            </ul>
+        </li>
+      <?php endif; ?>
+
       <?php 
         $menuGroups = getDynamicMenuGroups();
       ?> 
 
       <li class="menu-header small text-uppercase">
-        <span class="menu-header-text">Administration</span>
+        <span class="menu-header-text">System</span>
       </li>
       <?php $__currentLoopData = $menuGroups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $menuGroup): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>  
         <?php

@@ -22,6 +22,8 @@ class PaypalController extends Controller
 
             if(sendOrderNotificationAndEmails($order)){
                 Log::info('Paypal Order Emails Sent to Admin & Customer Successfully ! Order Number: '.$order->order_number);
+            }else{
+                Log::info('Paypal Order Emails not sent to Admin & Customer Failed ! Order Number: '.$order->order_number);
             }
 
             return redirect()->to(env('FRONTEND_BASE_URL') . "/order-success/{$order->order_number}");

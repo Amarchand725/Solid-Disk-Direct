@@ -283,15 +283,15 @@ class CartController extends Controller
             });
 
             // Subtotal (must exclude shipping and tax; implement calculateSubtotal())
-            $country = $request->input('country'); // Make sure to pass this from frontend
-            $taxInfo = $this->getTaxInfo($country);
-            $taxRate = isset($taxInfo['rate']) ? (float)$taxInfo['rate'] : 0.0;
-            $taxAmount = round($subtotal * $taxRate, 2);
-            $total = round($subtotal + $shippingCost + $taxAmount, 2);
+            // $country = $request->input('country'); // Make sure to pass this from frontend
+            // $taxInfo = $this->getTaxInfo($country);
+            // $taxRate = isset($taxInfo['rate']) ? (float)$taxInfo['rate'] : 0.0;
+            // $taxAmount = round($subtotal * $taxRate, 2);
+            $total = round($subtotal + $shippingCost, 2);
 
             $cart->shipping_cost = $shippingCost;
-            $cart->tax_rate = $taxRate;
-            $cart->tax_amount = $taxAmount;
+            // $cart->tax_rate = $taxRate;
+            // $cart->tax_amount = $taxAmount;
             $cart->total = $total;
             $cart->save();
 
@@ -368,7 +368,7 @@ class CartController extends Controller
             $shippingCost = $cart->shipping_cost ?? 0;
 
             $taxAmount = round(($taxRate / 100) * $subtotal, 2);
-            $total = round($subtotal + $shippingCost + $taxAmount, 2);
+            $total = round($subtotal + $shippingCost, 2);
 
             $cart->tax_rate = $taxRate;
             $cart->tax_amount = $taxAmount;
