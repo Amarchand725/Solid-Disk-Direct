@@ -126,4 +126,21 @@ class OrderController extends Controller
         
         return view($bladePath.'.index', get_defined_vars());
     }
+
+    public function invoice($id)
+    {
+        $order = $this->model->findOrFail($id);
+        return view('admin.orders.invoice', compact('order'));
+    }
+
+    public function downloadInvoice($orderId) {
+        $order = Order::findOrFail($orderId);
+        $pdf = Pdf::loadView('invoice', [
+            'invoiceNumber' => $order->invoice_number,
+            'date' => $order->created_at->format('d-m-Y h:i:s a'),
+            // Add other variables here...
+        ]);
+
+        return $pdf->download('invoice_'.$order->invoice_number.'.pdf');
+    }
 }
