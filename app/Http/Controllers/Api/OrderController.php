@@ -112,7 +112,7 @@ class OrderController extends Controller
                     $order_shipping_address->country = $shipping['shippingCountry'];
                     $order_shipping_address->save();
 
-                    // Log::info('Order Shipping Address Added Successfully');
+                    Log::info('Order Shipping Address Added Successfully');
                 }
 
                 if(isset($sameAsShipping) && $sameAsShipping==true && !empty($billing)){
@@ -164,12 +164,16 @@ class OrderController extends Controller
                         'success' => true,
                         'message' => 'Redirecting to PayPal for payment',
                     ]);
-                }elseif($payment['method']=='payarc'){
+                }elseif ($payment['method'] == 'payarc') {
                     $paymentService = new PaymentService($payment['method']);
+                    
+                    // Normalize expiry format to MMYY if it contains a slash
+                    $expiry = str_replace('/', '', $payment['expiry']);
+
                     $response = $paymentService->capture([
                         'amount' => $order->total,
                         'card_number' => $payment['card_number'],
-                        'expiry' => $payment['expiry'],   // format MMYY or MM/YY as per Payarc spec
+                        'expiry' => $expiry,   // format MMYY as per Payarc spec
                         'cvv' => $payment['cvv'],
                         'firstname' => $shipping['first_name'] ?? '',
                         'lastname' => $shipping['last_name'] ?? '',
@@ -178,46 +182,50 @@ class OrderController extends Controller
                         'zip' => $shipping['zip'] ?? '',
                     ]);
 
-                    Log::info('Response Data: '.json_encode($response));
+                    Log::info('Payarc Response Data: ' . json_encode($response));
                 }
-                
-                if (isset($response) && $response['response_code'] == 100 && $response['response'] == "1") {
+
+                if (isset($response) && ($response['response'] === "1" || $response['response_code'] == 100)) {
                     $order->payment_status = 'paid';
+                    // Save transaction ID if available
+                    $order->payment_transaction_id = $response['transactionid'] ?? null;
                     $order->save();
 
-                    //new order notification
-                    if(sendOrderNotificationAndEmails($order)){
-                        Log::info('Payarc Order Emails Sent to Admin & Customer Successfully ! Order Number: '.$order->order_number);
-                    }else{
-                        Log::info('Payarc Order Emails not sent to Admin & Customer Failed ! Order Number: '.$order->order_number);
+                    $emailOrderData = $order['customer_name'] = $shipping['first_name'] ?? '-'.' '.$shipping['last_name']?? '';
+
+                    // Send new order notification emails
+                    if (sendOrderNotificationAndEmails($emailOrderData)) {
+                        Log::info('Payarc Order Emails Sent to Admin & Customer Successfully! Order Number: ' . $order->order_number);
+                    } else {
+                        Log::warning('Payarc Order Emails Failed to Send! Order Number: ' . $order->order_number);
                     }
 
                     Log::info('After payment success order updated');
 
-                    // Step 1: Delete all cart items associated with the cart
-                    $cart = $this->cartModel->find($cart['id']);
+                    // Delete cart and cart items
+                    $cart = $this->cartModel->find($cart['id'] ?? null);
                     if ($cart) {
                         $cart->items()->delete();
                         $cart->delete();
-
-                        Log::info('Cart and cart item deleted successfully. ');
+                        Log::info('Cart and cart items deleted successfully.');
                     }
-                    // Step 2: Delete the cart itself
 
                     DB::commit();
-                    Log::info('Final Order placed success ');
-                    return response()->json([   
-                        'success' => true, 
-                        'message' =>'You have placed order successfully.',
+                    Log::info('Final Order placed success');
+
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'You have placed order successfully.',
                         'order_number' => $order->order_number,
                         'amount' => $order->total,
                     ], 200);
-                }else{
+                } else {
                     DB::rollback();
                     $errorMessage = $response['responsetext'] ?? 'Unknown error occurred.';
+                    Log::error('Payarc Payment Failed: ' . $errorMessage);
                     return response()->json([
                         'success' => false,
-                        'message' => 'Payment failed: '.$errorMessage,
+                        'message' => 'Payment failed: ' . $errorMessage,
                     ], 500);
                 }
             }
@@ -239,7 +247,7 @@ class OrderController extends Controller
         }
 
         $order = Order::with([ 'items.product'])
-            ->where('id', $query)
+            ->where('order_number', $query)
             ->first();
 
         if (!$order) {

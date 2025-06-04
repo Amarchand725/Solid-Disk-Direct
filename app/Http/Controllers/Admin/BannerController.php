@@ -6,6 +6,7 @@ use Exception;
 use Carbon\Carbon;
 use App\Models\Menu;
 use App\Models\Banner;
+use App\Models\Category;
 use App\Models\MenuField;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -20,6 +21,7 @@ class BannerController extends Controller
     use DataTableTrait;
     
     protected $model;
+    protected $categoryModel;
     protected $routePrefix;
     protected $pathInitialize;
     protected $singularLabel;
@@ -30,6 +32,7 @@ class BannerController extends Controller
     {
         parent::__construct();
         
+        $this->categoryModel = new Category(); 
         $this->model = $model; 
         $this->routePrefix = Str::before(Route::currentRouteName(), '.');
         $this->pathInitialize = 'admin.'.$this->routePrefix;
@@ -63,7 +66,11 @@ class BannerController extends Controller
 
         // Get column definitions dynamically
         $getFields = getFields($this->model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'index');
-        
+
+        if (isset($getFields['category'])) {
+            $getFields['category']['index'] = fn($model) => optional($model->getCategory)->name ?? '-';
+        }
+
         //select columns
         $selectedColumns = collect($getFields)
         ->mapWithKeys(function ($config, $key) {
@@ -80,7 +87,7 @@ class BannerController extends Controller
         array_unshift($selectedColumns, 'id');
         
         $models = $this->model->latest()
-            ->with('createdBy:id,name')
+            ->with('createdBy:id,name', 'getCategory:id,name')
             ->select($selectedColumns);
         //select columns
         
@@ -107,6 +114,7 @@ class BannerController extends Controller
         $bladePath = $this->pathInitialize;
 
         $model = $this->model;
+        $categories = $this->categoryModel->where('status', 1)->get();
         $fields = getFields($this->model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'create');
         return (string) view($bladePath.'.create_content', get_defined_vars());
     }
@@ -182,6 +190,7 @@ class BannerController extends Controller
     {
         $bladePath = $this->pathInitialize;
         $title = $this->singularLabel;
+        $categories = $this->categoryModel->where('status', 1)->get();
         $model = $this->model->where('id', $id)->first();
         $fields = getFields($model, getFieldsAndColumns($this->model, $this->pathInitialize, $this->singularLabel, $this->routePrefix), 'edit');
         

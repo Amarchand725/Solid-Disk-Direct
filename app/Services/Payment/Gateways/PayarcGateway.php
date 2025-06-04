@@ -6,22 +6,22 @@ use Illuminate\Support\Facades\Http;
 
 class PayarcGateway implements PaymentGatewayInterface
 {
-    protected $securityKey;
-    protected $endpoint;
+    protected string $securityKey;
+    protected string $endpoint;
 
     public function __construct()
     {
-        $this->securityKey = config('services.payarc.security_key');
+        $this->securityKey = config('services.payarc.secret_key'); // must match your config
         $this->endpoint = config('services.payarc.endpoint', 'https://secure.networkmerchants.com/api/transact.php');
     }
 
-    public function capture(array $data)
+    public function capture(array $data): array
     {
         $payload = [
             'security_key' => $this->securityKey,
             'amount' => $data['amount'],
             'ccnumber' => $data['card_number'],
-            'ccexp' => $data['expiry'],     // Format: MMYY
+            'ccexp' => $data['expiry'], // Format: MMYY
             'cvv' => $data['cvv'],
             'type' => 'sale',
             'firstname' => $data['firstname'] ?? '',
@@ -29,7 +29,6 @@ class PayarcGateway implements PaymentGatewayInterface
             'email' => $data['email'] ?? '',
             'billing_address1' => $data['address'] ?? '',
             'billing_zip' => $data['zip'] ?? '',
-            // Add more fields if needed
         ];
 
         $response = Http::asForm()->post($this->endpoint, $payload);
@@ -39,7 +38,7 @@ class PayarcGateway implements PaymentGatewayInterface
         return $result;
     }
 
-    public function refund(string $transactionId, float $amount)
+    public function refund(string $transactionId, float $amount): array
     {
         $payload = [
             'security_key' => $this->securityKey,

@@ -16,18 +16,18 @@
             </label>
 
             @if(isset($field['type']) && $field['type'] === 'select')
-                @if($name=='parent_id')
-                    <select id="{{ $name }}" name="{{ $name }}" class="form-control">
+                @if($name=='category' && isset($categories) && !empty($categories))
+                    <select id="{{ $name }}" name="category" class="form-control">
                         <option value="" selected>Select parent category</option>
-                        @foreach($parent_categories as $key => $parent_category)
-                            <option value="{{ $parent_category->id }}">
-                                {{ $parent_category->name }}
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" {{ $model->category == $category->id ? 'selected' : '' }}>
+                                {{ $category->name }}
                             </option>
                         @endforeach
                     </select>
                 @else
                     <select id="{{ $name }}" name="{{ $name }}" class="form-control">
-                        @foreach($field['options'] ?? [] as $key => $option)  <!-- Safely handle 'options' -->
+                        @foreach($field['options'] ?? [] as $key => $option)
                             <option value="{{ $key }}" {{ $model->status == $key ? 'selected' : '' }}>
                                 {{ $option }}
                             </option>

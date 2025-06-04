@@ -69,4 +69,9 @@ class Product extends Model
     {
         return $this->categories()->whereDoesntHave('children');
     }
+
+    public function attributeValues()
+    {
+        return $this->belongsToMany(AttributeValue::class, 'product_attributes');
+    }
 }

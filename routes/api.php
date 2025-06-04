@@ -25,7 +25,8 @@ use App\Http\Controllers\Api\{
     ShippingController,
     LocationController,
     PaypalController,
-    ConfigController
+    ConfigController,
+    BuyNowController
 };
 
 /*
@@ -88,6 +89,7 @@ Route::controller(ProductController::class)->group(function () {
     ]);
     Route::get('products/search', 'search')->name('products.search');
     Route::get('products/search2', 'search2')->name('products.search2');
+    Route::get('products/attribute/{attributeSlug}', 'getByAttributeValue');
 });
 Route::controller(TestimonialController::class)->group(function () {
     Route::get('testimonials', 'index')->name('testimonials');
@@ -154,6 +156,12 @@ Route::controller(CartController::class)->group(function () {
     Route::post('/cart/clear', 'clearCart');
     Route::put('/cart/update-shipping', 'updateShipping');
     Route::put('/cart/update-tax', 'updateTax');
+});
+
+Route::controller(BuyNowController::class)->group(function () {
+    Route::post('/buy-now', 'store');
+    Route::get('/buy-now-data', 'getBuyNowData');
+    Route::post('/buy-now-clear', 'clear');
 });
 
 Route::controller(ShippingController::class)->group(function () {

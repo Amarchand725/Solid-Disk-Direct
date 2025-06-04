@@ -4,62 +4,224 @@
     <meta charset="utf-8">
     <title>Invoice #{{ $order->order_number }}</title>
     <style>
-        body { font-family: Arial, sans-serif; font-size: 14px; margin: 0; padding: 20px; }
-        .invoice-box { max-width: 800px; margin: auto; padding: 30px; border: 1px solid #eee; }
-        table { width: 100%; line-height: inherit; text-align: left; border-collapse: collapse; }
-        table th, table td { padding: 8px; border-bottom: 1px solid #eee; }
-        .total-row td { font-weight: bold; }
-        .heading { background: #eee; font-weight: bold; }
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            background: #f7f7f7;
+        }
+
+        .invoice-box {
+            max-width: 900px;
+            margin: auto;
+            padding: 30px;
+            background: #fff;
+            border: 1px solid #eee;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            max-width: 150px;
+        }
+
+        .invoice-info {
+            text-align: right;
+        }
+
+        .invoice-info h2 {
+            margin: 0;
+            font-size: 20px;
+            color: #444;
+        }
+
+        .info-block {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .info-box {
+            width: 48%;
+            line-height: 1.5;
+        }
+
+        h3 {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: #444;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        table th, table td {
+            padding: 10px;
+            border: 1px solid #eee;
+            text-align: left;
+        }
+
+        table th {
+            background: #f0f0f0;
+            font-weight: bold;
+        }
+
+        .total-table {
+            width: 50%;
+            float: right;
+            margin-top: 20px;
+        }
+
+        .total-table td {
+            padding: 10px;
+            border: none;
+        }
+
+        .total-table tr.total-row td {
+            font-weight: bold;
+            border-top: 2px solid #333;
+        }
+
+        .footer {
+            font-size: 13px;
+            text-align: center;
+            color: #777;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="invoice-box">
-        <h2>Order Invoice</h2>
-        <p><strong>Invoice #:</strong> {{ $order->order_number }}<br>
-        <strong>Shop Name:</strong> Solid Disk Direct<br>
-        <strong>Date:</strong> {{ $order->created_at }}</p>
+        <div class="header">
+            <div class="logo" style="width: 50%;">
+                @if(isset(settings()->black_logo) && !empty(settings()->black_logo))
+                    <img src="{{ asset('storage').'/'.settings()->black_logo }}" style="width: 100%; max-width: 180px;" alt="{{ settings()->name }}" />
+                @else
+                    <img src="{{ asset('storage/images/default.png') }}" style="width: 100%; max-width: 180px;" alt="Default" />
+                @endif
+                <div style="margin-top: 10px; font-size: 13px; color: #555; text-decoration: none;">
+                    <p style="margin: 4px 0;"><strong>Address:</strong> {{ settings()->address }}</p>
+                </div>
+            </div>
 
-        <h3>Shipping to</h3>
-        {{-- <p>{{ $shipping_name }}<br>{{ $shipping_email }}<br>{{ $shipping_phone }}<br>{{ $shipping_address }}</p>
+            <div class="invoice-info" style="width: 50%; text-align: right;">
+                <h2 style="margin: 0;">Order Invoice</h2>
+                <p style="margin: 5px 0;"><strong>Invoice #:</strong> {{ $order->order_number }}</p>
+                <p style="margin: 0;"><strong>Date:</strong> {{ $order->created_at->format('d M Y') }}</p>
+            </div>
+        </div>
 
-        <h3>Billing Address</h3>
-        <p>{{ $billing_name }}<br>{{ $billing_email }}<br>{{ $billing_phone }}<br>{{ $billing_address }}</p> --}}
+        <div class="info-block">
+            <div class="info-box">
+                <h3>Shipping To</h3>
+                @if(isset($order->shipping))
+                    <p>
+                        {{ $order->shipping->first_name }} {{ $order->shipping->last_name ?? '' }}<br>
+                        {{ $order->shipping->email }}<br>
+                        {{ $order->shipping->phone }}<br>
+                        {{ $order->shipping->address }}
+                    </p>
+                @endif
+            </div>
+            <div class="info-box">
+                <h3>Billing Address</h3>
+                @if(isset($order->billing))
+                    <p>
+                        {{ $order->billing->first_name }} {{ $order->billing->last_name ?? '' }}<br>
+                        {{ $order->billing->email }}<br>
+                        {{ $order->billing->phone }}<br>
+                        {{ $order->billing->address }}
+                    </p>
+                @endif
+            </div>
+        </div>
 
         <table>
-            <tr class="heading">
-                <th>SL</th>
-                <th>Item Description</th>
-                <th>Unit Price</th>
-                <th>Qty</th>
-                <th>Total</th>
-            </tr>
-            @foreach ($order->items as $index => $item)
+            <thead>
                 <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td>{{ $item['description'] }}</td>
-                    <td>${{ number_format($item['unit_price'], 2) }}</td>
-                    <td>{{ $item['quantity'] }}</td>
-                    <td>${{ number_format($item['total'], 2) }}</td>
+                    <th>SL</th>
+                    <th>Part Number</th>
+                    <th>Item Description</th>
+                    <th>Qty</th>
+                    <th>Unit Price</th>
+                    <th>Total</th>
                 </tr>
-            @endforeach
+            </thead>
+            <tbody>
+                @foreach ($order->items as $index => $item)
+                    <tr>
+                        <td>{{ $index + 1 }}</td>
+                        <td>{{ $item->product->mpn ?? '-' }}</td>
+                        <td>{{ $item->product->title ?? '-' }}</td>
+                        <td>{{ $item->quantity }}</td>
+                        <td>{{ currency() }}{{ number_format($item->unit_price, 2) }}</td>
+                        <td>{{ currency() }}{{ number_format($item->sub_total, 2) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
         </table>
 
-        <p><strong>Payment Details:</strong> {{ $order->payment_status }}, {{ $order->created_at }}</p>
-        <p><strong>Delivery Info:</strong> <br>Tracking Id: </p>
+        <div style="display: flex; justify-content: flex-end; margin-top: -10px;">
+            <table style="width: 300px; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #eee;">Sub Total:</td>
+                    <td style="padding: 8px; border: 1px solid #eee;">
+                        {{ currency() }}{{ number_format($order->subtotal, 2) }}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #eee;">Tax:</td>
+                    <td style="padding: 8px; border: 1px solid #eee;">
+                        {{ currency() }}{{ number_format($order->tax, 2) }}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #eee;">Shipping:</td>
+                    <td style="padding: 8px; border: 1px solid #eee;">
+                        {{ currency() }}{{ number_format($order->shipping_cost, 2) }}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #eee;">Promotion Discount:</td>
+                    <td style="padding: 8px; border: 1px solid #eee;">
+                        -{{ currency() }}0.00
+                    </td>
+                </tr>
+                <tr style="font-weight: bold;">
+                    <td style="padding: 10px; border: 1px solid #eee;">Total:</td>
+                    <td style="padding: 10px; border: 1px solid #eee;">
+                        {{ currency() }}{{ number_format($order->total, 2) }}
+                    </td>
+                </tr>
+            </table>
+        </div>
 
-        <table>
-            <tr><td>Sub Total</td><td>${{ number_format($order->subtotal, 2) }}</td></tr>
-            <tr><td>Tax</td><td>${{ number_format($order->tax, 2) }}</td></tr>
-            <tr><td>Shipping</td><td>${{ number_format($order->shipping_cost, 2) }}</td></tr>
-            <tr><td>Promotion Discount</td><td>-$0</td></tr>
-            {{-- <tr><td>Discount On Product</td><td>-${{ number_format($product_discount, 2) }}</td></tr> --}}
-            <tr class="total-row"><td>Total</td><td>${{ number_format($order->total, 2) }}</td></tr>
-        </table>
+        <div style="clear: both;"></div>
 
-        <p>If you need assistance, email: support@soliddiskdirect.com<br>
-        Phone: +18722530966<br>
-        Website: https://soliddiskdirect.com</p>
-        <p style="text-align:center;">All Copyright Reserved © {{ now()->year }} Solid Disk Direct</p>
+        <p><strong>Payment Method:</strong> {{ ucfirst($order->payment_method) }}<br>
+        <p><strong>Payment Status:</strong> {{ ucfirst($order->payment_status) }}<br>
+
+        <div class="footer">
+            <p>Need help? Email: {{ settings()->support_email }} | Phone: +{{ settings()->phone_number }}</p>
+            <p>Website: <a href="{{ settings()->website_url }}">www.soliddiskdirect.com</a></p>
+            <p>© {{ now()->year }} {{ appName() }}. All rights reserved.</p>
+        </div>
     </div>
 </body>
 </html>

@@ -79,8 +79,8 @@ class CategoryController extends Controller
 
     public function getGroups(){
         $groups = $this->attributeGroupModel
-        ->with(['attributes.attributeValues']) // nested eager loading
-        ->get();
+            ->with(['attributes.attributeValues'])
+            ->get();
 
         if ($groups->count()) {
             $cleanData = $groups->map(function ($group) {
@@ -88,15 +88,16 @@ class CategoryController extends Controller
                     'id' => $group->id,
                     'name' => $group->name,
                     'slug' => $group->slug,
-                    'attributes' => $group->attributes->map(function ($attribute) {
+                    'attributes' => $group->attributes->map(function ($attribute) use ($group) {
                         return [
                             'id' => $attribute->id,
                             'name' => $attribute->name,
                             'slug' => $attribute->slug,
-                            'attribute_values' => $attribute->attributeValues->map(function ($value) {
+                            'attribute_values' => $attribute->attributeValues->map(function ($value) use ($group, $attribute) {
                                 return [
                                     'id' => $value->id,
                                     'name' => $value->value,
+                                    'slug_path' => "{$group->slug}/{$attribute->slug}/{$value->value}", // build URL path here
                                 ];
                             }),
                         ];
@@ -104,7 +105,6 @@ class CategoryController extends Controller
                 ];
             });
         }
-
 
         if ($groups->count()) {
             return response()->json([
@@ -120,6 +120,49 @@ class CategoryController extends Controller
             ]);
         }
     }
+
+    // public function getGroups(){
+    //     $groups = $this->attributeGroupModel
+    //     ->with(['attributes.attributeValues']) // nested eager loading
+    //     ->get();
+
+    //     if ($groups->count()) {
+    //         $cleanData = $groups->map(function ($group) {
+    //             return [
+    //                 'id' => $group->id,
+    //                 'name' => $group->name,
+    //                 'slug' => $group->slug,
+    //                 'attributes' => $group->attributes->map(function ($attribute) {
+    //                     return [
+    //                         'id' => $attribute->id,
+    //                         'name' => $attribute->name,
+    //                         'slug' => $attribute->slug,
+    //                         'attribute_values' => $attribute->attributeValues->map(function ($value) {
+    //                             return [
+    //                                 'id' => $value->id,
+    //                                 'name' => $value->value,
+    //                             ];
+    //                         }),
+    //                     ];
+    //                 }),
+    //             ];
+    //         });
+    //     }
+
+    //     if ($groups->count()) {
+    //         return response()->json([
+    //             'status' => true,
+    //             'message' => 'Data found successfully.',
+    //             'data' => $cleanData
+    //         ]);
+    //     } else {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'No data found.',
+    //             'data' => []
+    //         ]);
+    //     }
+    // }
     public function show($slug){
         $model = $this->model->where('slug', $slug)->first();
 

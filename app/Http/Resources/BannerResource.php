@@ -19,6 +19,7 @@ class BannerResource extends JsonResource
             "banner" => $this->banner ? asset(Storage::url($this->banner))  : '',
             "title"  => $this->title ?? '',
             "description" => $this->description ?? '',
+            "category" => new CategoryResource($this->whenLoaded('getCategory')),
         ];  
     }
 }

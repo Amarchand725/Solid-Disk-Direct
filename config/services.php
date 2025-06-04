@@ -36,7 +36,9 @@ return [
         'mode' => env('PAYPAL_MODE', 'sandbox')
     ],
     'payarc' => [
-        'security_key' => env('PAYARC_SECURITY_KEY'),
+        'client_id' => env('PAYARC_CLIENT_ID'),
+        'secret_key' => env('PAYARC_SECRET_KEY'),
+        'merchant_id' => env('PAYARC_MERCHANT_ID'),
         'endpoint' => env('PAYARC_ENDPOINT', 'https://secure.networkmerchants.com/api/transact.php'),
     ],
 ];

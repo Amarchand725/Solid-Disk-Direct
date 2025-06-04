@@ -17,4 +17,8 @@ class Banner extends Model
     {
         return $this->hasOne(User::class, 'id', 'created_by');
     }
+
+    public function getCategory() {
+        return $this->hasOne(Category::class, 'id', 'category')->withDefault(null);
+    }
 }

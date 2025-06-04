@@ -22,4 +22,8 @@ class Order extends Model
     public function shipping() {
         return $this->hasOne(OrderShippingAddress::class);
     }    
+
+    public function orderShippingMethod(){
+        return $this->belongsTo(OrderShippingMethod::class, 'id', 'order_id');
+    }
 }

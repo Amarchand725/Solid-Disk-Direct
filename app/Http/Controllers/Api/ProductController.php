@@ -9,6 +9,9 @@ use App\Models\RecentViewProduct;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
+use App\Models\AttributeValue;
+use Attribute;
+use Dom\Attr;
 
 class ProductController extends Controller
 {
@@ -275,5 +278,49 @@ class ProductController extends Controller
             'message' => 'No matching products found.',
             'data' => []
         ]);
+    }
+
+    public function getByAttributeValue(Request $request, $attributeSlug)
+    {
+        $perPage = $request->get('per_page', 10);
+        $sortField = $request->get('sort_field', 'created_at');
+        $sortDirection = $request->get('sort_direction', 'desc');
+        $search = $request->get('search');
+
+        $attrValue = AttributeValue::where('value', $attributeSlug)->first();
+
+        if ($attrValue) {
+            $query = Product::whereHas('attributeValues', function ($query) use ($attributeSlug) {
+                    $query->where('value', $attributeSlug);
+                })
+                ->with('hasBrand', 'hasProductCondition') // eager load
+                ->where('status', 1)
+                ->when($search, function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%");
+                })
+                ->orderBy($sortField, $sortDirection);
+
+            $products = $query->paginate($perPage);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Data found successfully.',
+                'data' => $this->productResource->collection($products),
+                'pagination' => [
+                    'current_page' => $products->currentPage(),
+                    'last_page' => $products->lastPage(),
+                    'per_page' => $products->perPage(),
+                    'total' => $products->total(),
+                ]
+            ]);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'No data found.',
+                'data' => [],
+                'pagination' => null
+            ]);
+        }
+
     }
 }

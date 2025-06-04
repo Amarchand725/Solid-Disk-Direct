@@ -129,7 +129,7 @@ class OrderController extends Controller
 
     public function invoice($id)
     {
-        $order = $this->model->findOrFail($id);
+        $order = $this->model->with('orderShippingMethod', 'shipping')->findOrFail($id);
         return view('admin.orders.invoice', compact('order'));
     }
 

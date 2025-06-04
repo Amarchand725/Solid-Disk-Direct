@@ -9,13 +9,24 @@
             </label>
 
             @if(isset($field['type']) && $field['type'] === 'select')
-                <select id="{{ $name }}" name="{{ $name }}" class="form-control">
-                    @foreach($field['options'] ?? [] as $key => $option)  <!-- Safely handle 'options' -->
-                        <option value="{{ $key }}" {{ old($name, $field['value']) == $key ? 'selected' : '' }}>
-                            {{ $option }}
-                        </option>
-                    @endforeach
-                </select>
+                @if($name=='category' && isset($categories) && !empty($categories))
+                    <select id="{{ $name }}" name="category" class="form-control">
+                        <option value="" selected>Select parent category</option>
+                        @foreach($categories as $key => $category)
+                            <option value="{{ $category->id }}">
+                                {{ $category->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                @else
+                    <select id="{{ $name }}" name="{{ $name }}" class="form-control">
+                        @foreach($field['options'] ?? [] as $key => $option) 
+                            <option value="{{ $key }}" {{ old($name, $field['value']) == $key ? 'selected' : '' }}>
+                                {{ $option }}
+                            </option>
+                        @endforeach
+                    </select>
+                @endif
             @elseif(isset($field['type']) && $field['type'] === 'textarea')
                 <textarea id="{{ $name }}" name="{{ $name }}" class="form-control" placeholder="{{ $field['placeholder'] ?? '' }}">{{ old($name, $field['value'] ?? '') }}</textarea>
             @elseif(isset($field['type']) && $field['type'] === 'file')

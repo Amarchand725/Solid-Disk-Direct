@@ -19,7 +19,7 @@ class PaypalController extends Controller
                 'order_status' => 'pending',
                 'payment_status' => 'paid',
             ]);
-
+            $order->refresh();
             if(sendOrderNotificationAndEmails($order)){
                 Log::info('Paypal Order Emails Sent to Admin & Customer Successfully ! Order Number: '.$order->order_number);
             }else{

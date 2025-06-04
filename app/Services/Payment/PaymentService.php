@@ -22,9 +22,11 @@ class PaymentService
             default => throw new Exception("Unsupported payment gateway: {$method}")
         };
 
-        $this->clientId = config('services.paypal.client_id');
-        $this->secret = config('services.paypal.secret');
-        $this->baseUrl = 'https://api-m.sandbox.paypal.com';
+        if ($method === 'paypal') {
+            $this->clientId = config('services.paypal.client_id');
+            $this->secret = config('services.paypal.secret');
+            $this->baseUrl = 'https://api-m.sandbox.paypal.com'; // or use live for production
+        }
     }
 
     protected function getAccessToken()
@@ -46,10 +48,10 @@ class PaymentService
         return $this->gateway->capture($data);
     }
 
-    public function refund(string $transactionId, float $amount)
-    {
-        return $this->gateway->refund($transactionId, $amount);
-    }
+    // public function refund(string $transactionId, float $amount)
+    // {
+    //     return $this->gateway->refund($transactionId, $amount);
+    // }
 
     public function createPaypalOrder($order)
     {
