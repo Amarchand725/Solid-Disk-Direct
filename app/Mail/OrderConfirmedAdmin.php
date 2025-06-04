@@ -8,6 +8,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use App\Models\Order;
 
 class OrderConfirmedAdmin extends Mailable
 {
@@ -16,7 +17,7 @@ class OrderConfirmedAdmin extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct()
+    public function __construct(public Order $order)
     {
         //
     }

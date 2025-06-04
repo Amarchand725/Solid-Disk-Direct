@@ -443,19 +443,17 @@ function sendOrderNotificationAndEmails($order){
     $shipping = OrderShippingAddress::where('order_id', $order->id)->first();
     $admin = getActiveAdminUser();
     $bool = false;
-    $customerName = $shipping->first_name.' '.$shipping->last_name;
     if(!empty($admin)){
         $url = route('orders.index');
         $admin->notify(new SiteEventNotification('subscribe.png', 'New Order Placed', "{$customerName} has placed order.", $url));
 
         //order confirm email
-        Mail::to('orders@soliddiskdirect.com')->queue(new OrderConfirmedAdmin($order));
+        Mail::to('order@soliddiskdirect.com')->queue(new OrderConfirmedAdmin($order));
         $bool = true;
     }
 
     //order confirm customer email
     if(isset($shipping->email) && !empty($shipping->email)){
-        $order['customer_name'] = $customerName;
         Mail::to($shipping->email)->queue(new OrderConfirmedCustomer($order));
         $bool = true;
     }

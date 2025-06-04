@@ -67,6 +67,7 @@ Route::controller(DeveloperController::class)->group(function () {
     Route::get('/getBrandsWithProducts', 'getBrandsWithProducts');
     Route::get('/linkProductsToAttributes', 'linkProductsToAttributes');
     Route::get('/getGroupAttribute', 'getGroupAttribute');
+    Route::get('/mailTest', 'mailTest');
 });
 //developer
 

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cart;
 use App\Models\Brand;
+use App\Models\Order;
 use App\Models\State;
 use App\Models\Policy;
 use App\Models\Country;
@@ -10,11 +12,14 @@ use App\Models\Category;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\AttributeValue;
+use App\Mail\OrderConfirmedAdmin;
 use Illuminate\Support\Facades\DB;
+use App\Mail\OrderConfirmedCustomer;
+use Illuminate\Support\Facades\Mail;
 use App\Http\Resources\BrandResource;
-use App\Http\Resources\CategoryResource;
 use App\Http\Resources\ProductResource;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Resources\CategoryResource;
 
 class DeveloperController extends Controller
 {
@@ -860,5 +865,18 @@ class DeveloperController extends Controller
       $category = Category::where('name', $attrValue->attributeGroup->name)->first();
       return new CategoryResource($category);
       // return $attrValue->attributeGroup;
+    }
+
+    public function mailTest(){
+      $bool = false;
+      $order = Order::first();
+
+      if(!empty($order)){
+
+        //order confirm email
+        Mail::to('chandamar725@gmail.com')->queue(new OrderConfirmedAdmin($order));
+        Mail::to('chandamar725@gmail.com')->queue(new OrderConfirmedCustomer($order));
+        return 'mail sent successfully';
+      }
     }
 }

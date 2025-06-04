@@ -1,19 +1,26 @@
 @component('mail::message')
 # Order Confirmation - #{{ $order->order_number }}
 
-Hi {{ $order['customer_name'] ?? '' }},
+@php $customer = null @endphp
+@if(isset($order->shipping) && !empty($order->shipping))
+    @php $customer = $order->shipping @endphp
+@endif
+
+Hi {{ $customer->first_name ?? '' }} {{ $customer->last_name ?? '' }}   ,
 
 Thank you for your order! Here are your order details:
 
 **Order ID:** {{ $order->order_number }}  
 **Order Date:** {{ $order->created_at->format('d M Y') }}  
+**Tax Amount:** ${{ number_format($order->tax, 2) }}  
+**Shipping Amount:** ${{ number_format($order->shipping_cost, 2) }}  
 **Total Amount:** ${{ number_format($order->total, 2) }}
 
 @component('mail::table')
-| Product       | Qty | Price   |
-| ------------- |:---:| -------:|
+| Product       | Qty | Price   | SubTotal  |
+| ------------- |:---:| -------:|----------:|
 @foreach($order->items as $item)
-| {{ $item->product->title }} | {{ $item->quantity }} | ${{ number_format($item->price, 2) }} |
+| {{ $item->product->mpn }} {{ $item->product->title }} | {{ $item->quantity }} | ${{ number_format($item->unit_price, 2) }} |${{ number_format($item->sub_total, 2) }} |
 @endforeach
 @endcomponent
 
