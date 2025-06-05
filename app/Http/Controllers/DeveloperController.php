@@ -872,7 +872,6 @@ class DeveloperController extends Controller
       $order = Order::first();
 
       if(!empty($order)){
-
         //order confirm email
         Mail::to('chandamar725@gmail.com')->queue(new OrderConfirmedAdmin($order));
         Mail::to('chandamar725@gmail.com')->queue(new OrderConfirmedCustomer($order));
