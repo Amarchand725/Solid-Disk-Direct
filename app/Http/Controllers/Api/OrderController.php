@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\CartItem;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
+use App\Services\PayarcService;
 use App\Mail\OrderConfirmedAdmin;
 use Illuminate\Support\Facades\DB;
 use App\Models\OrderBillingAddress;
@@ -17,12 +18,12 @@ use App\Http\Controllers\Controller;
 use App\Mail\OrderConfirmedCustomer;
 use App\Models\OrderShippingAddress;
 use Illuminate\Support\Facades\Mail;
+use App\Services\FedExShippingService;
 use App\Http\Requests\PlaceOrderRequest;
 use App\Services\Payment\PaymentService;
 use Illuminate\Support\Facades\Validator;
 use App\Notifications\SiteEventNotification;
 use App\Models\{Cart, ShippingMethod, Order};
-use App\Services\FedExShippingService;
 
 class OrderController extends Controller
 {
@@ -165,68 +166,68 @@ class OrderController extends Controller
                         'message' => 'Redirecting to PayPal for payment',
                     ]);
                 }elseif ($payment['method'] == 'payarc') {
-                    $paymentService = new PaymentService($payment['method']);
-                    
-                    // Normalize expiry format to MMYY if it contains a slash
-                    $expiry = str_replace('/', '', $payment['expiry']);
+                    $payarc = new PayarcService();
+                    $month = '';
+                    $year = '';
+                    $expiry = trim($payment['expiry']); // Remove extra whitespace
+                    if (preg_match('/^(0[1-9]|1[0-2])\/([0-9]{2})$/', $expiry, $matches)) {
+                        $month = $matches[1]; // "06"
+                        $year = '20' . $matches[2]; // "2026"
+                    } else {
+                        throw new Exception("Invalid expiry date format: $expiry");
+                    }
 
-                    $response = $paymentService->capture([
-                        'amount' => $order->total,
+                    $response = $payarc->createPaymentIntent([
                         'card_number' => $payment['card_number'],
-                        'expiry' => $expiry,   // format MMYY as per Payarc spec
-                        'cvv' => $payment['cvv'],
-                        'firstname' => $shipping['first_name'] ?? '',
-                        'lastname' => $shipping['last_name'] ?? '',
-                        'email' => $shipping['email'] ?? '',
-                        'address' => $shipping['address'] ?? '',
-                        'zip' => $shipping['zip'] ?? '',
+                        'exp_month'   => $month,
+                        'exp_year'    => $year,
+                        'cvv'         => $payment['cvv'],
+                        'card_holder' => $payment['name'] ?? 'Default Name', // fallback
+                        'amount'      => (int) ($cart['total'] * 100), // cents
+                        'currency'    => 'usd', 
                     ]);
 
-                    Log::info('Payarc Response Data: ' . json_encode($response));
-                }
+                    $data = $response['data'] ?? [];
+                    
+                    if (isset($data['host_response_message'], $data['status']) && $data['status'] === 'submitted_for_settlement' && $data['host_response_message'] === 'Success' ) {
+                        $transactionId = $data['id'] ?? null;
+                        $order->payment_status = 'paid';
+                        $order->transaction_id = $transactionId ?? null;
+                        $order->save();
 
-                if (isset($response) && ($response['response'] === "1" || $response['response_code'] == 100)) {
-                    $order->payment_status = 'paid';
-                    // Save transaction ID if available
-                    $order->payment_transaction_id = $response['transactionid'] ?? null;
-                    $order->save();
+                        // Send new order notification emails
+                        if (sendOrderNotificationAndEmails($order)) {
+                            Log::info('Payarc Order Emails Sent to Admin & Customer Successfully! Order Number: ' . $order->order_number);
+                        } else {
+                            Log::warning('Payarc Order Emails Failed to Send! Order Number: ' . $order->order_number);
+                        }
 
-                    $emailOrderData = $order['customer_name'] = $shipping['first_name'] ?? '-'.' '.$shipping['last_name']?? '';
+                        // Delete cart and cart items
+                        $cart = $this->cartModel->find($cart['id'] ?? null);
+                        if ($cart) {
+                            $cart->items()->delete();
+                            $cart->delete();
+                            Log::info('Cart and cart items deleted successfully.');
+                        }
 
-                    // Send new order notification emails
-                    if (sendOrderNotificationAndEmails($emailOrderData)) {
-                        Log::info('Payarc Order Emails Sent to Admin & Customer Successfully! Order Number: ' . $order->order_number);
+                        DB::commit();
+                        Log::info('Final Order placed success');
+
+                        return response()->json([
+                            'success' => true,
+                            'message' => 'You have placed order successfully.',
+                            'order_number' => $order->order_number,
+                            'amount' => $order->total,
+                        ], 200);
                     } else {
-                        Log::warning('Payarc Order Emails Failed to Send! Order Number: ' . $order->order_number);
+                        DB::rollback();
+                        $errorMessage = 'Unknown error occurred.';
+                        Log::error('Payarc Payment Failed: ' . $errorMessage);
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Payment failed: ' . $errorMessage,
+                        ], 500);
                     }
-
-                    Log::info('After payment success order updated');
-
-                    // Delete cart and cart items
-                    $cart = $this->cartModel->find($cart['id'] ?? null);
-                    if ($cart) {
-                        $cart->items()->delete();
-                        $cart->delete();
-                        Log::info('Cart and cart items deleted successfully.');
-                    }
-
-                    DB::commit();
-                    Log::info('Final Order placed success');
-
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'You have placed order successfully.',
-                        'order_number' => $order->order_number,
-                        'amount' => $order->total,
-                    ], 200);
-                } else {
-                    DB::rollback();
-                    $errorMessage = $response['responsetext'] ?? 'Unknown error occurred.';
-                    Log::error('Payarc Payment Failed: ' . $errorMessage);
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Payment failed: ' . $errorMessage,
-                    ], 500);
                 }
             }
         } catch (Exception $e) {

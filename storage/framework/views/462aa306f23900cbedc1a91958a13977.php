@@ -1,25 +1,44 @@
 <?php $__env->startComponent('mail::message'); ?>
-# Order Confirmation - #<?php echo e($order->id); ?>
+<table width="100%" style="text-align: center; margin-bottom: 20px;">
+    <tr>
+        <td>
+            <?php if(isset(settings()->black_logo) && !empty(settings()->black_logo)): ?>
+                <img src="<?php echo e(asset('storage').'/'.settings()->black_logo); ?>" style="height: 40px;" alt="<?php echo e(settings()->name); ?>" />
+            <?php else: ?>
+                <img src="<?php echo e(asset('storage/images/default.png')); ?>" style="height: 40px;" alt="Default" />
+            <?php endif; ?>
+        </td>
+    </tr>
+</table>
+
+# Order Confirmation - #<?php echo e($order->order_number); ?>
 
 
-Hi <?php echo e($order->customer_name); ?>,
+<?php $customer = null ?>
+<?php if(isset($order->shipping) && !empty($order->shipping)): ?>
+    <?php $customer = $order->shipping ?>
+<?php endif; ?>
+
+Hi <?php echo e($customer->first_name ?? ''); ?> <?php echo e($customer->last_name ?? ''); ?>   ,
 
 Thank you for your order! Here are your order details:
 
-**Order ID:** <?php echo e($order->id); ?>  
+**Order ID:** <?php echo e($order->order_number); ?>  
 **Order Date:** <?php echo e($order->created_at->format('d M Y')); ?>  
+**Tax Amount:** $<?php echo e(number_format($order->tax, 2)); ?>  
+**Shipping Amount:** $<?php echo e(number_format($order->shipping_cost, 2)); ?>  
 **Total Amount:** $<?php echo e(number_format($order->total, 2)); ?>
 
 
 <?php $__env->startComponent('mail::table'); ?>
-| Product       | Qty | Price   |
-| ------------- |:---:| -------:|
+| Product       | Qty | Price   | SubTotal  |
+| ------------- |:---:| -------:|----------:|
 <?php $__currentLoopData = $order->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-| <?php echo e($item->product_name); ?> | <?php echo e($item->quantity); ?> | $<?php echo e(number_format($item->price, 2)); ?> |
+| <?php echo e($item->product->mpn); ?> <?php echo e($item->product->title); ?> | <?php echo e($item->quantity); ?> | $<?php echo e(number_format($item->unit_price, 2)); ?> |$<?php echo e(number_format($item->sub_total, 2)); ?> |
 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 <?php echo $__env->renderComponent(); ?>
 
-<?php $__env->startComponent('mail::button', ['url' => url('/orders/'.$order->order_number)]); ?>
+<?php $__env->startComponent('mail::button', ['url' => env('FRONTEND_BASE_URL').'/track-order']); ?>
 View Your Order
 <?php echo $__env->renderComponent(); ?>
 

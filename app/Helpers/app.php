@@ -441,6 +441,10 @@ function getPaymentTypes(){
 
 function sendOrderNotificationAndEmails($order){
     $shipping = OrderShippingAddress::where('order_id', $order->id)->first();
+    $customerName = null;
+    if($shipping){
+        $customerName = $shipping->first_name ?? ''.' '.$shipping->last_name ?? '';
+    }
     $admin = getActiveAdminUser();
     $bool = false;
     if(!empty($admin)){
