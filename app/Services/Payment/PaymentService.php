@@ -3,7 +3,6 @@ namespace App\Services\Payment;
 
 use Exception;
 use Illuminate\Support\Facades\Http;
-use App\Services\Payment\Gateways\PayarcGateway;
 use App\Services\Payment\Gateways\PayPalGateway;
 use App\Services\Payment\Contracts\PaymentGatewayInterface;
 
@@ -18,7 +17,6 @@ class PaymentService
     {
         $this->gateway = match ($method) {
             'paypal' => new PayPalGateway(),
-            'payarc' => new PayarcGateway(),
             default => throw new Exception("Unsupported payment gateway: {$method}")
         };
 

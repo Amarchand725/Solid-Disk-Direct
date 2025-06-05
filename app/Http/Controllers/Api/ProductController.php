@@ -287,40 +287,44 @@ class ProductController extends Controller
         $sortDirection = $request->get('sort_direction', 'desc');
         $search = $request->get('search');
 
-        $attrValue = AttributeValue::where('value', $attributeSlug)->first();
+        $keyword = trim($attributeSlug);
 
-        if ($attrValue) {
-            $query = Product::whereHas('attributeValues', function ($query) use ($attributeSlug) {
-                    $query->where('value', $attributeSlug);
-                })
-                ->with('hasBrand', 'hasProductCondition') // eager load
-                ->where('status', 1)
-                ->when($search, function ($query) use ($search) {
-                    $query->where('name', 'like', "%{$search}%");
-                })
-                ->orderBy($sortField, $sortDirection);
+        // Split the keyword by non-alphanumeric characters (like dash, space, etc.)
+        $tokens = preg_split('/[^a-zA-Z0-9]+/', $keyword);
 
-            $products = $query->paginate($perPage);
+        // Remove empty tokens
+        $tokens = array_filter($tokens);
 
+        $query = $this->model->query();
+
+        // Flexible multi-token search
+        $query->where(function ($q) use ($tokens) {
+            foreach ($tokens as $token) {
+                $q->orWhere(function ($subQ) use ($token) {
+                    $subQ->where('title', 'like', "%{$token}%")
+                        ->orWhere('short_description', 'like', "%{$token}%")
+                        ->orWhere('sku', 'like', "%{$token}%")
+                        ->orWhere('unit_price', 'like', "%{$token}%")
+                        ->orWhere('mpn', 'like', "%{$token}%");
+                });
+            }
+        });
+
+        // Optional: paginate or limit
+        $results = $query->paginate(10);
+
+        if ($results->isNotEmpty()) {
             return response()->json([
                 'status' => true,
-                'message' => 'Data found successfully.',
-                'data' => $this->productResource->collection($products),
-                'pagination' => [
-                    'current_page' => $products->currentPage(),
-                    'last_page' => $products->lastPage(),
-                    'per_page' => $products->perPage(),
-                    'total' => $products->total(),
-                ]
-            ]);
-        } else {
-            return response()->json([
-                'status' => false,
-                'message' => 'No data found.',
-                'data' => [],
-                'pagination' => null
+                'message' => 'Products found successfully.',
+                'data' => $this->productResource->collection($results),
             ]);
         }
 
+        return response()->json([
+            'status' => false,
+            'message' => 'No matching products found.',
+            'data' => []
+        ]);
     }
 }

@@ -20,6 +20,8 @@ use App\Http\Resources\BrandResource;
 use App\Http\Resources\ProductResource;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\CategoryResource;
+use Illuminate\Support\Facades\Log;
+use App\Services\PayarcService;
 
 class DeveloperController extends Controller
 {
@@ -831,7 +833,6 @@ class DeveloperController extends Controller
       }
 
       $productCategories = DB::table('category_product')->get(); // product_id, category_id
-      // dd($groupAttributes, $attributeValues, $groupNameToId, $categoryNameToId, $categoryToAttributeValueIds, $productCategories);
       $toInsert = [];
 
       foreach ($productCategories as $pc) {
@@ -877,5 +878,16 @@ class DeveloperController extends Controller
         Mail::to('chandamar725@gmail.com')->queue(new OrderConfirmedCustomer($order));
         return 'mail sent successfully';
       }
+    }
+    public function pay(PayarcService $payarc)
+    {
+        $response = $payarc->createPaymentIntent([
+            'amount' => 1000, // in cents
+            'currency' => 'USD',
+            'payment_method' => 'card',
+            // add other required fields per Payarc API docs
+        ]);
+
+        return response()->json($response);
     }
 }
