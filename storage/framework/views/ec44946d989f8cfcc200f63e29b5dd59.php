@@ -24,7 +24,7 @@
 **Total:** $<?php echo e(number_format($order->total, 2)); ?>
 
 
-<?php $__env->startComponent('mail::button', ['url' => url('/admin/orders')]); ?>
+<?php $__env->startComponent('mail::button', ['url' => url('/orders')]); ?>
 View Order in Admin Panel
 <?php echo $__env->renderComponent(); ?>
 

@@ -450,16 +450,25 @@ function sendOrderNotificationAndEmails($order){
     if(!empty($admin)){
         $url = route('orders.index');
         $admin->notify(new SiteEventNotification('subscribe.png', 'New Order Placed', "{$customerName} has placed order.", $url));
-
-        //order confirm email
-        Mail::to('order@soliddiskdirect.com')->queue(new OrderConfirmedAdmin($order));
+    }
+    //order confirm email
+    try {
+        Mail::to('orders@soliddiskdirect.com')->send(new OrderConfirmedAdmin($order));
         $bool = true;
+    } catch (\Exception $e) {
+        // Log error or notify admin
+        Log::error('Customer Order Mail for admin failed: ' . $e->getMessage());
     }
 
     //order confirm customer email
     if(isset($shipping->email) && !empty($shipping->email)){
-        Mail::to($shipping->email)->queue(new OrderConfirmedCustomer($order));
-        $bool = true;
+        try {
+            Mail::to($shipping->email)->send(new OrderConfirmedCustomer($order));
+            $bool = true;
+        } catch (\Exception $e) {
+            // Log error or notify admin
+            Log::error('Customer Order Mail for customer failed: ' . $e->getMessage());
+        }
     }
 
     return $bool;

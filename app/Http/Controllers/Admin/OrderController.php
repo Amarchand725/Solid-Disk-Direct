@@ -108,8 +108,6 @@ class OrderController extends Controller
                 ])->render();
             }
         ];
-
-
         
         if ($request->ajax() && $request->loaddata == "yes") {
             return $this->getDataTable($request, $models, $columns);

@@ -874,8 +874,8 @@ class DeveloperController extends Controller
 
       if(!empty($order)){
         //order confirm email
-        Mail::to('chandamar725@gmail.com')->queue(new OrderConfirmedAdmin($order));
-        Mail::to('chandamar725@gmail.com')->queue(new OrderConfirmedCustomer($order));
+        Mail::to('amarchand.mmc@gmail.com')->send(new OrderConfirmedAdmin($order));
+        Mail::to('amarchand.mmc@gmail.com')->send(new OrderConfirmedCustomer($order));
         return 'mail sent successfully';
       }
     }

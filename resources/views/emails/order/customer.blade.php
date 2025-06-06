@@ -36,12 +36,13 @@ Thank you for your order! Here are your order details:
 @endforeach
 @endcomponent
 
-@component('mail::button', ['url' => env('FRONTEND_BASE_URL').'/track-order'])
-View Your Order
-@endcomponent
-
 If you have any questions, feel free to contact us.
 
 Thanks,<br>
 {{ config('app.name') }}
+<p>
+    <a href="{{ config('system.frontend_base_url') }}/track-order" target="_blank">
+        Track your order
+    </a>
+</p>
 @endcomponent

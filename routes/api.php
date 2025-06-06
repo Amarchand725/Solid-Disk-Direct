@@ -161,6 +161,7 @@ Route::controller(CartController::class)->group(function () {
 Route::controller(BuyNowController::class)->group(function () {
     Route::post('/buy-now', 'store');
     Route::get('/buy-now-data', 'getBuyNowData');
+    Route::post('/buy-now/update-shipping-tax', 'updateBuyNowShippingTax');
     Route::post('/buy-now-clear', 'clear');
 });
 

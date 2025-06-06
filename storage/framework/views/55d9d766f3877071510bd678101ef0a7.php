@@ -36,4 +36,4 @@
     <?php endif; ?>
   </a>
 </div>
-<?php /**PATH C:\xampp\htdocs\solid-dis-direct\backend\resources\views/components/company-logo.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/components/company-logo.blade.php ENDPATH**/ ?>

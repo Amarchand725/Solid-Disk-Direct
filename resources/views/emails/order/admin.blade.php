@@ -23,7 +23,7 @@
 **Email:** {{ $customer->email ?? '' }}  
 **Total:** ${{ number_format($order->total, 2) }}
 
-@component('mail::button', ['url' => url('/admin/orders')])
+@component('mail::button', ['url' => url('/orders')])
 View Order in Admin Panel
 @endcomponent
 

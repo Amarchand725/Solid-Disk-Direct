@@ -38,14 +38,15 @@ Thank you for your order! Here are your order details:
 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 <?php echo $__env->renderComponent(); ?>
 
-<?php $__env->startComponent('mail::button', ['url' => env('FRONTEND_BASE_URL').'/track-order']); ?>
-View Your Order
-<?php echo $__env->renderComponent(); ?>
-
 If you have any questions, feel free to contact us.
 
 Thanks,<br>
 <?php echo e(config('app.name')); ?>
 
+<p>
+    <a href="<?php echo e(config('system.frontend_base_url')); ?>/track-order" target="_blank">
+        Track your order
+    </a>
+</p>
 <?php echo $__env->renderComponent(); ?>
 <?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/emails/order/customer.blade.php ENDPATH**/ ?>

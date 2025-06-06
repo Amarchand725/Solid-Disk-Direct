@@ -123,4 +123,4 @@
 <?php $__env->startPush('js'); ?>
 <?php $__env->stopPush(); ?>
 
-<?php echo $__env->make('admin.auth.layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\solid-dis-direct\backend\resources\views/admin/auth/login.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('admin.auth.layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/admin/auth/login.blade.php ENDPATH**/ ?>
