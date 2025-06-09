@@ -148,6 +148,7 @@ class OrderController extends Controller
                 $order_shipping_address->email = $shipping['email'];
                 $order_shipping_address->phone = $shipping['phone'];
                 $order_shipping_address->address = $shipping['address'];
+                $order_shipping_address->address_line_2 = $shipping['address_line_2'];
                 $order_shipping_address->city = $shipping['shippingCity'];
                 $order_shipping_address->state = $shipping['shippingState'];
                 $order_shipping_address->zip = $shipping['zip'];
@@ -157,18 +158,19 @@ class OrderController extends Controller
                 Log::info('Order Shipping Address Added Successfully');
             }
 
-            if(isset($sameAsShipping) && $sameAsShipping==true && !empty($billing)){
+            if(isset($sameAsShipping) && $sameAsShipping==false && !empty($billing)){
                 $order_billing_address = $this->orderBillingAddress;  
                 $order_billing_address->order_id = $order->id;
-                $order_billing_address->first_name = $shipping['first_name'];
-                $order_billing_address->last_name = $shipping['last_name'];
-                $order_billing_address->email = $shipping['email'];
-                $order_billing_address->phone = $shipping['phone'];
-                $order_billing_address->address = $shipping['address'];
-                $order_billing_address->city = $shipping['billingCity'];
-                $order_billing_address->state = $shipping['billingState'];
-                $order_billing_address->zip = $shipping['zip'];
-                $order_billing_address->country = $shipping['billingCountry'];
+                $order_billing_address->first_name = $billing['first_name'];
+                $order_billing_address->last_name = $billing['last_name'];
+                $order_billing_address->email = $billing['email'];
+                $order_billing_address->phone = $billing['phone'];
+                $order_billing_address->address = $billing['address'];
+                $order_billing_address->address_line_2 = $billing['address_line_2'];
+                $order_billing_address->city = $billing['billCity'];
+                $order_billing_address->state = $billing['billState'];
+                $order_billing_address->zip = $billing['zip'];
+                $order_billing_address->country = $billing['billCountry'];
                 $order_billing_address->save();
 
                 Log::info('Order Billing Address Added Successfully');

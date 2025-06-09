@@ -33,14 +33,17 @@ class BuyNowController extends Controller
                 ? ['customer_id' => auth()->id()]
                 : ['session_id' => $request->guest_id];
 
-            $buyNow = $this->model->updateOrCreate($conditions);
-            $buyNow->fill([
+            // Delete existing record if it exists
+            $this->model->where($conditions)->delete();
+
+            // Now create new record
+            $buyNow = $this->model->create([
+                ...$conditions,
                 'product_slug' => $product->slug,
                 'quantity'     => $request->input('quantity', 1),
-                'unit_price'        => $product->unit_price,
-                'total'        => $product->unit_price*$request->input('quantity', 1),
+                'unit_price'   => $product->unit_price,
+                'total'        => $product->unit_price * $request->input('quantity', 1),
             ]);
-            $buyNow->save();
 
             return response()->json([
                 'success' => true,
