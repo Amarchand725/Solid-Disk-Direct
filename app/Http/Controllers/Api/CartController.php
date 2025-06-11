@@ -44,17 +44,17 @@ class CartController extends Controller
 
     public function getCart(Request $request)
     {
-        $buyNow = $this->buyNowModel->where(function ($query) use ($request) {
-            if (auth()->check()) {
-                $query->where('customer_id', auth()->id());
-            } elseif ($request->has('guest_id')) {
-                $query->where('session_id', $request->guest_id);
-            } 
-        })->first();
+        // $buyNow = $this->buyNowModel->where(function ($query) use ($request) {
+        //     if (auth()->check()) {
+        //         $query->where('customer_id', auth()->id());
+        //     } elseif ($request->has('guest_id')) {
+        //         $query->where('session_id', $request->guest_id);
+        //     } 
+        // })->first();
 
-        if(isset($buyNow) && !empty($buyNow)){
-            $buyNow->delete();
-        }
+        // if(isset($buyNow) && !empty($buyNow)){
+        //     $buyNow->delete();
+        // }
 
         $cart = $this->model->where(function ($query) use ($request) {
             if (auth()->check()) {

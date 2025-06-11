@@ -3,10 +3,15 @@
 namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
+use App\Console\Commands\ConvertImagesToWebP;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
 {
+    protected $commands = [
+        ConvertImagesToWebP::class, 
+    ];
+
     /**
      * Define the application's command schedule.
      */

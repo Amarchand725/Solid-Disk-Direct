@@ -29,6 +29,19 @@ class BuyNowController extends Controller
 
         $product = Product::where('slug', $request->slug)->first();
         if(isset($product) && !empty($product)){
+            // $conditions = auth()->check()
+            //     ? ['customer_id' => auth()->id()]
+            //     : ['session_id' => $request->guest_id];
+
+            // $buyNow = $this->model->updateOrCreate($conditions);
+            // $buyNow->fill([
+            //     'product_slug' => $product->slug,
+            //     'quantity'     => $request->input('quantity', 1),
+            //     'unit_price'        => $product->unit_price,
+            //     'total'        => $product->unit_price*$request->input('quantity', 1),
+            // ]);
+            // $buyNow->save();
+
             $conditions = auth()->check()
                 ? ['customer_id' => auth()->id()]
                 : ['session_id' => $request->guest_id];
@@ -44,6 +57,7 @@ class BuyNowController extends Controller
                 'unit_price'   => $product->unit_price,
                 'total'        => $product->unit_price * $request->input('quantity', 1),
             ]);
+
 
             return response()->json([
                 'success' => true,
@@ -70,9 +84,10 @@ class BuyNowController extends Controller
             } 
         })->first();
 
-        $product = Product::where('slug', $buyNowCart->product_slug)->first();
-
-        if(!empty($product)){
+        if(isset($buyNowCart) && !empty($buyNowCart)){
+            $product = Product::where('slug', $buyNowCart->product_slug)->first();
+        }
+        if(isset($product) && !empty($product)){
             return response()->json([
                 'success' => true,
                 'message' => 'Buy now retrieved successfully.',

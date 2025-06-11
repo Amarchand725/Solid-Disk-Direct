@@ -793,35 +793,49 @@ class DeveloperController extends Controller
           return 'Updated tax in '. count($stateTaxRates). ' states successfully';
     }
 
-    public function linkProductsToAttributes(){
-      // Get group → attribute IDs
+    public function linkProductsToAttributes() {
+      // 1. Mappings
       $groupAttributes = DB::table('attribute_group_values')
-        ->get()
-        ->groupBy('attribute_group_id')
-        ->map(function ($items) {
-            return $items->pluck('attribute_id')->unique()->toArray();
-        });
+          ->get()
+          ->groupBy('attribute_group_id')
+          ->map(fn($items) => $items->pluck('attribute_id')->unique()->toArray());
 
-      // Get attribute ID → value IDs
       $attributeValues = DB::table('attribute_values')
-        ->get()
-        ->groupBy('attribute_id')
-        ->map(function ($items) {
-            return $items->pluck('id')->toArray();
-        });
+          ->get()
+          ->groupBy('attribute_id')
+          ->map(fn($items) => $items->pluck('id')->toArray());
 
-      $groupNameToId = DB::table('attribute_groups')->pluck('id', 'name'); // 'Memory' => 1, etc.
-      $categoryNameToId = DB::table('categories')->pluck('id', 'name');    // 'Memory' => 10, etc.
+      $groupNameToId = DB::table('attribute_groups')->pluck('id', 'name'); // 'Memory' => 1
+      $categories = DB::table('categories')->get()->keyBy('id'); // id => object
+      $categoryRelations = DB::table('category_relations')->get(); // parent_id, child_id
 
-      // dd($groupAttributes, $attributeValues, $groupNameToId, $categoryNameToId);
+      // 2. Build child → parent map
+      $childToParent = [];
+      foreach ($categoryRelations as $rel) {
+          $childToParent[$rel->child_id] = $rel->parent_id;
+      }
 
+      // 3. Find root ancestor name for each category_id
+      $categoryIdToRootName = [];
+
+      foreach ($categories as $catId => $category) {
+          $currentId = $catId;
+
+          // Walk up to the root
+          while (isset($childToParent[$currentId])) {
+              $currentId = $childToParent[$currentId];
+          }
+
+          $categoryIdToRootName[$catId] = $categories[$currentId]->name ?? null;
+      }
+
+      // 4. Category ID → attribute value IDs
       $categoryToAttributeValueIds = [];
 
-      foreach ($categoryNameToId as $categoryName => $categoryId) {
-          if (!isset($groupNameToId[$categoryName])) continue;
+      foreach ($categoryIdToRootName as $categoryId => $rootName) {
+          if (!$rootName || !isset($groupNameToId[$rootName])) continue;
 
-          $groupId = $groupNameToId[$categoryName];
-
+          $groupId = $groupNameToId[$rootName];
           $attributeIds = $groupAttributes[$groupId] ?? [];
 
           foreach ($attributeIds as $attributeId) {
@@ -832,14 +846,15 @@ class DeveloperController extends Controller
           }
       }
 
+      // 5. Link products
       $productCategories = DB::table('category_product')->get(); // product_id, category_id
       $toInsert = [];
 
       foreach ($productCategories as $pc) {
           $productId = $pc->product_id;
           $categoryId = $pc->category_id;
+
           $valueIds = $categoryToAttributeValueIds[$categoryId] ?? [];
-          // dd($productId, $categoryId, $valueIds);
 
           foreach ($valueIds as $valueId) {
               $toInsert[] = [
@@ -857,8 +872,78 @@ class DeveloperController extends Controller
       if (count($toInsert)) {
           DB::table('product_attributes')->insertOrIgnore($toInsert);
       }
+
       return $toInsert;
-    }
+  }
+
+
+
+    // public function linkProductsToAttributes(){
+    //   // Get group → attribute IDs
+    //   $groupAttributes = DB::table('attribute_group_values')
+    //     ->get()
+    //     ->groupBy('attribute_group_id')
+    //     ->map(function ($items) {
+    //         return $items->pluck('attribute_id')->unique()->toArray();
+    //     });
+
+    //   // Get attribute ID → value IDs
+    //   $attributeValues = DB::table('attribute_values')
+    //     ->get()
+    //     ->groupBy('attribute_id')
+    //     ->map(function ($items) {
+    //         return $items->pluck('id')->toArray();
+    //     });
+
+    //   $groupNameToId = DB::table('attribute_groups')->pluck('id', 'name'); // 'Memory' => 1, etc.
+    //   $categoryNameToId = DB::table('categories')->pluck('id', 'name');    // 'Memory' => 10, etc.
+
+    //   // dd($groupAttributes, $attributeValues, $groupNameToId, $categoryNameToId);
+
+    //   $categoryToAttributeValueIds = [];
+
+    //   foreach ($categoryNameToId as $categoryName => $categoryId) {
+    //       if (!isset($groupNameToId[$categoryName])) continue;
+
+    //       $groupId = $groupNameToId[$categoryName];
+
+    //       $attributeIds = $groupAttributes[$groupId] ?? [];
+
+    //       foreach ($attributeIds as $attributeId) {
+    //           $valueIds = $attributeValues[$attributeId] ?? [];
+    //           foreach ($valueIds as $valId) {
+    //               $categoryToAttributeValueIds[$categoryId][] = $valId;
+    //           }
+    //       }
+    //   }
+
+    //   $productCategories = DB::table('category_product')->get(); // product_id, category_id
+    //   $toInsert = [];
+
+    //   foreach ($productCategories as $pc) {
+    //       $productId = $pc->product_id;
+    //       $categoryId = $pc->category_id;
+    //       $valueIds = $categoryToAttributeValueIds[$categoryId] ?? [];
+    //       // dd($productId, $categoryId, $valueIds);
+
+    //       foreach ($valueIds as $valueId) {
+    //           $toInsert[] = [
+    //               'product_id' => $productId,
+    //               'attribute_value_id' => $valueId,
+    //           ];
+
+    //           if (count($toInsert) >= 1000) {
+    //               DB::table('product_attributes')->insertOrIgnore($toInsert);
+    //               $toInsert = [];
+    //           }
+    //       }
+    //   }
+
+    //   if (count($toInsert)) {
+    //       DB::table('product_attributes')->insertOrIgnore($toInsert);
+    //   }
+    //   return $toInsert;
+    // }
 
     public function getGroupAttribute(){
       $attributeSlug = '128GB';
@@ -889,5 +974,27 @@ class DeveloperController extends Controller
         ]);
 
         return response()->json($response);
+    }
+
+    public function updateThumbnail(){
+      DB::table('products')
+        ->where('thumbnail', 'like', '%.jpg')
+        ->update([
+            'thumbnail' => DB::raw("REPLACE(thumbnail, '.jpg', '.webp')")
+      ]);
+      
+      DB::table('sliders')
+        ->where('image', 'like', '%.jpg')
+        ->update([
+            'image' => DB::raw("REPLACE(image, '.jpg', '.webp')")
+      ]);
+      
+      DB::table('banners')
+        ->where('banner', 'like', '%.jpg')
+        ->update([
+            'banner' => DB::raw("REPLACE(banner, '.jpg', '.webp')")
+      ]);
+
+      return 'updated';
     }
 }

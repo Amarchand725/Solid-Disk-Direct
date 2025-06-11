@@ -36,6 +36,7 @@ class OrderController extends Controller
             'create' => $this->routePrefix . '-create',
             'edit'   => $this->routePrefix . '-edit',
             'show'   => $this->routePrefix . '-show',
+            'invoice'   => $this->routePrefix . '-invoice',
             'destroy' => $this->routePrefix . '-delete',
         ];
     }

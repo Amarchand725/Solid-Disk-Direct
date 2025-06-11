@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Invoice #{{ $order->order_number }}</title>
+    <title>Invoice #<?php echo e($order->order_number); ?></title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -150,62 +150,65 @@
 
             <div class="header mt-4">
                 <div class="logo" style="width: 50%;">
-                    @if(isset(settings()->black_logo) && !empty(settings()->black_logo))
-                        <img src="{{ asset('storage').'/'.settings()->black_logo }}" style="width: 100%; max-width: 180px;" alt="{{ settings()->name }}" />
-                    @else
-                        <img src="{{ asset('storage/images/default.png') }}" style="width: 100%; max-width: 180px;" alt="Default" />
-                    @endif
+                    <?php if(isset(settings()->black_logo) && !empty(settings()->black_logo)): ?>
+                        <img src="<?php echo e(asset('storage').'/'.settings()->black_logo); ?>" style="width: 100%; max-width: 180px;" alt="<?php echo e(settings()->name); ?>" />
+                    <?php else: ?>
+                        <img src="<?php echo e(asset('storage/images/default.png')); ?>" style="width: 100%; max-width: 180px;" alt="Default" />
+                    <?php endif; ?>
                     <div style="margin-top: 10px; font-size: 13px; color: #555; text-decoration: none;">
-                        <p style="margin: 4px 0;"><strong>Address:</strong> {{ settings()->address }}</p>
+                        <p style="margin: 4px 0;"><strong>Address:</strong> <?php echo e(settings()->address); ?></p>
                     </div>
                 </div>
 
                 <div class="invoice-info" style="width: 50%; text-align: right;">
                     <h2 style="margin: 0;">Order Invoice</h2>
-                    <p style="margin: 5px 0;"><strong>Invoice #:</strong> {{ $order->order_number }}</p>
-                    <p style="margin: 0;"><strong>Date:</strong> {{ $order->created_at->format('d M Y') }}</p>
+                    <p style="margin: 5px 0;"><strong>Invoice #:</strong> <?php echo e($order->order_number); ?></p>
+                    <p style="margin: 0;"><strong>Date:</strong> <?php echo e($order->created_at->format('d M Y')); ?></p>
                 </div>
             </div>
 
             <div class="info-block">
                 <div class="info-box">
                     <h3>Shipping To</h3>
-                    @if(isset($order->shipping))
+                    <?php if(isset($order->shipping)): ?>
                         <p>
-                            {{ !empty($order->shipping->first_name) ? $order->shipping->first_name : '-' }} {{ $order->shipping->last_name ?? '' }}<br>
-                            {{ !empty($order->shipping->address) ? $order->shipping->address. ',' : '-' }} <br />
-                            @if(isset($order->shipping->getState) && !empty($order->shipping->getState->name))
-                                {{ $order->shipping->getState->name ?? '-' }}, 
-                            @endif
-                            @if(isset($order->shipping->getCity) && !empty($order->shipping->getCity->name))
-                                {{ $order->shipping->getCity->name ?? '' }},
-                            @endif
+                            <?php echo e(!empty($order->shipping->first_name) ? $order->shipping->first_name : '-'); ?> <?php echo e($order->shipping->last_name ?? ''); ?><br>
+                            <?php echo e(!empty($order->shipping->address) ? $order->shipping->address. ',' : '-'); ?> <br />
+                            <?php if(isset($order->shipping->getState) && !empty($order->shipping->getState->name)): ?>
+                                <?php echo e($order->shipping->getState->name ?? '-'); ?>, 
+                            <?php endif; ?>
+                            <?php if(isset($order->shipping->getCity) && !empty($order->shipping->getCity->name)): ?>
+                                <?php echo e($order->shipping->getCity->name ?? ''); ?>,
+                            <?php endif; ?>
                             
-                            {{ !empty($order->shipping->zip) ? $order->shipping->zip. ',' : '' }}
+                            <?php echo e(!empty($order->shipping->zip) ? $order->shipping->zip. ',' : ''); ?>
+
                             <br>
-                            {{ !empty($order->shipping->email) ? $order->shipping->email : '-' }}<br>
-                            {{ !empty($order->shipping->phone) ? $order->shipping->phone : '-' }}
+                            <?php echo e(!empty($order->shipping->email) ? $order->shipping->email : '-'); ?><br>
+                            <?php echo e(!empty($order->shipping->phone) ? $order->shipping->phone : '-'); ?>
+
                         </p>
-                    @endif
+                    <?php endif; ?>
                 </div>
                 <div class="info-box">
                     <h3>Billing Address</h3>
-                    @if(isset($order->billing))
+                    <?php if(isset($order->billing)): ?>
                         <p>
-                            {{ !empty($order->billing->first_name) ? $order->billing->first_name : '-' }} {{ $order->billing->last_name ?? '' }}<br>
-                            {{ !empty($order->billing->address) ? $order->billing->address. ',' : '-' }} <br />
-                            @if(isset($order->billing->getState) && !empty($order->billing->getState->name))
-                                {{ $order->billing->getState->name ?? '-' }}, 
-                            @endif
-                            @if(isset($order->billing->getCity) && !empty($order->billing->getCity->name))
-                                {{ $order->billing->getCity->name ?? '' }},
-                            @endif
+                            <?php echo e(!empty($order->billing->first_name) ? $order->billing->first_name : '-'); ?> <?php echo e($order->billing->last_name ?? ''); ?><br>
+                            <?php echo e(!empty($order->billing->address) ? $order->billing->address. ',' : '-'); ?> <br />
+                            <?php if(isset($order->billing->getState) && !empty($order->billing->getState->name)): ?>
+                                <?php echo e($order->billing->getState->name ?? '-'); ?>, 
+                            <?php endif; ?>
+                            <?php if(isset($order->billing->getCity) && !empty($order->billing->getCity->name)): ?>
+                                <?php echo e($order->billing->getCity->name ?? ''); ?>,
+                            <?php endif; ?>
                             
-                            {{ !empty($order->billing->zip) ? $order->billing->zip. ',' : '' }}<br>
-                            {{ !empty($order->billing->email) ? $order->billing->email : '-' }}<br>
-                            {{ !empty($order->billing->phone) ? $order->billing->phone : '-' }}
+                            <?php echo e(!empty($order->billing->zip) ? $order->billing->zip. ',' : ''); ?><br>
+                            <?php echo e(!empty($order->billing->email) ? $order->billing->email : '-'); ?><br>
+                            <?php echo e(!empty($order->billing->phone) ? $order->billing->phone : '-'); ?>
+
                         </p>
-                    @endif
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -221,16 +224,16 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($order->items as $index => $item)
+                    <?php $__currentLoopData = $order->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
-                            <td>{{ $index + 1 }}</td>
-                            <td>{{ $item->product->mpn ?? '-' }}</td>
-                            <td>{{ $item->product->title ?? '-' }}</td>
-                            <td>{{ $item->quantity }}</td>
-                            <td>{{ currency() }}{{ number_format($item->unit_price, 2) }}</td>
-                            <td>{{ currency() }}{{ number_format($item->sub_total, 2) }}</td>
+                            <td><?php echo e($index + 1); ?></td>
+                            <td><?php echo e($item->product->mpn ?? '-'); ?></td>
+                            <td><?php echo e($item->product->title ?? '-'); ?></td>
+                            <td><?php echo e($item->quantity); ?></td>
+                            <td><?php echo e(currency()); ?><?php echo e(number_format($item->unit_price, 2)); ?></td>
+                            <td><?php echo e(currency()); ?><?php echo e(number_format($item->sub_total, 2)); ?></td>
                         </tr>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </tbody>
             </table>
 
@@ -239,31 +242,35 @@
                     <tr>
                         <td style="padding: 8px; border: 1px solid #eee;">Sub Total:</td>
                         <td style="padding: 8px; border: 1px solid #eee;">
-                            {{ currency() }}{{ number_format($order->subtotal, 2) }}
+                            <?php echo e(currency()); ?><?php echo e(number_format($order->subtotal, 2)); ?>
+
                         </td>
                     </tr>
                     <tr>
                         <td style="padding: 8px; border: 1px solid #eee;">Tax:</td>
                         <td style="padding: 8px; border: 1px solid #eee;">
-                            {{ currency() }}{{ number_format($order->tax, 2) }}
+                            <?php echo e(currency()); ?><?php echo e(number_format($order->tax, 2)); ?>
+
                         </td>
                     </tr>
                     <tr>
                         <td style="padding: 8px; border: 1px solid #eee;">Shipping:</td>
                         <td style="padding: 8px; border: 1px solid #eee;">
-                            {{ currency() }}{{ number_format($order->shipping_cost, 2) }}
+                            <?php echo e(currency()); ?><?php echo e(number_format($order->shipping_cost, 2)); ?>
+
                         </td>
                     </tr>
                     <tr>
                         <td style="padding: 8px; border: 1px solid #eee;">Promotion Discount:</td>
                         <td style="padding: 8px; border: 1px solid #eee;">
-                            -{{ currency() }}0.00
+                            -<?php echo e(currency()); ?>0.00
                         </td>
                     </tr>
                     <tr style="font-weight: bold;">
                         <td style="padding: 10px; border: 1px solid #eee;">Total:</td>
                         <td style="padding: 10px; border: 1px solid #eee;">
-                            {{ currency() }}{{ number_format($order->total, 2) }}
+                            <?php echo e(currency()); ?><?php echo e(number_format($order->total, 2)); ?>
+
                         </td>
                     </tr>
                 </table>
@@ -271,15 +278,16 @@
 
             <div style="clear: both;"></div>
 
-            <p><strong>Payment Method:</strong> {{ ucfirst($order->payment_method) }}<br>
-            <div><strong>Payment Status:</strong> {{ ucfirst($order->payment_status) }}<br>
+            <p><strong>Payment Method:</strong> <?php echo e(ucfirst($order->payment_method)); ?><br>
+            <div><strong>Payment Status:</strong> <?php echo e(ucfirst($order->payment_status)); ?><br>
 
             <div class="footer">
-                <p>Need help? Email: {{ settings()->support_email }} | Phone: {{ settings()->phone_number }}</p>
-                <p>Website: <a href="{{ settings()->website_url }}">www.soliddiskdirect.com</a></p>
-                <p>© {{ now()->year }} {{ appName() }}. All rights reserved.</p>
+                <p>Need help? Email: <?php echo e(settings()->support_email); ?> | Phone: <?php echo e(settings()->phone_number); ?></p>
+                <p>Website: <a href="<?php echo e(settings()->website_url); ?>">www.soliddiskdirect.com</a></p>
+                <p>© <?php echo e(now()->year); ?> <?php echo e(appName()); ?>. All rights reserved.</p>
             </div>
         </div>
     </div>
 </body>
 </html>
+<?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/admin/orders/invoice.blade.php ENDPATH**/ ?>

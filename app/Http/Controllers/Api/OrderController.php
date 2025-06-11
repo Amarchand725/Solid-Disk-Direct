@@ -143,16 +143,16 @@ class OrderController extends Controller
             if(isset($shipping) && !empty($shipping)){
                 $order_shipping_address = $this->orderShippingAddress;
                 $order_shipping_address->order_id = $order->id;
-                $order_shipping_address->first_name = $shipping['first_name'];
-                $order_shipping_address->last_name = $shipping['last_name'];
-                $order_shipping_address->email = $shipping['email'];
-                $order_shipping_address->phone = $shipping['phone'];
-                $order_shipping_address->address = $shipping['address'];
-                $order_shipping_address->address_line_2 = $shipping['address_line_2'];
-                $order_shipping_address->city = $shipping['shippingCity'];
-                $order_shipping_address->state = $shipping['shippingState'];
-                $order_shipping_address->zip = $shipping['zip'];
-                $order_shipping_address->country = $shipping['shippingCountry'];
+                $order_shipping_address->first_name = $shipping['first_name'] ?? '';
+                $order_shipping_address->last_name = $shipping['last_name'] ?? '';
+                $order_shipping_address->email = $shipping['email'] ?? '';
+                $order_shipping_address->phone = $shipping['phone'] ?? '';
+                $order_shipping_address->address = $shipping['address'] ?? '';
+                $order_shipping_address->address_line_2 = $shipping['address_line_2'] ?? '';
+                $order_shipping_address->city = $shipping['shippingCity'] ?? '';
+                $order_shipping_address->state = $shipping['shippingState'] ?? '';
+                $order_shipping_address->zip = $shipping['zip'] ?? '';
+                $order_shipping_address->country = $shipping['shippingCountry'] ?? '';
                 $order_shipping_address->save();
 
                 Log::info('Order Shipping Address Added Successfully');
@@ -161,16 +161,16 @@ class OrderController extends Controller
             if(isset($sameAsShipping) && $sameAsShipping==false && !empty($billing)){
                 $order_billing_address = $this->orderBillingAddress;  
                 $order_billing_address->order_id = $order->id;
-                $order_billing_address->first_name = $billing['first_name'];
-                $order_billing_address->last_name = $billing['last_name'];
-                $order_billing_address->email = $billing['email'];
-                $order_billing_address->phone = $billing['phone'];
-                $order_billing_address->address = $billing['address'];
-                $order_billing_address->address_line_2 = $billing['address_line_2'];
-                $order_billing_address->city = $billing['billCity'];
-                $order_billing_address->state = $billing['billState'];
-                $order_billing_address->zip = $billing['zip'];
-                $order_billing_address->country = $billing['billCountry'];
+                $order_billing_address->first_name = $billing['first_name'] ?? '';
+                $order_billing_address->last_name = $billing['last_name'] ?? '';
+                $order_billing_address->email = $billing['email'] ?? '';
+                $order_billing_address->phone = $billing['phone'] ?? '';
+                $order_billing_address->address = $billing['address'] ?? '';
+                $order_billing_address->address_line_2 = $billing['address_line_2'] ?? '';
+                $order_billing_address->country = $billing['billCountry'] ?? '';
+                $order_billing_address->state = $billing['billState'] ?? '';
+                $order_billing_address->city = $billing['billCity'] ?? '';
+                $order_billing_address->zip = $billing['zip'] ?? '';
                 $order_billing_address->save();
 
                 Log::info('Order Billing Address Added Successfully');
@@ -239,7 +239,7 @@ class OrderController extends Controller
                     'exp_month'   => $month,
                     'exp_year'    => $year,
                     'cvv'         => $payment['cvv'],
-                    'card_holder' => $payment['name'] ?? 'Default Name', // fallback
+                    'card_holder' => $payment['name'] ?? '', // fallback
                     'amount'      => $totalAmount, // cents
                     'currency'    => 'usd', 
                 ]);

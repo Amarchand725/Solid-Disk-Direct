@@ -9,6 +9,7 @@
         "barryvdh/laravel-dompdf": "^3.1",
         "doctrine/dbal": "^3.9",
         "guzzlehttp/guzzle": "^7.9",
+        "intervention/image": "^3.11",
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
@@ -21,7 +22,7 @@
         "barryvdh/laravel-debugbar": "^3.15",
         "fakerphp/faker": "^1.9.1",
         "laravel/breeze": "^1.29",
-        "laravel/pint": "^1.0",
+        "laravel/pint": "1.8",
         "laravel/sail": "^1.18",
         "mockery/mockery": "^1.4.4",
         "nunomaduro/collision": "^7.0",
@@ -72,6 +73,9 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
+        },
+        "platform": {
+            "php": "8.1.25"
         }
     },
     "minimum-stability": "stable",

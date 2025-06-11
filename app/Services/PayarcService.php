@@ -22,7 +22,7 @@ class PayarcService
             'cvv'         => $data['cvv'],
             'amount'      => $data['amount'],
             'currency'    => $data['currency'],
-            'card_holder' => $data['card_holder'],
+            'card_holder_name' => $data['card_holder'],
         ]);
 
         if ($tokenResponse->failed()) {

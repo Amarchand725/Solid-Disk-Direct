@@ -8,8 +8,10 @@ use Illuminate\Http\Request;
 use App\Models\RecentViewProduct;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CategoryResource;
 use App\Http\Resources\ProductResource;
 use App\Models\AttributeValue;
+use App\Models\CategoryRelation;
 use Attribute;
 use Dom\Attr;
 
@@ -17,11 +19,13 @@ class ProductController extends Controller
 {
     protected $model;
     protected $productResource;
+    protected $categoryResource;
 
     public function __construct(Product $model)
     {
         $this->model = $model;
         $this->productResource = new ProductResource(null);
+        $this->categoryResource = new CategoryResource(null);
     }
 
     public function index(){
@@ -84,7 +88,29 @@ class ProductController extends Controller
         // ->take(10) // Top 10 best-sellers
         // ->get();
 
-        $bestSellingProduct = $this->model->inRandomOrder()->first();
+        // $bestSellingProduct = $this->model
+        // ->select(
+        //     'products.id',
+        //     'products.title',
+        //     'products.slug',
+        //     'products.thumbnail',
+        //     'products.short_description',
+        //     DB::raw('SUM(order_items.quantity) as total_sold')
+        // )
+        // ->join('order_items', 'products.id', '=', 'order_items.product_id')
+        // ->where('products.status', 1)
+        // ->groupBy(
+        //     'products.id',
+        //     'products.title',
+        //     'products.slug',
+        //     'products.thumbnail',
+        //     'products.short_description'
+        // )
+        // ->orderByDesc('total_sold')
+        // ->first();
+
+        $randomId = $this->model->inRandomOrder()->value('id');
+        $bestSellingProduct = $this->model->inRandomOrder()->find($randomId);
 
         if ($bestSellingProduct) {
             return response()->json([
@@ -174,7 +200,7 @@ class ProductController extends Controller
         // ->take(5)
         ->get();
 
-        $this->storeRecentViewProduct($slug);
+        $this->storeRecentViewProduct($model->slug);
 
         $data = [
             // 'categoryTrail' => $categoryTrail,
@@ -269,6 +295,7 @@ class ProductController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Products found successfully.',
+                'keyword' => $keyword,
                 'data' => $this->productResource->collection($results),
             ]);
         }
@@ -279,13 +306,21 @@ class ProductController extends Controller
             'data' => []
         ]);
     }
-
     public function getByAttributeValue(Request $request, $attributeSlug)
     {
         $perPage = $request->get('per_page', 10);
         $sortField = $request->get('sort_field', 'created_at');
         $sortDirection = $request->get('sort_direction', 'desc');
         $search = $request->get('search');
+        
+        $category = '';
+        $attrVal = AttributeValue::where('value', $attributeSlug)->first();
+        if(isset($attrVal->attributeGroup) && !empty($attrVal->attributeGroup)){
+            $attributeGroup = $attrVal->attributeGroup;
+        }
+        if(isset($attributeGroup) && !empty($attributeGroup->name)){
+            $category = Category::where('name', $attributeGroup->name)->first();
+        }
 
         $keyword = trim($attributeSlug);
 
@@ -313,11 +348,17 @@ class ProductController extends Controller
         // Optional: paginate or limit
         $results = $query->paginate(10);
 
+        $data = [
+            'keyword' => $keyword,
+            'category' => new $this->categoryResource($category),
+            'products' => $this->productResource->collection($results),
+        ];
+
         if ($results->isNotEmpty()) {
             return response()->json([
                 'status' => true,
                 'message' => 'Products found successfully.',
-                'data' => $this->productResource->collection($results),
+                'data' => $data,
             ]);
         }
 

@@ -60,7 +60,14 @@ class BrandController extends Controller
         }
     }
     public function featured(){
-        $models = $this->model->where('is_featured', 1)->where('status', 1)->orderBy('id', 'desc')->paginate(10);
+        // $models = $this->model->where('is_featured', 1)->where('status', 1)->orderBy('id', 'desc')->get();
+        $models = $this->model
+                ->select('id', 'name', 'slug', 'logo') // adjust to your actual needed fields
+                ->where('is_featured', 1)
+                ->where('status', 1)
+                ->orderByDesc('id')
+                ->limit(10)
+                ->get();
 
         if ($models->count()) {
             return response()->json([
@@ -76,19 +83,46 @@ class BrandController extends Controller
             ]);
         }
     }
-    public function top(){
-        $models = $this->model->with('limitedProducts')->where('is_top', 1)
-            ->where('status', 1)
-            ->orderBy('id', 'desc')
-            ->get();
 
-        foreach ($models as $brand) {
-            $brand->limitedProducts = $brand->products()
-                ->where('status', 1)
-                ->orderByDesc('id')
-                ->limit(4)
-                ->get();
-        }
+    public function top(){
+        // $models = $this->model->with('limitedProducts')->where('is_top', 1)
+        //     ->where('status', 1)
+        //     ->orderBy('id', 'desc')
+        //     ->get();
+
+        // foreach ($models as $brand) {
+        //     $brand->limitedProducts = $brand->products()
+        //         ->where('status', 1)
+        //         ->orderByDesc('id')
+        //         ->limit(4)
+        //         ->get();
+        // }
+
+        $models = Brand::where('is_top', 1)
+        ->where('status', 1)
+        ->with(['limitedProducts' => function ($query) {
+            $query->where('status', 1)
+                ->orderByDesc('id');
+        }])
+        ->orderByDesc('id')
+        ->limit(8)
+        ->get()
+        ->filter(function ($brand) {
+            // Only include products with valid thumbnails (disk check is expensive)
+            $validProducts = $brand->limitedProducts
+                ->filter(function ($product) {
+                    return !empty($product->thumbnail)
+                        && Storage::disk('public')->exists($product->thumbnail);
+                });
+
+            if ($validProducts->isNotEmpty()) {
+                $brand->setRelation('limitedProducts', $validProducts->take(4)->values());
+                return true;
+            }
+
+            return false;
+        })
+        ->values(); // Reindex
 
         // $models = Brand::where('is_top', 1)
         // ->where('status', 1)

@@ -1,11 +1,11 @@
-<table class="table table-flush-spacing" style="table-layout: fixed; width: 100%;">
+<table class="table table-flush-spacing">
     <?php $__currentLoopData = $fields; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $name => $field): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
         <tr>
-            <td class="text-nowrap fw-semibold" style="width: 100px;"><?php echo e($field['label'] ?? ucfirst($name)); ?></td>
-            <td style="max-width: 200px; word-break: break-word; white-space: normal; overflow-wrap: break-word; overflow: hidden;">
+            <td class="text-nowrap fw-semibold"><?php echo e($field['label'] ?? ucfirst($name)); ?></td>
+            <td>
                 <?php if($field['type'] === 'file'): ?>
                     <?php if(!empty($field['value'])): ?>
-                        <img src="<?php echo e(asset('storage/' . $field['value'])); ?>" width="80" class="zoomable">
+                        <img src="<?php echo e(asset('storage/' . $field['value'])); ?>" width="80">
                     <?php else: ?>
                         -
                     <?php endif; ?>
@@ -15,10 +15,11 @@
 
                     </span>
                 <?php else: ?>
-                    <?php echo $field['value']; ?>
+                    <?php echo e($field['value']); ?>
 
                 <?php endif; ?>
             </td>
         </tr>
     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-</table><?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/admin/policies/show_content.blade.php ENDPATH**/ ?>
+</table>
+<?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/admin/banners/show_content.blade.php ENDPATH**/ ?>

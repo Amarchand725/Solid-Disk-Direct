@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
+use Intervention\Image\ImageManager;
 
 class SliderController extends Controller
 {
@@ -136,8 +137,22 @@ class SliderController extends Controller
             foreach ($fields as $field => $config) {
                 if($field != 'created_at' && $field != 'action'){
                     if (isset($config['type']) && $config['type'] === 'file' && $request->hasFile($field)) {
+                        // $uploadPath = Str::plural(Str::lower($this->singularLabel));
+                        // $saved->$field = $request->file($field)->store('uploads/'.$uploadPath, 'public');
+
                         $uploadPath = Str::plural(Str::lower($this->singularLabel));
-                        $saved->$field = $request->file($field)->store('uploads/'.$uploadPath, 'public');
+                        $image = $request->file($field);
+                        $filename = Str::random(20) . '.webp'; // unique .webp filename
+                        $webpPath = 'uploads/' . $uploadPath . '/' . $filename;
+
+                        // Convert to WebP using Intervention Image v3
+                        $manager = new ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+                        $manager->read($image->getRealPath())
+                                ->toWebp(80)
+                                ->save(storage_path('app/public/' . $webpPath));
+
+                        // Save the WebP path in the database
+                        $saved->$field = $webpPath;
                     } else {
                         if($field=='created_by'){
                             $saved->$field = auth()->id() ?? null;
@@ -222,8 +237,22 @@ class SliderController extends Controller
                             }
 
                             // Step 3: Store the new image
+                            // $uploadPath = Str::plural(Str::lower($this->singularLabel));
+                            // $model->$field = $request->file($field)->store('uploads/'.$uploadPath, 'public');
+
                             $uploadPath = Str::plural(Str::lower($this->singularLabel));
-                            $model->$field = $request->file($field)->store('uploads/'.$uploadPath, 'public');
+                            $image = $request->file($field);
+                            $filename = Str::random(20) . '.webp'; // unique .webp filename
+                            $webpPath = 'uploads/' . $uploadPath . '/' . $filename;
+
+                            // Convert to WebP using Intervention Image v3
+                            $manager = new ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+                            $manager->read($image->getRealPath())
+                                    ->toWebp(80)
+                                    ->save(storage_path('app/public/' . $webpPath));
+
+                            // Save the WebP path in the database
+                            $model->$field = $webpPath;
                         }
                     } else {
                         // For other fields, just assign the validated value

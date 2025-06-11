@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Models\AttributeGroup;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
 use Illuminate\Support\Facades\Storage;
@@ -163,6 +164,7 @@ class CategoryController extends Controller
     //         ]);
     //     }
     // }
+
     public function show($slug){
         $model = $this->model->where('slug', $slug)->first();
 
@@ -182,7 +184,14 @@ class CategoryController extends Controller
     }
 
     public function featured(){
-        $models = $this->model->where('is_featured', 1)->where('status', 1)->orderBy('id', 'desc')->paginate(10);
+        // $models = $this->model->where('is_featured', 1)->where('status', 1)->orderBy('id', 'desc')->get();
+        $models = $this->model
+                ->select('id', 'name', 'slug', 'banner') // use only necessary fields
+                ->where('is_featured', 1)
+                ->where('status', 1)
+                ->orderBy('id', 'desc')
+                ->limit(10)
+                ->get();
 
         if ($models->count()) {
             return response()->json([
@@ -199,42 +208,69 @@ class CategoryController extends Controller
         }
     }
     public function top(){
-        // $models = $this->model->with('limitedProducts')->where('is_top', 1)
-        //     ->where('status', 1)
-        //     ->orderBy('id', 'desc')
-        //     ->get();
+        $models = $this->model->with('limitedProducts')->where('is_top', 1)
+            ->where('status', 1)
+            ->orderBy('id', 'desc')
+            ->get();
 
-        // foreach ($models as $category) {
-        //     $category->limitedProducts = $category->products()
-        //         ->where('status', 1)
-        //         ->orderByDesc('id')
-        //         ->limit(4)
-        //         ->get();
-        // }
-
-        $models = $this->model->where('is_top', 1)
-        ->where('status', 1)
-        ->orderByDesc('id')
-        ->get()
-        ->filter(function ($category) {
-            // Get products first
-            $products = $category->limitedProducts()
+        foreach ($models as $category) {
+            $category->limitedProducts = $category->products()
                 ->where('status', 1)
                 ->orderByDesc('id')
-                ->get()
-                ->filter(function ($product) {
-                    return !empty($product->thumbnail) && Storage::disk('public')->exists($product->thumbnail);
-                });
+                ->limit(4)
+                ->get();
+        }
+
+        // $models = $this->model
+        // ->where('is_top', 1)
+        // ->where('status', 1)
+        // ->with(['limitedProducts' => function ($query) {
+        //     $query->where('status', 1)
+        //         ->orderByDesc('id');
+        // }])
+        // ->orderByDesc('id')
+        // ->get()
+        // ->filter(function ($category) {
+        //     // Filter products with valid thumbnails
+        //     $validProducts = $category->limitedProducts
+        //         ->filter(function ($product) {
+        //             return !empty($product->thumbnail)
+        //                 && Storage::disk('public')->exists($product->thumbnail);
+        //         });
+
+        //     // Only keep categories with at least one valid product
+        //     if ($validProducts->isNotEmpty()) {
+        //         $category->setRelation('limitedProducts', $validProducts->take(4)->values());
+        //         return true;
+        //     }
+
+        //     return false;
+        // })
+        // ->values(); // Reindex the collection
+
+        // $models = $this->model->where('is_top', 1)
+        // ->where('status', 1)
+        // ->orderByDesc('id')
+        // ->get()
+        // ->filter(function ($category) {
+        //     // Get products first
+        //     $products = $category->limitedProducts()
+        //         ->where('status', 1)
+        //         ->orderByDesc('id')
+        //         ->get()
+        //         ->filter(function ($product) {
+        //             return !empty($product->thumbnail) && Storage::disk('public')->exists($product->thumbnail);
+        //         });
     
-            // Only keep brands that have at least 1 product with valid thumbnail
-            if ($products->isNotEmpty()) {
-                // Set the relation with up to 4 valid products
-                $category->setRelation('limitedProducts', $products->take(4)->values());
-                return true;
-            }
+        //     // Only keep brands that have at least 1 product with valid thumbnail
+        //     if ($products->isNotEmpty()) {
+        //         // Set the relation with up to 4 valid products
+        //         $category->setRelation('limitedProducts', $products->take(4)->values());
+        //         return true;
+        //     }
     
-            return false; // Exclude brand
-        })->values(); // Reindex the result
+        //     return false; // Exclude brand
+        // })->values(); // Reindex the result
 
         if ($models->count()) {
             return response()->json([
@@ -259,10 +295,13 @@ class CategoryController extends Controller
         $search = $request->get('search');
         
         $category = $this->model->with('products')->where('slug', $categorySlug)->first();
-        
-        if(!empty($category)){
-            $query = $category->products()
-                ->with('hasBrand', 'hasProductCondition')
+
+        if (!empty($category)) {
+            $categoryIds = $category->children->pluck('id')->toArray();
+
+            // Query products from those categories
+            $query = Product::with('hasBrand', 'hasProductCondition')
+                ->whereIn('category', $categoryIds)
                 ->where('status', 1);
 
             if ($search) {
@@ -274,7 +313,7 @@ class CategoryController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Data found successfully.',
-                'data' => $this->productResource->collection($products), // transformed items
+                'data' => $this->productResource->collection($products),
                 'pagination' => [
                     'current_page' => $products->currentPage(),
                     'last_page' => $products->lastPage(),
@@ -290,5 +329,36 @@ class CategoryController extends Controller
                 'pagination' => null
             ]);
         }
+        
+        // if(!empty($category)){
+        //     $query = $category->products()
+        //         ->with('hasBrand', 'hasProductCondition')
+        //         ->where('status', 1);
+
+        //     if ($search) {
+        //         $query->where('name', 'like', "%$search%");
+        //     }
+
+        //     $products = $query->orderBy($sortField, $sortDirection)->paginate($perPage);
+
+        //     return response()->json([
+        //         'status' => true,
+        //         'message' => 'Data found successfully.',
+        //         'data' => $this->productResource->collection($products), // transformed items
+        //         'pagination' => [
+        //             'current_page' => $products->currentPage(),
+        //             'last_page' => $products->lastPage(),
+        //             'per_page' => $products->perPage(),
+        //             'total' => $products->total(),
+        //         ]
+        //     ]);
+        // } else {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => 'No data found.',
+        //         'data' => [],
+        //         'pagination' => null
+        //     ]);
+        // }
     }
 }

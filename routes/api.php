@@ -89,7 +89,7 @@ Route::controller(ProductController::class)->group(function () {
     ]);
     Route::get('products/search', 'search')->name('products.search');
     Route::get('products/search2', 'search2')->name('products.search2');
-    Route::get('products/attribute/{attributeSlug}', 'getByAttributeValue');
+    Route::get('attribute/products/{attributeSlug}', 'getByAttributeValue');
 });
 Route::controller(TestimonialController::class)->group(function () {
     Route::get('testimonials', 'index')->name('testimonials');

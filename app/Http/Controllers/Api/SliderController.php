@@ -19,7 +19,7 @@ class SliderController extends Controller
     }
 
     public function index(){
-        $models = $this->model->where('status', 1)->orderBy('id', 'desc')->get();
+        $models = $this->model->select('id', 'title', 'slug', 'image', 'status', 'description')->where('status', 1)->orderBy('id', 'desc')->get();
 
         if ($models->count()) {
             return response()->json([
