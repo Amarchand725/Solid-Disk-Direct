@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Traits\DataTableTrait;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
 {
@@ -130,6 +131,26 @@ class OrderController extends Controller
     {
         $order = $this->model->with('orderShippingMethod', 'shipping')->findOrFail($id);
         return view('admin.orders.invoice', compact('order'));
+    }
+
+    public function show($id){
+        $order = $this->model->with('orderShippingMethod', 'shipping')->findOrFail($id);
+        return (string) view('admin.orders.order_content', compact('order'));
+    }
+
+    public function changeStatus(Request $request, Order $order)
+    {
+        $request->validate([
+            'status' => ['required', Rule::in(array_keys(orderStatus()))],
+            'tracking_id' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $order->update([
+            'status' => $request->status,
+            'tracking_id' => $request->tracking_id,
+        ]);
+
+        return redirect()->back()->with('success', 'Order updated successfully.');
     }
 
     public function downloadInvoice($orderId) {

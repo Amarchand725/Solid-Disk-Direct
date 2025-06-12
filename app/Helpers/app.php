@@ -13,6 +13,7 @@ use App\Models\OrderShippingAddress;
 use Illuminate\Support\Facades\Mail;
 use Spatie\Permission\Models\Permission;
 use App\Notifications\SiteEventNotification;
+use Illuminate\Support\Facades\Log;
 
 function appName(){
     return settings()->name ?? '';
@@ -472,4 +473,18 @@ function sendOrderNotificationAndEmails($order){
     }
 
     return $bool;
+}
+
+if (!function_exists('orderStatus')) {
+    function orderStatus()
+    {
+        return [
+            'pending' => 'secondary',
+            'processing' => 'primary',
+            'shipped' => 'info',
+            'delivered' => 'success',
+            'cancelled' => 'danger',
+            'returned' => 'warning',
+        ];
+    }
 }

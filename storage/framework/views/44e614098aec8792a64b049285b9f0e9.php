@@ -60,6 +60,56 @@
     </div>
 </div>
 
+<div class="modal fade" id="create-pop-up-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content p-3 p-md-5">
+            <button type="button" class="btn-close btn-pinned" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <h3 class="mb-2" id="modal-label"></h3>
+                </div>
+                <form method="POST" class="pt-0 fv-plugins-bootstrap5 fv-plugins-framework" action="" id="create-form" data-modal-id="create-pop-up-modal">
+                    <?php echo csrf_field(); ?>
+                    <?php echo method_field('PUT'); ?>
+
+                    <span id="edit-content">
+                        <div class="mb-3">
+                            <label class="form-label">Order Status</label>
+                            <select name="status" id="order-status-select" class="form-select" required>
+                            <?php $__currentLoopData = orderStatus(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $status => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($status); ?>"><?php echo e(ucfirst($status)); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tracking ID</label>
+                            <input type="text" name="tracking_id" id="tracking-id-input" placeholder="Enter order tracking ID" class="form-control" />
+                        </div>
+                    </span>
+                    <div class="col-12 mt-3 action-btn">
+                        <div class="demo-inline-spacing sub-btn">
+                            <button type="submit" class="btn btn-primary me-sm-3 me-1 submitBtn">Submit</button>
+                            <button type="reset" class="btn btn-label-secondary btn-reset" data-bs-dismiss="modal" aria-label="Close">
+                                Cancel
+                            </button>
+                        </div>
+                        <div class="demo-inline-spacing loading-btn" style="display: none;">
+                            <button class="btn btn-primary waves-effect waves-light" type="button" disabled="">
+                            <span class="spinner-border me-1" role="status" aria-hidden="true"></span>
+                            Loading...
+                            </button>
+                            <button type="reset" class="btn btn-label-secondary btn-reset" data-bs-dismiss="modal" aria-label="Close">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modals -->
 <?php if (isset($component)) { $__componentOriginalec44ea46082c33e0f8cbcb5b200babc6 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalec44ea46082c33e0f8cbcb5b200babc6 = $attributes; } ?>
@@ -91,6 +141,21 @@
         var columns =     <?php echo json_encode($columnsConfig); ?>  // Get columns dynamically from controller
         initializeDataTable(page_url, columns);
     })
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.change-status-btn').forEach(function (button) {
+            button.addEventListener('click', function () {
+                const url = this.dataset.statusUrl;
+                const currentStatus = this.dataset.currentStatus;
+                const trackingId = this.dataset.trackingId || '';
+
+                // Set action and fields
+                document.getElementById('change-status-form').action = url;
+                document.getElementById('order-status-select').value = currentStatus;
+                document.getElementById('tracking-id-input').value = trackingId;
+            });
+        });
+    });
 </script>
 <?php $__env->stopPush(); ?>
 

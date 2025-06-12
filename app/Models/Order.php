@@ -26,4 +26,8 @@ class Order extends Model
     public function orderShippingMethod(){
         return $this->belongsTo(OrderShippingMethod::class, 'id', 'order_id');
     }
+
+    public function customer(){
+        return $this->belongsTo(Customer::class);
+    }
 }

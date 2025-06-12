@@ -5,21 +5,17 @@
     <div class="dropdown-menu dropdown-menu-end m-0">
         {{-- Show Order Details (new page) --}}
         @can($routeInitialize.'-show')
-            <a href="{{ route($routeInitialize.'.show', $model->id) }}" 
-               class="dropdown-item" target="_blank">
+            <a href="#"
+                class="dropdown-item show"
+                tabindex="0" aria-controls="DataTables_Table_0"
+                type="button" data-bs-toggle="modal"
+                data-bs-target="#details-modal"
+                data-toggle="tooltip"
+                data-placement="top"
+                title="{{ $singularLabel }} Details"
+                data-show-url="{{ route($routeInitialize.'.show', $model->id) }}"
+                >
                 <i class="ti ti-eye me-1"></i> View Details
-            </a>
-        @endcan
-
-        {{-- Change Status (modal) --}}
-        @can($routeInitialize.'-status')
-            <a href="javascript:;" 
-               class="dropdown-item change-status-btn" 
-               data-status-url="{{ route($routeInitialize.'.changeStatus', $model->id) }}"
-               data-current-status="{{ $model->order_status }}"
-               data-bs-toggle="modal" 
-               data-bs-target="#change-status-modal">
-                <i class="ti ti-arrows-exchange me-1"></i> Change Status
             </a>
         @endcan
 
@@ -28,8 +24,23 @@
             <a href="{{ route($routeInitialize.'.invoice', $model->id) }}" 
                class="dropdown-item" 
                target="_blank">
-                <i class="ti ti-printer me-1"></i> Print Invoice
+                <i class="ti ti-file me-1"></i> Invoice
             </a>
+        @endcan
+
+        {{-- Change Status (modal) --}}
+        @can($routeInitialize.'-status')
+            <button
+                data-toggle="tooltip" data-placement="top" title="Change Status {{ $singularLabel }}"
+                data-url="{{ route($routeInitialize.'.update', $model->id) }}"
+                class="dropdown-item edit-btn change-status-btn"
+                tabindex="0" aria-controls="DataTables_Table_0"
+                type="button" data-bs-toggle="modal"
+                data-current-status="{{ $model->order_status }}"
+                data-tracking-id="{{ $model->tracking_id }}"
+                data-bs-target="#create-pop-up-modal">
+                <i class="ti ti-arrows-exchange me-1"></i> Change Status
+            </button>
         @endcan
 
         {{-- Delete --}}

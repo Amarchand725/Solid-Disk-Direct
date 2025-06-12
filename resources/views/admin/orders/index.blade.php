@@ -12,32 +12,6 @@
                         <h4 class="fw-bold mb-0"><span class="text-muted fw-light">Home /</span> {{ $title }}</h4>
                     </div>
                 </div>
-                @can($routeInitialize.'-create')
-                    <div class="col-md-6">
-                        <div class="dt-buttons btn-group flex-wrap float-end mt-4">
-                            <button
-                                id="add-btn"
-                                data-toggle="tooltip" data-placement="top" 
-                                title="Add {{ $singularLabel }}"
-                                data-url="{{ route($routeInitialize.'.store') }}"
-                                data-create-url="{{ route($routeInitialize.'.create') }}"
-                                class="btn btn-primary add-btn mb-3 mb-md-0 mx-3
-                                tabindex="0" aria-controls="DataTables_Table_0"
-                                type="button" data-bs-toggle="modal"
-                                data-bs-target="#create-pop-up-modal">
-                                <span>
-                                    <i class="ti ti-plus me-0 me-sm-1 ti-xs"></i>
-                                    <span class="d-none d-sm-inline-block"> 
-                                        Add {{ $singularLabel }} 
-                                        @if(count(getNewMenus()) > 0)
-                                            <span class="blink-text">&#9733;</span>
-                                        @endif
-                                    </span>
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-                @endcan
             </div>
         </div>
         <!-- Users List Table -->
@@ -62,6 +36,56 @@
     </div>
 </div>
 
+<div class="modal fade" id="create-pop-up-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content p-3 p-md-5">
+            <button type="button" class="btn-close btn-pinned" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <h3 class="mb-2" id="modal-label"></h3>
+                </div>
+                <form method="POST" class="pt-0 fv-plugins-bootstrap5 fv-plugins-framework" action="" id="create-form" data-modal-id="create-pop-up-modal">
+                    @csrf
+                    @method('PUT')
+
+                    <span id="edit-content">
+                        <div class="mb-3">
+                            <label class="form-label">Order Status</label>
+                            <select name="status" id="order-status-select" class="form-select" required>
+                            @foreach(orderStatus() as $status => $label)
+                                <option value="{{ $status }}">{{ ucfirst($status) }}</option>
+                            @endforeach
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tracking ID</label>
+                            <input type="text" name="tracking_id" id="tracking-id-input" placeholder="Enter order tracking ID" class="form-control" />
+                        </div>
+                    </span>
+                    <div class="col-12 mt-3 action-btn">
+                        <div class="demo-inline-spacing sub-btn">
+                            <button type="submit" class="btn btn-primary me-sm-3 me-1 submitBtn">Submit</button>
+                            <button type="reset" class="btn btn-label-secondary btn-reset" data-bs-dismiss="modal" aria-label="Close">
+                                Cancel
+                            </button>
+                        </div>
+                        <div class="demo-inline-spacing loading-btn" style="display: none;">
+                            <button class="btn btn-primary waves-effect waves-light" type="button" disabled="">
+                            <span class="spinner-border me-1" role="status" aria-hidden="true"></span>
+                            Loading...
+                            </button>
+                            <button type="reset" class="btn btn-label-secondary btn-reset" data-bs-dismiss="modal" aria-label="Close">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modals -->
 <x-modals />
 <!--/ Modals -->
@@ -74,5 +98,20 @@
         var columns =     {!! json_encode($columnsConfig) !!}  // Get columns dynamically from controller
         initializeDataTable(page_url, columns);
     })
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.change-status-btn').forEach(function (button) {
+            button.addEventListener('click', function () {
+                const url = this.dataset.statusUrl;
+                const currentStatus = this.dataset.currentStatus;
+                const trackingId = this.dataset.trackingId || '';
+
+                // Set action and fields
+                document.getElementById('change-status-form').action = url;
+                document.getElementById('order-status-select').value = currentStatus;
+                document.getElementById('tracking-id-input').value = trackingId;
+            });
+        });
+    });
 </script>
 @endpush

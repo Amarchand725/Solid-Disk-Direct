@@ -11,9 +11,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\ProductResource;
 use App\Models\AttributeValue;
-use App\Models\CategoryRelation;
-use Attribute;
-use Dom\Attr;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -109,8 +107,24 @@ class ProductController extends Controller
         // ->orderByDesc('total_sold')
         // ->first();
 
-        $randomId = $this->model->inRandomOrder()->value('id');
-        $bestSellingProduct = $this->model->inRandomOrder()->find($randomId);
+        // $randomId = $this->model->inRandomOrder()->value('id');
+        // $bestSellingProduct = $this->model->inRandomOrder()->find($randomId);
+
+        $bestSellingProduct = null;
+
+        // Fetch a batch of random products first
+        $randomProducts = $this->model
+            ->where('status', 1)
+            ->inRandomOrder()
+            ->limit(10) // Fetch 20 random products at most
+            ->get();
+
+        foreach ($randomProducts as $product) {
+            if (!empty($product->thumbnail) && Storage::disk('public')->exists($product->thumbnail)) {
+                $bestSellingProduct = $product;
+                break; // Stop when the first valid one is found
+            }
+        }
 
         if ($bestSellingProduct) {
             return response()->json([
