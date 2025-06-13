@@ -2,16 +2,51 @@
 
 @section('title', $title.' -  ' . appName())
 @section('content')
-<input type="hidden" id="page_url" value="{{ route($routeInitialize.'.index') }}">
+
+@if (request()->is($routeInitialize.'/trashed'))
+    <input type="hidden" id="page_url" value="{{ route($routeInitialize.'.trashed') }}">
+@else
+    <input type="hidden" id="page_url" value="{{ route($routeInitialize.'.index') }}">
+@endif
 <div class="content-wrapper">
     <div class="container-xxl flex-grow-1 container-p-y">
         <div class="card mb-4">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="card-header">
                         <h4 class="fw-bold mb-0"><span class="text-muted fw-light">Home /</span> {{ $title }}</h4>
                     </div>
                 </div>
+                @if (request()->is($routeInitialize.'/trashed'))
+                    @can($routeInitialize.'-list')
+                        <div class="col-md-8">
+                            <div class="dt-buttons btn-group flex-wrap float-end mt-4">
+                                <a data-toggle="tooltip" data-placement="top" title="Show All Records" href="{{ route($routeInitialize.'.index') }}" class="btn btn-success btn-primary mx-3">
+                                    <span>
+                                        <i class="ti ti-eye me-0 me-sm-1 ti-xs"></i>
+                                        <span class="d-none d-sm-inline-block">View All Records</span>
+                                    </span>
+                                </a>
+                            </div>
+                        </div>
+                    @endcan
+                @else
+                    @canany([$routeInitialize.'-create', $routeInitialize.'-trashed', $routeInitialize.'-import'])
+                        <div class="col-md-8">
+                            <div class="dt-buttons btn-group flex-wrap float-end mt-4">
+                                <button id="refresh-record" class="btn btn-success mx-2" title="Refresh Records"><i class="ti ti-refresh me-0 ti-xs"></i></button>
+                                @can($routeInitialize.'-trashed')
+                                    <a data-toggle="tooltip" data-placement="top" title="All Trashed Records" href="{{ route($routeInitialize.'.trashed') }}" class="btn btn-label-danger mx-2">
+                                        <span>
+                                            <i class="ti ti-trash me-0 me-sm-1 ti-xs"></i>
+                                            <span class="d-none d-sm-inline-block">All Trashed Records </span>
+                                        </span>
+                                    </a>
+                                @endcan
+                            </div>
+                        </div>
+                    @endcan
+                @endif
             </div>
         </div>
         <!-- Users List Table -->
@@ -36,56 +71,6 @@
     </div>
 </div>
 
-<div class="modal fade" id="create-pop-up-modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content p-3 p-md-5">
-            <button type="button" class="btn-close btn-pinned" data-bs-dismiss="modal" aria-label="Close"></button>
-            <div class="modal-body">
-                <div class="text-center mb-4">
-                    <h3 class="mb-2" id="modal-label"></h3>
-                </div>
-                <form method="POST" class="pt-0 fv-plugins-bootstrap5 fv-plugins-framework" action="" id="create-form" data-modal-id="create-pop-up-modal">
-                    @csrf
-                    @method('PUT')
-
-                    <span id="edit-content">
-                        <div class="mb-3">
-                            <label class="form-label">Order Status</label>
-                            <select name="status" id="order-status-select" class="form-select" required>
-                            @foreach(orderStatus() as $status => $label)
-                                <option value="{{ $status }}">{{ ucfirst($status) }}</option>
-                            @endforeach
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Tracking ID</label>
-                            <input type="text" name="tracking_id" id="tracking-id-input" placeholder="Enter order tracking ID" class="form-control" />
-                        </div>
-                    </span>
-                    <div class="col-12 mt-3 action-btn">
-                        <div class="demo-inline-spacing sub-btn">
-                            <button type="submit" class="btn btn-primary me-sm-3 me-1 submitBtn">Submit</button>
-                            <button type="reset" class="btn btn-label-secondary btn-reset" data-bs-dismiss="modal" aria-label="Close">
-                                Cancel
-                            </button>
-                        </div>
-                        <div class="demo-inline-spacing loading-btn" style="display: none;">
-                            <button class="btn btn-primary waves-effect waves-light" type="button" disabled="">
-                            <span class="spinner-border me-1" role="status" aria-hidden="true"></span>
-                            Loading...
-                            </button>
-                            <button type="reset" class="btn btn-label-secondary btn-reset" data-bs-dismiss="modal" aria-label="Close">
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Modals -->
 <x-modals />
 <!--/ Modals -->
@@ -99,19 +84,10 @@
         initializeDataTable(page_url, columns);
     })
 
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.change-status-btn').forEach(function (button) {
-            button.addEventListener('click', function () {
-                const url = this.dataset.statusUrl;
-                const currentStatus = this.dataset.currentStatus;
-                const trackingId = this.dataset.trackingId || '';
-
-                // Set action and fields
-                document.getElementById('change-status-form').action = url;
-                document.getElementById('order-status-select').value = currentStatus;
-                document.getElementById('tracking-id-input').value = trackingId;
-            });
-        });
-    });
+    $('#refresh-record').on('click', function(){
+        var page_url = $('#page_url').val();
+        var columns =     {!! json_encode($columnsConfig) !!}  // Get columns dynamically from controller
+        initializeDataTable(page_url, columns);
+    })
 </script>
 @endpush

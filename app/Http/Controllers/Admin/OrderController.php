@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Exception;
 use Carbon\Carbon;
 use App\Models\Order;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Traits\DataTableTrait;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Route;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rule;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Route;
+use App\Mail\OrderDeliveredReviewMail;
 
 class OrderController extends Controller
 {
@@ -55,16 +59,16 @@ class OrderController extends Controller
         $bladePath = $this->pathInitialize;
 
         $models = $this->model
-                    ->latest()
+                    ->orderBy('id', 'desc')
                     ->select(['id', 'order_number', 'subtotal', 'shipping_cost', 'tax', 'total', 'payment_method', 'payment_status', 'order_status', 'created_at']);
 
         // Define the columns dynamically
         $columns = [
             'order_number' => fn($model) => '<strong>' . $model->order_number . '</strong>',
-            'subtotal' => fn($model) => number_format($model->subtotal, 2),
-            'shipping_cost' => fn($model) => number_format($model->shipping_cost, 2),
-            'tax' => fn($model) => number_format($model->tax, 2),
-            'total' => fn($model) => '<b>' . number_format($model->total, 2) . '</b>',
+            'subtotal' => fn($model) => currency() . number_format($model->subtotal, 2),
+            'shipping_cost' => fn($model) => currency() . number_format($model->shipping_cost, 2),
+            'tax' => fn($model) => currency() . number_format($model->tax, 2),
+            'total' => fn($model) => '<b>' . currency() . number_format($model->total, 2) . '</b>',
 
             // ✅ Payment Method Badge
             'payment_method' => function ($model) {
@@ -153,14 +157,170 @@ class OrderController extends Controller
         return redirect()->back()->with('success', 'Order updated successfully.');
     }
 
-    public function downloadInvoice($orderId) {
-        $order = Order::findOrFail($orderId);
-        $pdf = Pdf::loadView('invoice', [
-            'invoiceNumber' => $order->invoice_number,
-            'date' => $order->created_at->format('d-m-Y h:i:s a'),
-            // Add other variables here...
+    public function edit(string $id)
+    {
+        $bladePath = $this->pathInitialize;
+        $title = $this->singularLabel;
+        $model = $this->model->where('id', $id)->first();
+        return view($bladePath.'.edit_content', get_defined_vars());
+    }
+
+    public function update(Request $request, $modelId)
+    {
+        $request->validate([
+            'order_status' => 'required|string',
+            'tracking_number' => 'required|string',
+            'shipping_method' => 'required_without:custom_shipping_method|string|nullable',
+            'custom_shipping_method' => 'required_without:shipping_method|string|nullable',
         ]);
 
-        return $pdf->download('invoice_'.$order->invoice_number.'.pdf');
+        $model = $this->model->where('id', $modelId)->first();
+        $singularLabel = $this->singularLabel;
+
+        try{
+            // Determine which shipping method to use
+            $finalShippingMethod = $request->shipping_method ?: $request->custom_shipping_method;
+            if(!empty($model)){
+                $model->order_status = $request->order_status;
+                $model->tracking_number = $request->tracking_number;
+                $model->shipping_method = $finalShippingMethod;
+                $model->save(); 
+                
+                if(!empty($model) && !empty($request->order_status) && $request->order_status=='delivered'){
+                    $customerName = '';
+                    $customerEmail = '';
+                    if(isset($model->shipping) && !empty($model->shipping->first_name)){
+                        $customerName = $model->shipping->first_name. ' '. $model->shipping->last_name;
+                        $customerEmail = $model->shipping->email;
+                    }
+                    $reviewLink = config('system.trust_pilot_url');
+                    $storeName = appName();
+
+                    if(!empty($customerEmail)){
+                        Mail::to($customerEmail)->send(new OrderDeliveredReviewMail($customerName, $reviewLink, $storeName));
+                    }
+                }
+
+                return response()->json(['success' => true, 'message' =>'You have updated '.$singularLabel.' successfully.']);
+            }else{
+                return response()->json(['error' => 'Something went wrong.']);
+            }
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()]);
+        }
+    }
+
+    public function destroy($modelId)
+    {
+        $singularLabel = $this->singularLabel;
+        if($this->model->where('id', $modelId)->delete()) {
+            return response()->json([
+                'status' => true,
+                'message' => $singularLabel.' Deleted Successfully'
+            ]);
+        } else{
+            return response()->json([
+                'status' => true,
+                'error' => $singularLabel.' not deleted try again.'
+            ]);
+        }
+    }   
+
+    public function trashed(Request $request)
+    {
+        $singularLabel = $this->singularLabel;
+        $routeInitialize = $this->routePrefix;
+        $bladePath = $this->pathInitialize;
+        $title = 'All Trashed '.Str::plural($singularLabel);
+
+        $models = $this->model
+                    ->onlyTrashed()->latest()
+                    ->select(['id', 'order_number', 'subtotal', 'shipping_cost', 'tax', 'total', 'payment_method', 'payment_status', 'order_status', 'created_at']);
+
+        // Define the columns dynamically
+        $columns = [
+            'order_number' => fn($model) => '<strong>' . $model->order_number . '</strong>',
+            'subtotal' => fn($model) => number_format($model->subtotal, 2),
+            'shipping_cost' => fn($model) => number_format($model->shipping_cost, 2),
+            'tax' => fn($model) => number_format($model->tax, 2),
+            'total' => fn($model) => '<b>' . number_format($model->total, 2) . '</b>',
+
+            // ✅ Payment Method Badge
+            'payment_method' => function ($model) {
+                $badgeClass = match ($model->payment_method) {
+                    'paypal' => 'badge bg-info',
+                    'payarc' => 'badge bg-primary',
+                    default => 'badge bg-secondary',
+                };
+                return '<span class="' . $badgeClass . '">' . ucfirst($model->payment_method) . '</span>';
+            },
+
+            // ✅ Payment Status Badge
+            'payment_status' => function ($model) {
+                $badgeClass = match ($model->payment_status) {
+                    'paid' => 'badge bg-success',
+                    'unpaid' => 'badge bg-danger',
+                    'pending' => 'badge bg-warning text-dark',
+                    default => 'badge bg-secondary',
+                };
+                return '<span class="' . $badgeClass . '">' . ucfirst($model->payment_status) . '</span>';
+            },
+
+            // ✅ Order Status Badge
+            'order_status' => function ($model) {
+                $badgeClass = match ($model->order_status) {
+                    'pending' => 'badge bg-warning text-dark',
+                    'processing' => 'badge bg-primary',
+                    'shipped' => 'badge bg-info',
+                    'delivered' => 'badge bg-success',
+                    'cancelled' => 'badge bg-danger',
+                    default => 'badge bg-secondary',
+                };
+                return '<span class="' . $badgeClass . '">' . ucfirst($model->order_status) . '</span>';
+            },
+
+            'created_at' => fn($model) => \Carbon\Carbon::parse($model->created_at)->format('d M, Y'),
+
+            'action' => fn($model) =>
+                '<a href="' . route($routeInitialize . '.restore', $model->id) . '" class="btn btn-icon btn-label-info waves-effect me-1">' .
+                    '<span><i class="ti ti-refresh ti-sm"></i></span>' .
+                '</a>'
+        ];
+        
+        if ($request->ajax() && $request->loaddata == "yes") {
+            return $this->getDataTable($request, $models, $columns);
+        }
+
+        $columnsConfig = collect($columns)->map(function ($callback, $key) {
+            return [
+                'data' => $key,
+                'name' => $key,
+                'orderable' => !in_array($key, ['action']), // Set orderable=false for 'action'
+                'searchable' => !in_array($key, ['action']) // Set searchable=false for 'action'
+            ];
+        })->values()->toArray();
+        
+        return view($bladePath.'.index', get_defined_vars());
+    }
+    public function restore($id)
+    {
+       $find = $this->model->onlyTrashed()->where('id', $id)->first();
+        if(isset($find) && !empty($find)) {
+            $restore = $find->restore();
+            if(!empty($restore)) {
+                return redirect()->back()->with('message', 'Record Restored Successfully.');
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public function downloadInvoice($orderId)
+    {
+        $order = $this->model->with('orderShippingMethod', 'shipping')->findOrFail($orderId);
+        $pdf = Pdf::loadView('admin.orders.download-invoice', compact('order'))
+                ->setPaper('a4');
+
+        return $pdf->download('invoice_'.$order->order_number.'.pdf');
     }
 }

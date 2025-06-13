@@ -302,23 +302,29 @@ class OrderController extends Controller
 
     public function track(Request $request)
     {
+        $request->validate([
+            'query' => 'required|string',
+            'email' => 'required|email',
+        ]);
+
         $query = $request->query('query'); // order id or email from ?query=...
 
         if (!$query) {
             return response()->json(['error' => 'Query parameter is required.'], 400);
         }
 
-        $order = Order::with([ 'items.product'])
-            ->where('order_number', $query)
-            ->first();
-
+        $order = Order::where('order_number', $query)->first();
         if (!$order) {
             return response()->json(['error' => 'Order not found.'], 404);
+        }else if(!empty($order)){
+            $orderShipping = $this->orderShippingAddress->where('order_id', $order->id)->where('email', $request->email)->first();
+
+            if(!empty($orderShipping)){
+                return response()->json($order);
+            }else{
+                return response()->json(['error' => 'Shipping email not matched.'], 404);
+            }
         }
-
-        // Optionally transform data before sending
-
-        return response()->json($order);
     }
     public function orderSuccessInfo(Request $request){
         $order = Order::where('order_number', $request->order_number)->firstOrFail();

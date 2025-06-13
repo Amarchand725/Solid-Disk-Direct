@@ -264,6 +264,7 @@ Route::controller(AdminController::class)->group(function () {
         Route::get('trashed', 'trashed')->name('orders.trashed');
         Route::get('restore/{id}', 'restore')->name('orders.restore');
         Route::get('orders/invoice/{order}', 'invoice')->name('orders.invoice');
+        Route::get('download/invoice/{orderId}', 'downloadInvoice')->name('download.invoice');
         Route::get('changeStatus', 'changeStatus')->name('orders.changeStatus');
     });
 

@@ -12,32 +12,25 @@
                 data-bs-target="#details-modal"
                 data-toggle="tooltip"
                 data-placement="top"
-                title="<?php echo e($singularLabel); ?> Details"
+                title="<?php echo e($singularLabel); ?> Invoice"
                 data-show-url="<?php echo e(route($routeInitialize.'.show', $model->id)); ?>"
                 >
-                <i class="ti ti-eye me-1"></i> View Details
+                <i class="ti ti-printer me-1"></i> Print Invoice
             </a>
         <?php endif; ?>
 
         
-        <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check($routeInitialize.'-invoice')): ?>
-            <a href="<?php echo e(route($routeInitialize.'.invoice', $model->id)); ?>" 
-               class="dropdown-item" 
-               target="_blank">
-                <i class="ti ti-file me-1"></i> Invoice
-            </a>
-        <?php endif; ?>
+        
 
         
         <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check($routeInitialize.'-status')): ?>
             <button
-                data-toggle="tooltip" data-placement="top" title="Change Status <?php echo e($singularLabel); ?>"
+                data-toggle="tooltip" data-placement="top" title="Change <?php echo e($singularLabel); ?> Status"
+                data-edit-url="<?php echo e(route($routeInitialize.'.edit', $model->id)); ?>"
                 data-url="<?php echo e(route($routeInitialize.'.update', $model->id)); ?>"
-                class="dropdown-item edit-btn change-status-btn"
+                class="dropdown-item edit-btn"
                 tabindex="0" aria-controls="DataTables_Table_0"
                 type="button" data-bs-toggle="modal"
-                data-current-status="<?php echo e($model->order_status); ?>"
-                data-tracking-id="<?php echo e($model->tracking_id); ?>"
                 data-bs-target="#create-pop-up-modal">
                 <i class="ti ti-arrows-exchange me-1"></i> Change Status
             </button>

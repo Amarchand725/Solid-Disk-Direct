@@ -480,11 +480,24 @@ if (!function_exists('orderStatus')) {
     {
         return [
             'pending' => 'secondary',
-            'processing' => 'primary',
+            'confirmed' => 'primary',
             'shipped' => 'info',
+            'out_for_delivered' => 'info',
             'delivered' => 'success',
             'cancelled' => 'danger',
             'returned' => 'warning',
+        ];
+    }
+}
+
+if (!function_exists('shippingMethods')) {
+    function shippingMethods()
+    {
+        return [
+            'FedEx' => 'FedEx',
+            'UPS' => 'UPS',
+            'DHL' => 'DHL',
+            'USPS' => 'USPS',
         ];
     }
 }

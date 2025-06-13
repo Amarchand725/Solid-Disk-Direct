@@ -12,32 +12,31 @@
                 data-bs-target="#details-modal"
                 data-toggle="tooltip"
                 data-placement="top"
-                title="{{ $singularLabel }} Details"
+                title="{{ $singularLabel }} Invoice"
                 data-show-url="{{ route($routeInitialize.'.show', $model->id) }}"
                 >
-                <i class="ti ti-eye me-1"></i> View Details
+                <i class="ti ti-printer me-1"></i> Print Invoice
             </a>
         @endcan
 
         {{-- Print Invoice --}}
-        @can($routeInitialize.'-invoice')
+        {{-- @can($routeInitialize.'-invoice')
             <a href="{{ route($routeInitialize.'.invoice', $model->id) }}" 
                class="dropdown-item" 
                target="_blank">
                 <i class="ti ti-file me-1"></i> Invoice
             </a>
-        @endcan
+        @endcan --}}
 
         {{-- Change Status (modal) --}}
         @can($routeInitialize.'-status')
             <button
-                data-toggle="tooltip" data-placement="top" title="Change Status {{ $singularLabel }}"
+                data-toggle="tooltip" data-placement="top" title="Change {{ $singularLabel }} Status"
+                data-edit-url="{{ route($routeInitialize.'.edit', $model->id) }}"
                 data-url="{{ route($routeInitialize.'.update', $model->id) }}"
-                class="dropdown-item edit-btn change-status-btn"
+                class="dropdown-item edit-btn"
                 tabindex="0" aria-controls="DataTables_Table_0"
                 type="button" data-bs-toggle="modal"
-                data-current-status="{{ $model->order_status }}"
-                data-tracking-id="{{ $model->tracking_id }}"
                 data-bs-target="#create-pop-up-modal">
                 <i class="ti ti-arrows-exchange me-1"></i> Change Status
             </button>

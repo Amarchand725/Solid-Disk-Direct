@@ -34,7 +34,7 @@ class ProductsExport implements FromCollection, WithHeadings, WithMapping
     {
         // 'google_product_category',
         return [
-            'ID', 'Title', 'Description', 'Link', 'Image Link', 'Availability', 'Price', 
+            'ID', 'Title', 'Description', 'Link', 'Image Link', 'Availability', 'Price', 'Product Type',
             'Brand', 'MPN', 'Condition', 'Product Weight', 'Shipping Weight', 'Availability Date'
         ];
     }
@@ -63,6 +63,7 @@ class ProductsExport implements FromCollection, WithHeadings, WithMapping
             'in stock',
             'USD ' . number_format($product->unit_price, 2) ?? '-',
             // $categoryPath,
+            optional($product->mainCategory)->name ?? '-',
             optional($product->hasBrand)->name ?? '-',
             $product->mpn ?? '-',
             optional($product->hasProductCondition)->name ?? '-',

@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->string('tracking_number')->after('order_number')->nullable();
-            $table->string('shipping_method')->after('tracking_number')->nullable();
+            $table->text('deleted_at')->after('additional_note')->nullable();
+            
         });
     }
 
