@@ -70,6 +70,7 @@ Route::controller(DeveloperController::class)->group(function () {
     Route::get('/mailTest', 'mailTest');
     Route::get('/pay', 'pay');
     Route::get('/updateThumbnail', 'updateThumbnail');
+    Route::get('/countImageExtensions', 'countImageExtensions');
 });
 
 //developer

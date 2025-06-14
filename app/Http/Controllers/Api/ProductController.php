@@ -5,13 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use App\Models\AttributeValue;
 use App\Models\RecentViewProduct;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\CategoryResource;
+use Illuminate\Support\Facades\Cache;
 use App\Http\Resources\ProductResource;
-use App\Models\AttributeValue;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Resources\CategoryResource;
 
 class ProductController extends Controller
 {
@@ -195,29 +196,32 @@ class ProductController extends Controller
             ]);
         }
 
-        // Get the actual category trail from product's main category
-        $categoryTrail = $this->getCategoryTrailFromRelations($model->mainCategory);
+        $categoryTrail = Cache::remember("trail_{$model->mainCategory->id}", 3600, function () use ($model) {
+            return $this->getCategoryTrailFromRelations($model->mainCategory);
+        });
+
         $correctCategoryPath = implode('/', array_column($categoryTrail, 'slug'));
-
-        // Compare the path from the URL with the actual path
         $givenCategoryPath = trim($categorySlugChain, '/');
-
+        
         if ($givenCategoryPath !== $correctCategoryPath) {
-            // Redirect to correct URL
-            return redirect()->to("/$correctCategoryPath/{$model->slug}", 301);
+            return response()->json([
+                'status' => false,
+                'redirect_to' => "/$correctCategoryPath/{$model->slug}",
+                'message' => 'Incorrect category path.',
+                'data' => null
+            ], 301);
         }
 
         $relatedProducts = $model->mainCategory
         ->products()
         ->where('products.id', '!=', $model->id)
         ->inRandomOrder()
-        // ->take(5)
+        ->limit(6)
         ->get();
 
         $this->storeRecentViewProduct($model->slug);
 
         $data = [
-            // 'categoryTrail' => $categoryTrail,
             'details' => new $this->productResource($model),
             'related_products' => $this->productResource->collection($relatedProducts)
         ];
@@ -249,7 +253,7 @@ class ProductController extends Controller
             ]);
         }
 
-    $keyword = trim($request->input('keyword'));
+        $keyword = trim($request->input('keyword'));
         $query = $this->model->query();
 
         // Basic keyword search
@@ -263,11 +267,12 @@ class ProductController extends Controller
 
         // Optional: paginate or limit
         $results = $query->limit(10)->get(); // or use ->paginate(10)
-
+        
         if ($results->isNotEmpty()) {
             return response()->json([
                 'status' => true,
                 'message' => 'Products found successfully.',
+                'keyword' => $keyword,
                 'data' => $this->productResource->collection($results),
             ]);
         }
@@ -275,6 +280,7 @@ class ProductController extends Controller
         return response()->json([
             'status' => false,
             'message' => 'No matching products found.',
+            'keyword' => $keyword,
             'data' => []
         ]);
     }
@@ -317,6 +323,7 @@ class ProductController extends Controller
         return response()->json([
             'status' => false,
             'message' => 'No matching products found.',
+            'keyword' => $keyword,
             'data' => []
         ]);
     }

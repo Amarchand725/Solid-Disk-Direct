@@ -18,8 +18,8 @@ class ProductsExport implements FromCollection, WithHeadings, WithMapping
         ->whereNotNull('thumbnail')
         ->where('unit_price', '>=', 100)
         ->orderBy('id')
-        ->skip(0) // 1 - 1
-        ->take(100)
+        ->skip(1000) // 1 - 1
+        ->take(50000)
         ->get()
         ->filter(function ($product) {
             // Check if the file exists in storage/app/public/
@@ -62,7 +62,6 @@ class ProductsExport implements FromCollection, WithHeadings, WithMapping
             asset(Storage::url($product->thumbnail)) ?? '-',
             'in stock',
             'USD ' . number_format($product->unit_price, 2) ?? '-',
-            // $categoryPath,
             optional($product->mainCategory)->name ?? '-',
             optional($product->hasBrand)->name ?? '-',
             $product->mpn ?? '-',
@@ -72,5 +71,4 @@ class ProductsExport implements FromCollection, WithHeadings, WithMapping
             now()->addYear()->toIso8601String(),
         ];
     }
-
 }

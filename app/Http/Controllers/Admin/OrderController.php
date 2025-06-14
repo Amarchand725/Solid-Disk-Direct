@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Traits\DataTableTrait;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
@@ -91,17 +92,13 @@ class OrderController extends Controller
                 return '<span class="' . $badgeClass . '">' . ucfirst($model->payment_status) . '</span>';
             },
 
-            // ✅ Order Status Badge
             'order_status' => function ($model) {
-                $badgeClass = match ($model->order_status) {
-                    'pending' => 'badge bg-warning text-dark',
-                    'processing' => 'badge bg-primary',
-                    'shipped' => 'badge bg-info',
-                    'delivered' => 'badge bg-success',
-                    'cancelled' => 'badge bg-danger',
-                    default => 'badge bg-secondary',
-                };
-                return '<span class="' . $badgeClass . '">' . ucfirst($model->order_status) . '</span>';
+                $statuses = orderStatus();
+                $status = $model->order_status;
+                $label = $statuses[$status]['label'] ?? ucfirst($status);
+                $badgeClass = $statuses[$status]['badge'] ?? 'bg-secondary';
+
+                return '<span class="badge ' . $badgeClass . '">' . $label . '</span>';
             },
 
             'created_at' => fn($model) => \Carbon\Carbon::parse($model->created_at)->format('d M, Y'),

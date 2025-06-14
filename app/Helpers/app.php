@@ -479,13 +479,41 @@ if (!function_exists('orderStatus')) {
     function orderStatus()
     {
         return [
-            'pending' => 'secondary',
-            'confirmed' => 'primary',
-            'shipped' => 'info',
-            'out_for_delivered' => 'info',
-            'delivered' => 'success',
-            'cancelled' => 'danger',
-            'returned' => 'warning',
+            'pending' => [
+                'label' => 'Pending',
+                'class' => 'secondary',
+                'badge' => 'bg-warning text-dark'
+            ],
+            'confirmed' => [
+                'label' => 'Confirmed',
+                'class' => 'primary',
+                'badge' => 'bg-primary'
+            ],
+            'shipped' => [
+                'label' => 'Shipped',
+                'class' => 'info',
+                'badge' => 'bg-info'
+            ],
+            'out_for_delivered' => [
+                'label' => 'Out for delivery',
+                'class' => 'info',
+                'badge' => 'bg-info'
+            ],
+            'delivered' => [
+                'label' => 'Delivered',
+                'class' => 'success',
+                'badge' => 'bg-success'
+            ],
+            'cancelled' => [
+                'label' => 'Cancelled',
+                'class' => 'danger',
+                'badge' => 'bg-danger'
+            ],
+            'returned' => [
+                'label' => 'Returned',
+                'class' => 'warning',
+                'badge' => 'bg-warning'
+            ],
         ];
     }
 }

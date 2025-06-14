@@ -8,20 +8,21 @@ use App\Models\Order;
 use App\Models\State;
 use App\Models\Policy;
 use App\Models\Country;
+use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\AttributeValue;
+use App\Services\PayarcService;
 use App\Mail\OrderConfirmedAdmin;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Mail\OrderConfirmedCustomer;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Resources\BrandResource;
 use App\Http\Resources\ProductResource;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\CategoryResource;
-use Illuminate\Support\Facades\Log;
-use App\Services\PayarcService;
 
 class DeveloperController extends Controller
 {
@@ -976,25 +977,71 @@ class DeveloperController extends Controller
         return response()->json($response);
     }
 
-    public function updateThumbnail(){
-      DB::table('products')
-        ->where('thumbnail', 'like', '%.jpg')
-        ->update([
-            'thumbnail' => DB::raw("REPLACE(thumbnail, '.jpg', '.webp')")
-      ]);
-      
-      DB::table('sliders')
-        ->where('image', 'like', '%.jpg')
-        ->update([
-            'image' => DB::raw("REPLACE(image, '.jpg', '.webp')")
-      ]);
-      
-      DB::table('banners')
-        ->where('banner', 'like', '%.jpg')
-        ->update([
-            'banner' => DB::raw("REPLACE(banner, '.jpg', '.webp')")
-      ]);
+    public function updateThumbnail()
+    {
+        // Array of updates: table => [column]
+        $updates = [
+            'products' => 'thumbnail',
+            'sliders' => 'image',
+            'banners' => 'banner',
+        ];
 
-      return 'updated';
+        // Loop through each table and apply replacements
+        foreach ($updates as $table => $column) {
+            DB::table($table)
+                ->where(function ($query) use ($column) {
+                    $query->where($column, 'like', '%.jpg')
+                          ->orWhere($column, 'like', '%.jpeg')
+                          ->orWhere($column, 'like', '%.png');
+                })
+                ->update([
+                    $column => DB::raw(
+                        "REPLACE(REPLACE(REPLACE($column, '.jpeg', '.webp'), '.jpg', '.webp'), '.png', '.webp')"
+                    )
+                ]);
+        }
+
+        return 'All thumbnails/images updated to .webp';
+    }
+
+    public function countImageExtensions()
+    {
+        $folderPath = 'public/uploads/products'; // storage/app/public/uploads/products
+        $extensions = ['jpg', 'jpeg', 'png', 'webp'];
+        $folderCounts = array_fill_keys($extensions, 0);
+
+        // Get files (non-recursive)
+        $files = Storage::files($folderPath);
+
+        foreach ($files as $file) {
+            $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+            if (in_array($ext, $extensions)) {
+                $folderCounts[$ext]++;
+            }
+        }
+
+        $folderCounts['total_images'] = array_sum($folderCounts);
+
+        // ---------- 2. DB-based thumbnail extension count ----------
+        $dbCounts = array_fill_keys($extensions, 0);
+
+        $thumbnails = Product::whereNotNull('thumbnail')->pluck('thumbnail');
+
+        foreach ($thumbnails as $thumb) {
+            $ext = strtolower(pathinfo($thumb, PATHINFO_EXTENSION));
+            if (in_array($ext, $extensions)) {
+                $dbCounts[$ext]++;
+            }
+        }
+
+        $dbCounts['total_thumbnails'] = array_sum($dbCounts);
+        $dbCounts['total_products'] = Product::count();
+        $dbCounts['total_products_thumbnail_not_exist'] = $dbCounts['total_products']-$folderCounts['total_images'];
+
+        // ---------- 3. Final structured response ----------
+        return response()->json([
+            'folder_images' => $folderCounts,
+            'database_thumbnails' => $dbCounts,
+        ]);
     }
 }
