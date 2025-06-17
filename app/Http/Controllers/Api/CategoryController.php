@@ -294,11 +294,18 @@ class CategoryController extends Controller
         $sortDirection = $request->get('sort_direction', 'desc');
         $search = $request->get('search');
         
-        $category = $this->model->with('products')->where('slug', $categorySlug)->first();
-
-        if (!empty($category)) {
+        // $category = $this->model->where('slug', $categorySlug)->first();
+        $category = $this->model->with('children')->where('slug', $categorySlug)->first();
+        $categoryIds = [];
+        if ($category->children && $category->children->count() > 0) {
+            // Get child category IDs
             $categoryIds = $category->children->pluck('id')->toArray();
+        } else {
+            // Fallback to current category ID
+            $categoryIds = [$category->id];
+        }
 
+        if (!empty($categoryIds)) {
             // Query products from those categories
             $query = Product::with('hasBrand', 'hasProductCondition')
                 ->whereIn('category', $categoryIds)
