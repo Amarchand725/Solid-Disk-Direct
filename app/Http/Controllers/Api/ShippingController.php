@@ -19,12 +19,18 @@ class ShippingController extends Controller
                 'country_code' => $country->code,
                 'weight' => $request->weight ?? 1.0 // default 1kg
             ]);
-        }
 
-        return response()->json([
-            'status' => true,
-            'message' => 'FedEx Rates Found.',
-            'data' => $rates
-        ]);
+            return response()->json([
+                'status' => true,
+                'message' => 'FedEx Rates Found.',
+                'data' => $rates
+            ]);
+        }else{
+            return response()->json([
+                'status' => false,
+                'message' => 'Country not matched.',
+                'data' => null
+            ]);
+        }
     }
 }

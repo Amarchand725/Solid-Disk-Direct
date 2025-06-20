@@ -98,55 +98,66 @@ class BrandController extends Controller
         //         ->get();
         // }
 
+        // $models = Brand::where('is_top', 1)
+        // ->where('status', 1)
+        // ->with(['limitedProducts' => function ($query) {
+        //     $query->where('status', 1)
+        //         ->orderByDesc('id');
+        // }])
+        // ->orderByDesc('id')
+        // ->limit(8)
+        // ->get()
+        // ->filter(function ($brand) {
+        //     // Only include products with valid thumbnails (disk check is expensive)
+        //     $validProducts = $brand->limitedProducts
+        //         ->filter(function ($product) {
+        //             return !empty($product->thumbnail)
+        //                 && Storage::disk('public')->exists($product->thumbnail);
+        //         });
+
+        //     if ($validProducts->isNotEmpty()) {
+        //         $brand->setRelation('limitedProducts', $validProducts->take(4)->values());
+        //         return true;
+        //     }
+
+        //     return false;
+        // })
+        // ->values(); // Reindex
+
+        $switchCategoryId = 218; // your "Network Switches" category ID
+        $specificBrands = ['CISCO', 'HP', 'Dell'];
+        
         $models = Brand::where('is_top', 1)
         ->where('status', 1)
-        ->with(['limitedProducts' => function ($query) {
-            $query->where('status', 1)
-                ->orderByDesc('id');
-        }])
+        ->with(['limitedProducts.categories']) // must eager load categories
         ->orderByDesc('id')
         ->limit(8)
         ->get()
-        ->filter(function ($brand) {
-            // Only include products with valid thumbnails (disk check is expensive)
-            $validProducts = $brand->limitedProducts
-                ->filter(function ($product) {
-                    return !empty($product->thumbnail)
-                        && Storage::disk('public')->exists($product->thumbnail);
+        ->map(function ($brand) use ($switchCategoryId, $specificBrands) {
+            $products = $brand->limitedProducts->where('status', 1);
+    
+            // For Cisco, HP, Dell => filter by Switch category
+            if (in_array($brand->name, $specificBrands)) {
+                $products = $products->filter(function ($product) use ($switchCategoryId) {
+                    return $product->categories->contains('id', $switchCategoryId);
                 });
-
+            }
+    
+            // Filter products with existing thumbnails
+            $validProducts = $products->filter(function ($product) {
+                return !empty($product->thumbnail) &&
+                        Storage::disk('public')->exists($product->thumbnail);
+            });
+    
             if ($validProducts->isNotEmpty()) {
                 $brand->setRelation('limitedProducts', $validProducts->take(4)->values());
-                return true;
+                return $brand;
             }
-
-            return false;
+    
+            return null;
         })
-        ->values(); // Reindex
-
-        // $models = Brand::where('is_top', 1)
-        // ->where('status', 1)
-        // ->orderByDesc('id')
-        // ->get()
-        // ->filter(function ($brand) {
-        //     // Get products first
-        //     $products = $brand->limitedProducts()
-        //         ->where('status', 1)
-        //         ->orderByDesc('id')
-        //         ->get()
-        //         ->filter(function ($product) {
-        //             return !empty($product->thumbnail) && Storage::disk('public')->exists($product->thumbnail);
-        //         });
-    
-        //     // Only keep brands that have at least 1 product with valid thumbnail
-        //     if ($products->isNotEmpty()) {
-        //         // Set the relation with up to 4 valid products
-        //         $brand->setRelation('limitedProducts', $products->take(4)->values());
-        //         return true;
-        //     }
-    
-        //     return false; // Exclude brand
-        // })->values(); // Reindex the result
+        ->filter() // remove nulls
+        ->values(); // reindex
 
         if ($models->count()) {
             return response()->json([

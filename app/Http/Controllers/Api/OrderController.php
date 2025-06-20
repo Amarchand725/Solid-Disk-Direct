@@ -76,9 +76,9 @@ class OrderController extends Controller
                 $order->same_as_shipping = $sameAsShipping;
                 $order->subtotal = $cart['subtotal'] ?? 0;
                 $order->tax = $cart['tax_amount'] ?? 0;
+                $order->shipping_weight = $cart['shipping_weight'] ?? 0;
                 $order->shipping_cost = $cart['shipping_cost'] ?? 0;
                 $order->total = $cart['total'] ?? 0;
-
                 $order->payment_method = $payment['method'];
                 $order->payment_status = 'unpaid';
                 $order->additional_note = null;
@@ -89,11 +89,13 @@ class OrderController extends Controller
                 if($order && $cartItems){
                     foreach($cartItems as $item){
                         $product = $this->productModel->where('slug', $item['product']['slug'])->first();
+                        $shippingWeight = getWeightOnlyAttribute($product->shipping_weight);
                         if(!empty($product)){
                             $order_item = $this->orderItemModel;
                             $order_item->order_id = $order->id;
                             $order_item->product_id = $product->id;
                             $order_item->variant_id = null;
+                            $order_item->shipping_weight = $shippingWeight*$item['quantity'] ?? 0;
                             $order_item->unit_price = $item['unit_price'] ?? 0;
                             $order_item->discount = null;
                             $order_item->quantity = $item['quantity'] ?? 0;
@@ -111,6 +113,7 @@ class OrderController extends Controller
                 $order->same_as_shipping = $sameAsShipping;
                 $order->subtotal = $buyNowProduct['total'] ?? 0;
                 $order->tax = $buyNowProduct['tax_amount'] ?? 0;
+                $order->shipping_weight = $buyNowProduct['shipping_weight'] ?? 0;
                 $order->shipping_cost = $buyNowProduct['shipping_cost'] ?? 0;
                 $order->total = $buyNowProduct['total'] ?? 0;
 
@@ -124,10 +127,13 @@ class OrderController extends Controller
                 if($order && $buyNowProduct['product']){
                     $product = $this->productModel->where('slug', $buyNowProduct['product']['slug'])->first();
                     if(!empty($product)){
+                        $shippingWeight = getWeightOnlyAttribute($product->shipping_weight);
+
                         $order_item = $this->orderItemModel;
                         $order_item->order_id = $order->id;
                         $order_item->product_id = $product->id;
                         $order_item->variant_id = null;
+                        $order_item->shipping_weight = $shippingWeight*$buyNowProduct['quantity'] ?? 0;
                         $order_item->unit_price = $buyNowProduct['unit_price'] ?? 0;
                         $order_item->discount = null;
                         $order_item->quantity = $buyNowProduct['quantity'] ?? 0;
@@ -280,6 +286,7 @@ class OrderController extends Controller
                         'message' => 'You have placed order successfully.',
                         'order_number' => $order->order_number,
                         'amount' => $order->total,
+                        'payment_method' => 'payarc',
                     ], 200);
                 } else {
                     DB::rollback();

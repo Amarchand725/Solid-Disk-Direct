@@ -208,18 +208,46 @@ class CategoryController extends Controller
         }
     }
     public function top(){
+        $desiredCategories = [
+            'Server Hard Drives',
+            'Power Supplies',
+            'Switches',
+            'Solid State Drives'
+        ];
+
+        $categories = $this->model->with([]) // no eager loading here
+        ->whereIn('name', $desiredCategories)
+        ->where('is_top', 1)
+        ->where('status', 1)
+        ->orderByRaw("FIELD(name, '" . implode("','", $desiredCategories) . "')")
+        ->get();
+
+        foreach ($categories as $category) {
+            $category->limitedProducts = $category->products()
+                ->where('status', 1)
+                ->where('unit_price', '>', 0)
+                ->orderByDesc('id')
+                ->get()
+                ->filter(function ($product) {
+                    return $product->thumbnail && file_exists(public_path('storage/' . $product->thumbnail));
+                })
+                ->take(4)
+                ->values(); // reset keys
+        }
+
+
         $models = $this->model->with('limitedProducts')->where('is_top', 1)
             ->where('status', 1)
             ->orderBy('id', 'desc')
             ->get();
 
-        foreach ($models as $category) {
-            $category->limitedProducts = $category->products()
-                ->where('status', 1)
-                ->orderByDesc('id')
-                ->limit(4)
-                ->get();
-        }
+        // foreach ($models as $category) {
+        //     $category->limitedProducts = $category->products()
+        //         ->where('status', 1)
+        //         ->orderByDesc('id')
+        //         ->limit(4)
+        //         ->get();
+        // }
 
         // $models = $this->model
         // ->where('is_top', 1)
@@ -297,7 +325,7 @@ class CategoryController extends Controller
         // $category = $this->model->where('slug', $categorySlug)->first();
         $category = $this->model->with('children')->where('slug', $categorySlug)->first();
         $categoryIds = [];
-        if ($category->children && $category->children->count() > 0) {
+        if (isset($category->children) && !empty($category->children) && $category->children->count() > 0) {
             // Get child category IDs
             $categoryIds = $category->children->pluck('id')->toArray();
         } else {

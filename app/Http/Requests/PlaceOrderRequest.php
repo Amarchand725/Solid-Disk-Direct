@@ -33,7 +33,7 @@ class PlaceOrderRequest extends FormRequest
             'shipping.last_name' => ['required', 'string', 'max:255'],
             'shipping.company' => ['nullable', 'string', 'max:255'],
             'shipping.address' => ['required', 'string', 'max:500'],
-            'shipping.address_line_2' => ['required', 'string', 'max:500'],
+            'shipping.address_line_2' => ['string', 'max:500'],
             'shipping.shippingCountry' => ['nullable', 'max:100'],
             'shipping.shippingState' => ['nullable', 'max:100'],
             'shipping.shippingCity' => ['nullable', 'max:100'],

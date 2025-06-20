@@ -965,6 +965,35 @@ class DeveloperController extends Controller
         return 'mail sent successfully';
       }
     }
+    public function testSupportEmail(){
+      // $data = [
+      //   'contact_name' => 'Sales Team',
+      //   'product_name' => 'WAP4410N-A' ?? '',
+      //   'quantity' => '5' ?? '',
+      //   'company_name' => 'ABC' ?? '',
+      //   'contact_person' => 'XYZ',
+      //   'phone' => '34543543545',
+      //   'email' => 'test@gmail.com',
+      // ];
+
+      // $emailFrom = 'quote';
+
+      $data = [
+        'name' => 'Amar' ?? '',
+        'email' => 'test@gmail.com' ?? '',
+        'phone' => '234324324' ?? '',
+        'subject' => 'Testing subject' ?? '',
+        'message' => 'Testing message' ?? '',
+      ];
+      
+      $emailFrom = 'contact-support';
+      
+      //sending email to support
+      sendSupportOrContactEmail($emailFrom, $data);
+
+      return 'support email sent successfully';
+    }
+
     public function pay(PayarcService $payarc)
     {
         $response = $payarc->createPaymentIntent([
@@ -1043,5 +1072,64 @@ class DeveloperController extends Controller
             'folder_images' => $folderCounts,
             'database_thumbnails' => $dbCounts,
         ]);
+    }
+
+    public function fixDuplicateSlugs($offset = 0, $limit = 1000)
+    {
+        // Step 1: Get all duplicate slugs
+        $duplicateSlugs = DB::table('products')
+            ->select('slug')
+            ->whereNotNull('slug')
+            ->groupBy('slug')
+            ->havingRaw('COUNT(*) > 1')
+            ->pluck('slug')
+            ->toArray();
+    
+        // Step 2: Get only a limited batch of products
+        $products = Product::whereIn('slug', $duplicateSlugs)
+            ->orderBy('id')
+            ->offset($offset)
+            ->limit($limit)
+            ->get();
+    
+        $updated = 0;
+        $updatedProducts = [];
+    
+        foreach ($products as $product) {
+            if (!empty($product)) {
+                // $productSlug = Str::slug($product->title).'-'.$product->mpn;
+                
+                $newSlug = $this->generateUniqueSlug($product->title, $product->id);
+                
+                Product::where('id', $product->id)->update([
+                    'slug' => $newSlug,
+                    // 'short_description' => $product->title
+                ]);
+                
+                $updated++;
+                
+                $updatedProducts[] = $product;
+            }
+        }
+        return $updatedProducts;
+        // return "Updated {$updated} slugs from offset {$offset}. ";
+    }
+    
+    // Slug generator function
+    public function generateUniqueSlug($title, $productId = null)
+    {
+        $slug = Str::slug($title);
+        $originalSlug = $slug;
+        $counter = 1;
+    
+        while (
+            Product::where('slug', $slug)
+                ->where('id', '!=', $productId)
+                ->exists()
+        ) {
+            $slug = $originalSlug . '-' . $counter++;
+        }
+    
+        return $slug;
     }
 }

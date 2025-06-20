@@ -86,11 +86,15 @@ Route::controller(ProductController::class)->group(function () {
     Route::get('products/recent-viewed', 'recentViewed')->name('products.recent-viewed');
     Route::get('products/best-selling', 'bestSelling')->name('products.best-selling');
     Route::get('products/top-rated', 'topRated')->name('products.top-rated');
+    // Route::get('products/{categorySlugChain}/{slug}', 'show')
+    // ->where([
+    //     'categorySlugChain' => '([a-z0-9\-\/]+)',
+    //     'slug' => '[a-z0-9\-]+',
+    // ]);
+
     Route::get('products/{categorySlugChain}/{slug}', 'show')
-    ->where([
-        'categorySlugChain' => '([a-z0-9\-\/]+)',
-        'slug' => '[a-z0-9\-]+',
-    ]);
+    ->where('categorySlugChain', '.*');
+
     Route::get('products/search', 'search')->name('products.search');
     Route::get('products/search2', 'search2')->name('products.search2');
     Route::get('attribute/products/{attributeSlug}', 'getByAttributeValue');
@@ -157,9 +161,10 @@ Route::controller(CartController::class)->group(function () {
     Route::put('/cart/increase', 'increaseQuantity');
     Route::put('/cart/decrease', 'decreaseQuantity');
     Route::delete('/cart/remove', 'removeItem');
-    Route::post('/cart/clear', 'clearCart');
+    Route::delete('/cart/clear', 'clearCart');
     Route::put('/cart/update-shipping', 'updateShipping');
     Route::put('/cart/update-tax', 'updateTax');
+    Route::put('/cart/clear-charges', 'clearCharges');
 });
 
 Route::controller(BuyNowController::class)->group(function () {

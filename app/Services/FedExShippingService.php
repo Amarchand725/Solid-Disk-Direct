@@ -5,60 +5,114 @@ use Illuminate\Support\Facades\Http;
 
 class FedExShippingService
 {
-    public function getRates($requestData)
+    public function getRates(array $requestData)
     {
-        $token = $this->getFedExAccessToken(); // get the valid token
+        $token = $this->getFedExAccessToken();
 
-        $url = "https://apis-sandbox.fedex.com/rate/v1/rates/quotes";
+        $url = "https://apis.fedex.com/rate/v1/rates/quotes";
 
-        $response = Http::withToken($token)
-            ->post($url, [
-                "accountNumber" => [
-                    "value" => env('FEDEX_ACCOUNT_NUMBER')
+        $weightUnits = 'LB' ?? 'KG';
+        $weightValue = $requestData['weight'];
+
+        $payload = [
+            "accountNumber" => [
+                "value" => env('FEDEX_ACCOUNT_NUMBER')
+            ],
+            "requestedShipment" => [
+                "shipper" => [
+                    "address" => [
+                        "postalCode"  => "60148", // your warehouse ZIP
+                        "countryCode" => "US"
+                    ]
                 ],
-                "requestedShipment" => [
-                    "shipper" => [
-                        "address" => [
-                            "postalCode" => "12345",
-                            "countryCode" => "US"
-                        ]
-                    ],
-                    "recipient" => [
-                        "address" => [
-                            "postalCode" => $requestData['postal_code'],
-                            "countryCode" => $requestData['country_code']
-                        ]
-                    ],
-                    "pickupType" => "DROPOFF_AT_FEDEX_LOCATION",
-                    "rateRequestType" => ["ACCOUNT"],
-                    "requestedPackageLineItems" => [
-                        [
-                            "weight" => [
-                                "units" => "KG",
-                                "value" => $requestData['weight']
-                            ]
+                "recipient" => [
+                    "address" => [
+                        "postalCode"  => $requestData['postal_code'],
+                        "countryCode" => $requestData['country_code']
+                    ]
+                ],
+                "pickupType" => "DROPOFF_AT_FEDEX_LOCATION",
+                "rateRequestType" => ["ACCOUNT"],
+                "requestedPackageLineItems" => [
+                    [
+                        "weight" => [
+                            "units" => $weightUnits,
+                            "value" => $weightValue
                         ]
                     ]
                 ]
-            ]);
+            ]
+        ];
 
-            if ($response->failed()) {
-                throw new \Exception('FedEx Rate Error: ' . $response->body());
-            }
+        $response = Http::withToken($token)
+            ->post($url, $payload);
 
-            return $response->json();
+        if ($response->failed()) {
+            throw new \Exception('FedEx Rate Error: ' . $response->body());
+        }
+
+        return $response->json();
     }
 
+    // public function getRates($requestData)
+    // {
+    //     $token = $this->getFedExAccessToken(); // get the valid token
+        
+    //     // $url = "https://apis-sandbox.fedex.com/rate/v1/rates/quotes";
+    //     $url = "https://apis.fedex.com/rate/v1/rates/quotes";
+
+    //     $weightValue = 5; //$requestData['weight'];
+    //     $weightUnits = 'LB' ?? 'KG';
+
+    //     $response = Http::withToken($token)
+    //         ->post($url, [
+    //             "accountNumber" => [
+    //                 "value" => env('FEDEX_ACCOUNT_NUMBER')
+    //             ],
+    //             "requestedShipment" => [
+    //                 "shipper" => [
+    //                     "address" => [
+    //                         "postalCode" => "12345",
+    //                         "countryCode" => "US"
+    //                     ]
+    //                 ],
+    //                 "recipient" => [
+    //                     "address" => [
+    //                         "postalCode" => $requestData['postal_code'],
+    //                         "countryCode" => $requestData['country_code']
+    //                     ]
+    //                 ],
+    //                 "pickupType" => "DROPOFF_AT_FEDEX_LOCATION",
+    //                 "rateRequestType" => ["ACCOUNT"],
+    //                 "requestedPackageLineItems" => [
+    //                     [
+    //                         "weight" => [
+    //                             "units" => $weightUnits,
+    //                             "value" => $weightValue,
+    //                         ]
+    //                     ]
+    //                 ]
+    //             ]
+    //         ]);
+
+    //         if ($response->failed()) {
+    //             throw new \Exception('FedEx Rate Error: ' . $response->body());
+    //         }
+
+    //         return $response->json();
+    // }
+
+    
     public function getFedExAccessToken()
     {
-        $response = Http::asForm()->post('https://apis-sandbox.fedex.com/oauth/token', [
-            'grant_type' => 'client_credentials',
-            'client_id' => env('FEDEX_CLIENT_ID'),
+        $response = Http::asForm()->post('https://apis.fedex.com/oauth/token', [
+            'grant_type'    => 'client_credentials',
+            'client_id'     => env('FEDEX_CLIENT_ID'),
             'client_secret' => env('FEDEX_CLIENT_SECRET'),
         ]);
 
         if ($response->failed()) {
-            throw new \Exception('FedEx Auth Failed: ' . $response->body());
+            throw new \Exception('FedEx Auth Error: ' . $response->body());
         }
 
         return $response->json()['access_token'];

@@ -27,6 +27,12 @@ class Product extends Model
         });
     }
 
+    public function pivotCategories()
+    {
+        return $this->belongsToMany(Category::class, 'category_product', 'product_id', 'category_id');
+    }
+
+
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'category_product');

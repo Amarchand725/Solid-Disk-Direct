@@ -18,14 +18,14 @@ class ConvertImagesToWebP extends Command
         $quality = (int) $this->option('quality');
         $manager = new ImageManager(new Driver());
 
-        $sourceDir = storage_path('app/public/uploads/banners');
-        $targetDir = storage_path('app/public/uploads/banners-webp');
+        // $sourceDir = storage_path('app/public/uploads/banners');
+        // $targetDir = storage_path('app/public/uploads/banners-webp');
         
         // $sourceDir = storage_path('app/public/uploads/sliders');
         // $targetDir = storage_path('app/public/uploads/sliders-webp');
         
-        // $sourceDir = storage_path('app/public/uploads/products');
-        // $targetDir = storage_path('app/public/uploads/products-webp');
+        $sourceDir = storage_path('app/public/uploads/products');
+        $targetDir = storage_path('app/public/uploads/products-webp');
 
         if (!File::exists($sourceDir)) {
             $this->error("Source directory not found: $sourceDir");

@@ -3,17 +3,20 @@
 use Carbon\Carbon;
 use App\Models\Menu;
 use App\Models\User;
+use App\Models\Product;
 use App\Models\Setting;
 use App\Models\PaymentMode;
 use App\Models\PaymentType;
 use Illuminate\Support\Str;
+use App\Mail\QuoteRequestMail;
+use App\Mail\ContactSupportMail;
 use App\Mail\OrderConfirmedAdmin;
+use Illuminate\Support\Facades\Log;
 use App\Mail\OrderConfirmedCustomer;
 use App\Models\OrderShippingAddress;
 use Illuminate\Support\Facades\Mail;
 use Spatie\Permission\Models\Permission;
 use App\Notifications\SiteEventNotification;
-use Illuminate\Support\Facades\Log;
 
 function appName(){
     return settings()->name ?? '';
@@ -475,6 +478,21 @@ function sendOrderNotificationAndEmails($order){
     return $bool;
 }
 
+function sendSupportOrContactEmail($emailFrom, $data){
+    $setting = settings();
+    $supportEmail = '';
+    if(!empty($setting) && !empty($setting)){
+        $supportEmail = $setting->support_email;
+    }
+    if(isset($supportEmail) && !empty($supportEmail)){
+        if($emailFrom=='quote'){
+            Mail::to($supportEmail)->send(new QuoteRequestMail($data));
+        }else{
+            Mail::to($supportEmail)->send(new ContactSupportMail($data));
+        }
+    }
+}
+
 if (!function_exists('orderStatus')) {
     function orderStatus()
     {
@@ -527,5 +545,39 @@ if (!function_exists('shippingMethods')) {
             'DHL' => 'DHL',
             'USPS' => 'USPS',
         ];
+    }
+}
+
+if (!function_exists('getWeightOnlyAttribute')) {
+    function getWeightOnlyAttribute($weight)
+    {
+        if (is_null($weight)) {
+            return 0;
+        }
+
+        // Extract the numeric part
+        preg_match('/[\d\.]+/', $weight, $matches);
+        return isset($matches[0]) ? (float) $matches[0] : 0;
+    }
+}
+
+if (!function_exists('getProductShippingWeight')) {
+    function getProductShippingWeight($product_id)
+    {
+        $product = Product::where('id', $product_id)->first();
+        $weight = 0;
+        if (is_null($product) || $product->shipping_weight==null || $product->shipping_weight==0 || $product->shipping_weight=='') {
+            return 0;
+        }else{
+            $weight = $product->shipping_weight;
+        }
+
+        if(is_null($weight)){
+            return 0;
+        }
+
+        // Extract the numeric part
+        preg_match('/[\d\.]+/', $weight, $matches);
+        return isset($matches[0]) ? (float) $matches[0] : 0;
     }
 }

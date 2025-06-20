@@ -16,6 +16,7 @@ class Cart extends Model
         'status',
         'subtotal',
         'total',
+        'shipping_weight',
         'shipping_cost',
         'discount_total',
     ];

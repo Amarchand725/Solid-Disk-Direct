@@ -68,9 +68,11 @@ Route::controller(DeveloperController::class)->group(function () {
     Route::get('/linkProductsToAttributes', 'linkProductsToAttributes');
     Route::get('/getGroupAttribute', 'getGroupAttribute');
     Route::get('/mailTest', 'mailTest');
+    Route::get('/testSupportEmail', 'testSupportEmail');
     Route::get('/pay', 'pay');
     Route::get('/updateThumbnail', 'updateThumbnail');
     Route::get('/countImageExtensions', 'countImageExtensions');
+    Route::get('/fixDuplicateSlugs', 'fixDuplicateSlugs');
 });
 
 //developer

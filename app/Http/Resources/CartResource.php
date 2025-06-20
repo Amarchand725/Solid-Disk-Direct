@@ -20,6 +20,7 @@ class CartResource extends JsonResource
             "status"  => $this->status ?? '',
             "subtotal"  => $this->subtotal ?? '',
             "discount_total"  => $this->discount_total ?? '',
+            "shipping_weight"  => $this->shipping_weight ?? 0,
             "shipping_cost"  => $this->shipping_cost ?? '',
             "tax_rate"  => $this->tax_rate ?? '',
             "tax_amount"  => $this->tax_amount ?? '',

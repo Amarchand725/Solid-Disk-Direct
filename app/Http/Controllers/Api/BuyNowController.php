@@ -26,22 +26,11 @@ class BuyNowController extends Controller
             'slug' => 'required|exists:products,slug',
             'quantity' => 'required|integer|min:1',
         ]);
+        
+        $shippingWeight = 0;
 
         $product = Product::where('slug', $request->slug)->first();
         if(isset($product) && !empty($product)){
-            // $conditions = auth()->check()
-            //     ? ['customer_id' => auth()->id()]
-            //     : ['session_id' => $request->guest_id];
-
-            // $buyNow = $this->model->updateOrCreate($conditions);
-            // $buyNow->fill([
-            //     'product_slug' => $product->slug,
-            //     'quantity'     => $request->input('quantity', 1),
-            //     'unit_price'        => $product->unit_price,
-            //     'total'        => $product->unit_price*$request->input('quantity', 1),
-            // ]);
-            // $buyNow->save();
-
             $conditions = auth()->check()
                 ? ['customer_id' => auth()->id()]
                 : ['session_id' => $request->guest_id];
@@ -49,13 +38,16 @@ class BuyNowController extends Controller
             // Delete existing record if it exists
             $this->model->where($conditions)->delete();
 
+            $shippingWeight = getWeightOnlyAttribute($product->shipping_weight)*$request->quantity;
             // Now create new record
             $buyNow = $this->model->create([
                 ...$conditions,
                 'product_slug' => $product->slug,
-                'quantity'     => $request->input('quantity', 1),
+                'quantity'     => $request->quantity ?? 1,
                 'unit_price'   => $product->unit_price,
-                'total'        => $product->unit_price * $request->input('quantity', 1),
+                'shipping_weight' => $shippingWeight,
+                'subtotal'    => round($product->unit_price * $request->quantity, 2),
+                'total'        => round($product->unit_price * $request->quantity, 2),
             ]);
 
 
@@ -73,7 +65,6 @@ class BuyNowController extends Controller
 
         return response()->json(['success' => true]);
     }
-
     public function getBuyNowData(Request $request)
     {
         $buyNowCart = $this->model->where(function ($query) use ($request) {

@@ -66,7 +66,7 @@
                         <i class="ti ti-shopping-cart ti-sm"></i>
                     </div>
                     <div class="card-info">
-                        <h5 class="mb-0"><?php echo e($totalProducts ?? 0); ?></h5>
+                        <h5 class="mb-0"><?php echo e(formatSales($totalProducts) ?? 0); ?></h5>
                         <small>Products</small>
                     </div>
                     </div>
