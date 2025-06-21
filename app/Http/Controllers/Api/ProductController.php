@@ -253,6 +253,10 @@ class ProductController extends Controller
             ]);
         }
 
+        $perPage = $request->get('per_page', 10);
+        $sortField = $request->get('sort_field', 'created_at');
+        $sortDirection = $request->get('sort_direction', 'desc');
+
         $keyword = trim($request->input('keyword'));
         $query = $this->model->query();
 
@@ -265,15 +269,20 @@ class ProductController extends Controller
             ->orWhere('mpn', 'like', "%{$keyword}%");
         });
 
-        // Optional: paginate or limit
-        $results = $query->limit(10)->get(); // or use ->paginate(10)
+        $products = $query->orderBy($sortField, $sortDirection)->paginate($perPage);
         
-        if ($results->isNotEmpty()) {
+        if ($products->isNotEmpty()) {
             return response()->json([
                 'status' => true,
                 'message' => 'Products found successfully.',
                 'keyword' => $keyword,
-                'data' => $this->productResource->collection($results),
+                'data' => $this->productResource->collection($products),
+                'pagination' => [
+                    'current_page' => $products->currentPage(),
+                    'last_page' => $products->lastPage(),
+                    'per_page' => $products->perPage(),
+                    'total' => $products->total(),
+                ]
             ]);
         }
 
@@ -281,10 +290,10 @@ class ProductController extends Controller
             'status' => false,
             'message' => 'No matching products found.',
             'keyword' => $keyword,
-            'data' => []
+            'data' => [],
+            'pagination' => null
         ]);
     }
-
 
     public function search2(Request $request)
     {
@@ -296,6 +305,10 @@ class ProductController extends Controller
             ]);
         }
 
+        $perPage = $request->get('per_page', 10);
+        $sortField = $request->get('sort_field', 'created_at');
+        $sortDirection = $request->get('sort_direction', 'desc');
+        
         $keyword = trim($request->input('keyword'));
         $query = $this->model->query();
 
@@ -308,15 +321,20 @@ class ProductController extends Controller
             ->orWhere('mpn', 'like', "%{$keyword}%");
         });
 
-        // Optional: paginate or limit
-        $results = $query->paginate(10); // or use ->paginate(10)
+        $products = $query->orderBy($sortField, $sortDirection)->paginate($perPage);
 
-        if ($results->isNotEmpty()) {
+        if ($products->isNotEmpty()) {
             return response()->json([
                 'status' => true,
                 'message' => 'Products found successfully.',
                 'keyword' => $keyword,
-                'data' => $this->productResource->collection($results),
+                'data' => $this->productResource->collection($products),
+                'pagination' => [
+                    'current_page' => $products->currentPage(),
+                    'last_page' => $products->lastPage(),
+                    'per_page' => $products->perPage(),
+                    'total' => $products->total(),
+                ]
             ]);
         }
 
@@ -329,31 +347,22 @@ class ProductController extends Controller
     }
     public function getByAttributeValue(Request $request, $attributeSlug)
     {
-        $perPage = $request->get('per_page', 10);
+        $perPage = $request->get('per_page') ?? $request->get('perPage', 10);
         $sortField = $request->get('sort_field', 'created_at');
         $sortDirection = $request->get('sort_direction', 'desc');
-        $search = $request->get('search');
-        
-        $category = '';
+
+        $category = null;
         $attrVal = AttributeValue::where('value', $attributeSlug)->first();
-        if(isset($attrVal->attributeGroup) && !empty($attrVal->attributeGroup)){
+        if ($attrVal && $attrVal->attributeGroup) {
             $attributeGroup = $attrVal->attributeGroup;
-        }
-        if(isset($attributeGroup) && !empty($attributeGroup->name)){
             $category = Category::where('name', $attributeGroup->name)->first();
         }
 
         $keyword = trim($attributeSlug);
-
-        // Split the keyword by non-alphanumeric characters (like dash, space, etc.)
-        $tokens = preg_split('/[^a-zA-Z0-9]+/', $keyword);
-
-        // Remove empty tokens
-        $tokens = array_filter($tokens);
+        $tokens = array_filter(preg_split('/[^a-zA-Z0-9]+/', $keyword));
 
         $query = $this->model->query();
 
-        // Flexible multi-token search
         $query->where(function ($q) use ($tokens) {
             foreach ($tokens as $token) {
                 $q->orWhere(function ($subQ) use ($token) {
@@ -366,27 +375,26 @@ class ProductController extends Controller
             }
         });
 
-        // Optional: paginate or limit
-        $results = $query->paginate(10);
+        $products = $query->orderBy($sortField, $sortDirection)->paginate($perPage);
 
         $data = [
             'keyword' => $keyword,
-            'category' => new $this->categoryResource($category),
-            'products' => $this->productResource->collection($results),
+            'category' => $category ? new $this->categoryResource($category) : null,
+            'products' => $this->productResource->collection($products),
+            'pagination' => [
+                'current_page' => $products->currentPage(),
+                'last_page' => $products->lastPage(),
+                'per_page' => $products->perPage(),
+                'total' => $products->total(),
+            ]
         ];
 
-        if ($results->isNotEmpty()) {
-            return response()->json([
-                'status' => true,
-                'message' => 'Products found successfully.',
-                'data' => $data,
-            ]);
-        }
-
         return response()->json([
-            'status' => false,
-            'message' => 'No matching products found.',
-            'data' => []
+            'status' => $products->isNotEmpty(),
+            'message' => $products->isNotEmpty()
+                ? 'Products found successfully.'
+                : 'No matching products found.',
+            'data' => $data, 
         ]);
     }
 }

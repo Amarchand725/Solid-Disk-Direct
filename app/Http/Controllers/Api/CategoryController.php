@@ -208,103 +208,83 @@ class CategoryController extends Controller
         }
     }
     public function top(){
-        $desiredCategories = [
-            'Server Hard Drives',
-            'Power Supplies',
-            'Switches',
-            'Solid State Drives'
-        ];
+        // $categories = $this->model
+        //     ->where('is_top', 1)
+        //     ->where('status', 1)
+        //     ->with('childrenRecursive')
+        //     ->get();
 
-        $categories = $this->model->with([]) // no eager loading here
-        ->whereIn('name', $desiredCategories)
-        ->where('is_top', 1)
-        ->where('status', 1)
-        ->orderByRaw("FIELD(name, '" . implode("','", $desiredCategories) . "')")
-        ->get();
+        // $processed = $categories->map(function ($category) {
+        //     // Step 1: Gather all category IDs recursively
+        //     $allCategoryIds = collect([$category->id]);
 
-        foreach ($categories as $category) {
-            $category->limitedProducts = $category->products()
-                ->where('status', 1)
-                ->where('unit_price', '>', 0)
-                ->orderByDesc('id')
-                ->get()
-                ->filter(function ($product) {
-                    return $product->thumbnail && file_exists(public_path('storage/' . $product->thumbnail));
-                })
-                ->take(4)
-                ->values(); // reset keys
-        }
+        //     $gatherIds = function ($children) use (&$gatherIds, &$allCategoryIds) {
+        //         foreach ($children as $child) {
+        //             $allCategoryIds->push($child->id);
+        //             if ($child->childrenRecursive) {
+        //                 $gatherIds($child->childrenRecursive);
+        //             }
+        //         }
+        //     };
 
+        //     $gatherIds($category->childrenRecursive);
 
-        $models = $this->model->with('limitedProducts')->where('is_top', 1)
-            ->where('status', 1)
-            ->orderBy('id', 'desc')
-            ->get();
-
-        // foreach ($models as $category) {
-        //     $category->limitedProducts = $category->products()
+        //     // Step 2: Query products for all collected category IDs
+        //     $products = Product::whereIn('category', $allCategoryIds)
         //         ->where('status', 1)
-        //         ->orderByDesc('id')
-        //         ->limit(4)
-        //         ->get();
-        // }
-
-        // $models = $this->model
-        // ->where('is_top', 1)
-        // ->where('status', 1)
-        // ->with(['limitedProducts' => function ($query) {
-        //     $query->where('status', 1)
-        //         ->orderByDesc('id');
-        // }])
-        // ->orderByDesc('id')
-        // ->get()
-        // ->filter(function ($category) {
-        //     // Filter products with valid thumbnails
-        //     $validProducts = $category->limitedProducts
-        //         ->filter(function ($product) {
-        //             return !empty($product->thumbnail)
-        //                 && Storage::disk('public')->exists($product->thumbnail);
-        //         });
-
-        //     // Only keep categories with at least one valid product
-        //     if ($validProducts->isNotEmpty()) {
-        //         $category->setRelation('limitedProducts', $validProducts->take(4)->values());
-        //         return true;
-        //     }
-
-        //     return false;
-        // })
-        // ->values(); // Reindex the collection
-
-        // $models = $this->model->where('is_top', 1)
-        // ->where('status', 1)
-        // ->orderByDesc('id')
-        // ->get()
-        // ->filter(function ($category) {
-        //     // Get products first
-        //     $products = $category->limitedProducts()
-        //         ->where('status', 1)
-        //         ->orderByDesc('id')
+        //         ->whereNotNull('unit_price')
+        //         ->where('unit_price', '>', 0)
+        //         ->orderByDesc('unit_price')
         //         ->get()
         //         ->filter(function ($product) {
-        //             return !empty($product->thumbnail) && Storage::disk('public')->exists($product->thumbnail);
+        //             return $product->thumbnail && Storage::disk('public')->exists($product->thumbnail);
         //         });
-    
-        //     // Only keep brands that have at least 1 product with valid thumbnail
-        //     if ($products->isNotEmpty()) {
-        //         // Set the relation with up to 4 valid products
-        //         $category->setRelation('limitedProducts', $products->take(4)->values());
-        //         return true;
-        //     }
-    
-        //     return false; // Exclude brand
-        // })->values(); // Reindex the result
 
-        if ($models->count()) {
+        //     if ($products->isEmpty()) {
+        //         return null; // skip this category if no valid products
+        //     }
+
+        //     // Step 3: Attach products + price info
+        //     $category->setRelation('limitedProducts', $products->take(4)->values());
+        //     $category->max_unit_price = $products->max('unit_price');
+
+        //     return $category;
+        // })->filter()->values(); // remove nulls
+
+        // $finalCategories = $processed->sortByDesc('max_unit_price')->take(10)->values();
+
+
+        $categories = $this->model
+            ->where('is_top', 1)
+            ->where('status', 1)
+            ->get();
+
+        // Step 1: Filter categories by valid products (unit_price > 0 + thumbnail exists)
+        $filtered = $categories->map(function ($category) {
+            $products = $category->limitedProducts()
+                ->orderByDesc('unit_price') // Sort by price (highest first)
+                ->get()
+                ->filter(function ($product) {
+                    return $product->thumbnail && Storage::disk('public')->exists($product->thumbnail);
+                });
+
+            if ($products->isNotEmpty()) {
+                $category->setRelation('limitedProducts', $products->take(4)->values());
+                $category->max_unit_price = $products->max('unit_price'); // attach max price for sorting
+                return $category;
+            }
+
+            return null;
+        })->filter()->values(); // remove nulls, reindex
+
+        // Step 2: Sort by max product unit price DESC
+        $finalCategories = $filtered->sortByDesc('max_unit_price')->take(10)->values();
+
+        if ($finalCategories->count()) {
             return response()->json([
                 'status' => true,
                 'message' => 'Data found successfully.',
-                'data' => $this->modelResource->collection($models)
+                'data' => $this->modelResource->collection($finalCategories)
             ]);
         } else {
             return response()->json([
@@ -322,7 +302,6 @@ class CategoryController extends Controller
         $sortDirection = $request->get('sort_direction', 'desc');
         $search = $request->get('search');
         
-        // $category = $this->model->where('slug', $categorySlug)->first();
         $category = $this->model->with('children')->where('slug', $categorySlug)->first();
         $categoryIds = [];
         if (isset($category->children) && !empty($category->children) && $category->children->count() > 0) {
@@ -364,36 +343,5 @@ class CategoryController extends Controller
                 'pagination' => null
             ]);
         }
-        
-        // if(!empty($category)){
-        //     $query = $category->products()
-        //         ->with('hasBrand', 'hasProductCondition')
-        //         ->where('status', 1);
-
-        //     if ($search) {
-        //         $query->where('name', 'like', "%$search%");
-        //     }
-
-        //     $products = $query->orderBy($sortField, $sortDirection)->paginate($perPage);
-
-        //     return response()->json([
-        //         'status' => true,
-        //         'message' => 'Data found successfully.',
-        //         'data' => $this->productResource->collection($products), // transformed items
-        //         'pagination' => [
-        //             'current_page' => $products->currentPage(),
-        //             'last_page' => $products->lastPage(),
-        //             'per_page' => $products->perPage(),
-        //             'total' => $products->total(),
-        //         ]
-        //     ]);
-        // } else {
-        //     return response()->json([
-        //         'status' => false,
-        //         'message' => 'No data found.',
-        //         'data' => [],
-        //         'pagination' => null
-        //     ]);
-        // }
     }
 }

@@ -66,8 +66,13 @@ class OrderController extends Controller
         
         DB::beginTransaction();
         try {
+            $orderNumber = null;
+            do {
+                $orderNumber = 'ORD' . strtoupper(substr(bin2hex(random_bytes(2)), 0, 5));
+            } while (Order::where('order_number', $orderNumber)->exists());
+
             $order = $this->orderModel;
-            $order->order_number = 'ORD' . strtoupper(substr(bin2hex(random_bytes(2)), 0, 5));
+            $order->order_number = $orderNumber;
             $order->customer_id = auth()->check() ? auth()->id() : null;
 
             if(!isset($buyNowProduct) && empty($buyNowProduct)){

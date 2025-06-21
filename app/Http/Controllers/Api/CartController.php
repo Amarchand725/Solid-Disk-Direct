@@ -403,7 +403,6 @@ class CartController extends Controller
             ]);
         }
     }
-    
     public function updateTax(Request $request)
     {
         $request->validate([
@@ -525,7 +524,6 @@ class CartController extends Controller
             'percent' => $country->percent ?? null
         ];
     }
-
     public function clearCharges(Request $request)
     {
         $request->validate([
@@ -605,5 +603,4 @@ class CartController extends Controller
             ], 500);
         }
     }
-
 }
