@@ -18,8 +18,8 @@ class ProductsExport implements FromCollection, WithHeadings, WithMapping
         ->whereNotNull('thumbnail')
         ->where('unit_price', '>=', 100)
         ->orderBy('id')
-        ->skip(1000) // 1 - 1
-        ->take(50000)
+        // ->skip(1000) // 1 - 1
+        // ->take(50000)
         ->get()
         ->filter(function ($product) {
             // Check if the file exists in storage/app/public/

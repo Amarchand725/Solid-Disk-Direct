@@ -877,75 +877,6 @@ class DeveloperController extends Controller
       return $toInsert;
   }
 
-
-
-    // public function linkProductsToAttributes(){
-    //   // Get group → attribute IDs
-    //   $groupAttributes = DB::table('attribute_group_values')
-    //     ->get()
-    //     ->groupBy('attribute_group_id')
-    //     ->map(function ($items) {
-    //         return $items->pluck('attribute_id')->unique()->toArray();
-    //     });
-
-    //   // Get attribute ID → value IDs
-    //   $attributeValues = DB::table('attribute_values')
-    //     ->get()
-    //     ->groupBy('attribute_id')
-    //     ->map(function ($items) {
-    //         return $items->pluck('id')->toArray();
-    //     });
-
-    //   $groupNameToId = DB::table('attribute_groups')->pluck('id', 'name'); // 'Memory' => 1, etc.
-    //   $categoryNameToId = DB::table('categories')->pluck('id', 'name');    // 'Memory' => 10, etc.
-
-    //   // dd($groupAttributes, $attributeValues, $groupNameToId, $categoryNameToId);
-
-    //   $categoryToAttributeValueIds = [];
-
-    //   foreach ($categoryNameToId as $categoryName => $categoryId) {
-    //       if (!isset($groupNameToId[$categoryName])) continue;
-
-    //       $groupId = $groupNameToId[$categoryName];
-
-    //       $attributeIds = $groupAttributes[$groupId] ?? [];
-
-    //       foreach ($attributeIds as $attributeId) {
-    //           $valueIds = $attributeValues[$attributeId] ?? [];
-    //           foreach ($valueIds as $valId) {
-    //               $categoryToAttributeValueIds[$categoryId][] = $valId;
-    //           }
-    //       }
-    //   }
-
-    //   $productCategories = DB::table('category_product')->get(); // product_id, category_id
-    //   $toInsert = [];
-
-    //   foreach ($productCategories as $pc) {
-    //       $productId = $pc->product_id;
-    //       $categoryId = $pc->category_id;
-    //       $valueIds = $categoryToAttributeValueIds[$categoryId] ?? [];
-    //       // dd($productId, $categoryId, $valueIds);
-
-    //       foreach ($valueIds as $valueId) {
-    //           $toInsert[] = [
-    //               'product_id' => $productId,
-    //               'attribute_value_id' => $valueId,
-    //           ];
-
-    //           if (count($toInsert) >= 1000) {
-    //               DB::table('product_attributes')->insertOrIgnore($toInsert);
-    //               $toInsert = [];
-    //           }
-    //       }
-    //   }
-
-    //   if (count($toInsert)) {
-    //       DB::table('product_attributes')->insertOrIgnore($toInsert);
-    //   }
-    //   return $toInsert;
-    // }
-
     public function getGroupAttribute(){
       $attributeSlug = '128GB';
       $attrValue = AttributeValue::with(['attribute', 'attributeGroup'])->where('value', $attributeSlug)->first();
@@ -1041,7 +972,6 @@ class DeveloperController extends Controller
 
         // Get files (non-recursive)
         $files = Storage::files($folderPath);
-
         foreach ($files as $file) {
             $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
             if (in_array($ext, $extensions)) {

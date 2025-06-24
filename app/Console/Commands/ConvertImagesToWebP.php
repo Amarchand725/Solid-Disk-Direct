@@ -37,7 +37,6 @@ class ConvertImagesToWebP extends Command
         }
 
         $imageFiles = File::allFiles($sourceDir);
-
         foreach ($imageFiles as $file) {
             $path = $file->getPathname();
             $extension = strtolower($file->getExtension());
@@ -55,12 +54,51 @@ class ConvertImagesToWebP extends Command
                 // Ensure subdirectories are created
                 File::ensureDirectoryExists(dirname($webpPath));
 
+                // Avoid overwriting existing WebP files
+                if (File::exists($webpPath)) {
+                    $this->line("Skipped (already exists): " . str_replace(base_path(), '', $webpPath));
+                    continue;
+                }
+
+                // Convert and save as webp
                 $image->toWebp()->save($webpPath, $quality);
                 $this->info("Converted: " . str_replace(base_path(), '', $webpPath));
+
+                // ✅ Delete the original after successful conversion
+                if (in_array($extension, ['jpg', 'jpeg', 'png'])) {
+                    File::delete($path);
+                    $this->line("Deleted original: " . str_replace(base_path(), '', $path));
+                }
+
             } catch (\Exception $e) {
                 $this->error("Failed to convert: $path. Error: " . $e->getMessage());
             }
         }
+
+
+        // foreach ($imageFiles as $file) {
+        //     $path = $file->getPathname();
+        //     $extension = strtolower($file->getExtension());
+
+        //     if (!in_array($extension, ['jpg', 'jpeg', 'png'])) {
+        //         continue;
+        //     }
+
+        //     try {
+        //         $image = $manager->read($path);
+
+        //         $relativePath = str_replace($sourceDir, '', $path);
+        //         $webpPath = $targetDir . DIRECTORY_SEPARATOR . preg_replace('/\.(jpg|jpeg|png)$/i', '.webp', ltrim($relativePath, DIRECTORY_SEPARATOR));
+
+        //         // Ensure subdirectories are created
+        //         File::ensureDirectoryExists(dirname($webpPath));
+
+        //         $image->toWebp()->save($webpPath, $quality);
+        //         $this->info("Converted: " . str_replace(base_path(), '', $webpPath));
+        //     } catch (\Exception $e) {
+        //         $this->error("Failed to convert: $path. Error: " . $e->getMessage());
+        //     }
+        // }
 
         $this->info("✅ WebP conversion complete.");
     }

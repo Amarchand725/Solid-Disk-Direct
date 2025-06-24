@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Support\Str;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,8 +19,21 @@ class Product extends Model
     {
         parent::boot();
 
+        // static::creating(function ($model) {
+        //     $model->slug = Str::slug($model->title);
+        // });
+
         static::creating(function ($model) {
-            $model->slug = Str::slug($model->title);
+            $slug = Str::slug($model->title);
+            $originalSlug = $slug;
+            $count = 1;
+
+            // Check if slug exists in the `products` table
+            while (DB::table('products')->where('slug', $slug)->exists()) {
+                $slug = $originalSlug . '-' . $count++;
+            }
+
+            $model->slug = $slug;
         });
 
         static::updating(function ($model) {

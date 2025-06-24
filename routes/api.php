@@ -26,7 +26,8 @@ use App\Http\Controllers\Api\{
     LocationController,
     PaypalController,
     ConfigController,
-    BuyNowController
+    BuyNowController,
+    SitemapController
 };
 
 /*
@@ -189,4 +190,13 @@ Route::controller(ConfigController::class)->group(function () {
     Route::get('/config/categories', 'getCategories');
     Route::get('/config/product-lines', 'getProductLines');
     Route::get('/config/products', 'getProducts');
+});
+
+Route::controller(SitemapController::class)->group(function () {
+    Route::get('/sitemap.xml', 'index');
+    Route::get('/sitemap-static.xml', 'static');
+    Route::get('/sitemap-products-{chunk}.xml', 'productChunk')->where('chunk', '[0-9]+');
+    Route::get('/sitemap-categories.xml', 'categories');
+    Route::get('/sitemap-brands.xml', 'brands');
+    Route::get('/sitemap-blogs.xml', 'blogs');
 });

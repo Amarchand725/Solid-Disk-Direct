@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Slider;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SliderResource;
 
@@ -19,7 +20,12 @@ class SliderController extends Controller
     }
 
     public function index(){
-        $models = $this->model->select('id', 'title', 'slug', 'image', 'status', 'description')->where('status', 1)->orderBy('id', 'desc')->get();
+        // $models = $this->model->select('id', 'title', 'slug', 'image', 'status', 'description')->where('status', 1)->orderBy('id', 'desc')->get();
+        $models = DB::table('sliders')
+            ->select('id', 'title', 'slug', 'image', 'status', 'description')
+            ->where('status', 1)
+            ->orderBy('id', 'desc')
+            ->get();
 
         if ($models->count()) {
             return response()->json([
