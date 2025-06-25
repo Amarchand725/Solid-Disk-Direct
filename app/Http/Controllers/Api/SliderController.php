@@ -22,10 +22,11 @@ class SliderController extends Controller
     public function index(){
         // $models = $this->model->select('id', 'title', 'slug', 'image', 'status', 'description')->where('status', 1)->orderBy('id', 'desc')->get();
         $models = DB::table('sliders')
-            ->select('id', 'title', 'slug', 'image', 'status', 'description')
-            ->where('status', 1)
-            ->orderBy('id', 'desc')
-            ->get();
+                ->select('id', 'title', 'slug', 'image', 'status', 'description')
+                ->where('status', 1)
+                ->whereNull('deleted_at') // Exclude soft-deleted records
+                ->orderBy('id', 'desc')
+                ->get();
 
         if ($models->count()) {
             return response()->json([
