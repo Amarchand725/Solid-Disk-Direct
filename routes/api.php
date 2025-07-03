@@ -26,7 +26,8 @@ use App\Http\Controllers\Api\{
     LocationController,
     PaypalController,
     ConfigController,
-    BuyNowController
+    BuyNowController,
+    SitemapController
 };
 
 /*
@@ -39,6 +40,10 @@ use App\Http\Controllers\Api\{
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+Route::get('/health-check', function () {
+    return response()->json(['status' => 'ok']);
+});
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -82,14 +87,18 @@ Route::controller(ProductController::class)->group(function () {
     Route::get('products/recent-viewed', 'recentViewed')->name('products.recent-viewed');
     Route::get('products/best-selling', 'bestSelling')->name('products.best-selling');
     Route::get('products/top-rated', 'topRated')->name('products.top-rated');
+    // Route::get('products/{categorySlugChain}/{slug}', 'show')
+    // ->where([
+    //     'categorySlugChain' => '([a-z0-9\-\/]+)',
+    //     'slug' => '[a-z0-9\-]+',
+    // ]);
+
     Route::get('products/{categorySlugChain}/{slug}', 'show')
-    ->where([
-        'categorySlugChain' => '([a-z0-9\-\/]+)',
-        'slug' => '[a-z0-9\-]+',
-    ]);
+    ->where('categorySlugChain', '.*');
+
     Route::get('products/search', 'search')->name('products.search');
     Route::get('products/search2', 'search2')->name('products.search2');
-    Route::get('products/attribute/{attributeSlug}', 'getByAttributeValue');
+    Route::get('attribute/products/{attributeSlug}', 'getByAttributeValue');
 });
 Route::controller(TestimonialController::class)->group(function () {
     Route::get('testimonials', 'index')->name('testimonials');
@@ -153,14 +162,16 @@ Route::controller(CartController::class)->group(function () {
     Route::put('/cart/increase', 'increaseQuantity');
     Route::put('/cart/decrease', 'decreaseQuantity');
     Route::delete('/cart/remove', 'removeItem');
-    Route::post('/cart/clear', 'clearCart');
+    Route::delete('/cart/clear', 'clearCart');
     Route::put('/cart/update-shipping', 'updateShipping');
     Route::put('/cart/update-tax', 'updateTax');
+    Route::put('/cart/clear-charges', 'clearCharges');
 });
 
 Route::controller(BuyNowController::class)->group(function () {
     Route::post('/buy-now', 'store');
     Route::get('/buy-now-data', 'getBuyNowData');
+    Route::post('/buy-now/update-shipping-tax', 'updateBuyNowShippingTax');
     Route::post('/buy-now-clear', 'clear');
 });
 
@@ -179,4 +190,13 @@ Route::controller(ConfigController::class)->group(function () {
     Route::get('/config/categories', 'getCategories');
     Route::get('/config/product-lines', 'getProductLines');
     Route::get('/config/products', 'getProducts');
+});
+
+Route::controller(SitemapController::class)->group(function () {
+    Route::get('/sitemap.xml', 'index');
+    Route::get('/sitemap-static.xml', 'static');
+    Route::get('/sitemap-products-{chunk}.xml', 'productChunk')->where('chunk', '[0-9]+');
+    Route::get('/sitemap-categories.xml', 'categories');
+    Route::get('/sitemap-brands.xml', 'brands');
+    Route::get('/sitemap-blogs.xml', 'blogs');
 });

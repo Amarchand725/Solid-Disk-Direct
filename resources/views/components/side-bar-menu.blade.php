@@ -132,9 +132,36 @@
             </ul>
         </li>
       @endcanany
+      @canany(['purchase_orders-list'])
+        <li class="menu-header small text-uppercase">
+          <span class="menu-header-text">Purchase Orders</span>
+        </li>
+        <li class="menu-item
+            {{
+                request()->is('purchase_orders')
+                ?'open active':''
+            }}
+        ">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+              <i class="menu-icon tf-icons ti ti-file"></i>
+              <div data-i18n="Purchase Orders">Purchase Orders</div>
+            </a>
+            <ul class="menu-sub">
+                @can('purchase_orders-list')
+                <li class="menu-item {{ request()->is('purchase_orders') ?'active':'' }}">
+                  <a href="{{ route('purchase_orders.index') }}" class="menu-link"  >  
+                      <div>All Purchase Orders</div>
+                  </a>
+                </li>
+                @endcan
+            </ul>
+        </li>
+      @endcanany
 
       @php 
         $menuGroups = getDynamicMenuGroups();
+
+        
       @endphp 
 
       <li class="menu-header small text-uppercase">
@@ -143,10 +170,16 @@
       @foreach ($menuGroups as $menuGroup)  
         @php
           $menus = $menuGroup['has_child_menus'];
+          // Build an array of permissions, e.g., ['categories-list', 'brands-list']
+          $permissions = array_map(function ($menu) {
+              $pluralMenu = str_replace('-', '_', Str::kebab(Str::plural($menu)));
+              return $pluralMenu . '-list';
+          }, $menus);
         @endphp
 
         <!-- Top-level menu item to group all dynamic menus -->
         @if(isset($menus) && !empty($menus))
+          @canany($permissions)
           <li class="menu-item
               {{
                 in_array(request()->path(), array_map(fn($menu) => str_replace('-', '_', Str::kebab(Str::plural($menu))), $menus)) ? 'open active' : ''
@@ -175,6 +208,7 @@
                 @endforeach
               </ul>
           </li>
+          @endcanany
         @endif
       @endforeach
     </ul>

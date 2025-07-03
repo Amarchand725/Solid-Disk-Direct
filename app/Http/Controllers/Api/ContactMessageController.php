@@ -48,6 +48,19 @@ class ContactMessageController extends Controller
                     $url = route('contact_messages.index');
                     $admin->notify(new SiteEventNotification('contact-us.png', 'New message of ', "{$request->name} has received.", $url));
                 }
+
+                $data = [
+                    'name' => $model->name ?? '',
+                    'email' => $model->email ?? '',
+                    'phone' => $model->phone ?? '',
+                    'subject' => $model->subject ?? '',
+                    'message' => $model->message ?? '',
+                ];
+
+                $emailFrom = 'contact-support';
+                //sending email to support
+                sendSupportOrContactEmail($emailFrom, $data);
+
                 $message = 'We have received your message.! We will contact you soon!';
                 return $this->success(null, $message, 200);
             }else{

@@ -3,11 +3,15 @@
 use Carbon\Carbon;
 use App\Models\Menu;
 use App\Models\User;
+use App\Models\Product;
 use App\Models\Setting;
 use App\Models\PaymentMode;
 use App\Models\PaymentType;
 use Illuminate\Support\Str;
+use App\Mail\QuoteRequestMail;
+use App\Mail\ContactSupportMail;
 use App\Mail\OrderConfirmedAdmin;
+use Illuminate\Support\Facades\Log;
 use App\Mail\OrderConfirmedCustomer;
 use App\Models\OrderShippingAddress;
 use Illuminate\Support\Facades\Mail;
@@ -450,17 +454,130 @@ function sendOrderNotificationAndEmails($order){
     if(!empty($admin)){
         $url = route('orders.index');
         $admin->notify(new SiteEventNotification('subscribe.png', 'New Order Placed', "{$customerName} has placed order.", $url));
-
-        //order confirm email
-        Mail::to('order@soliddiskdirect.com')->queue(new OrderConfirmedAdmin($order));
+    }
+    //order confirm email
+    try {
+        Mail::to('orders@soliddiskdirect.com')->send(new OrderConfirmedAdmin($order));
         $bool = true;
+    } catch (\Exception $e) {
+        // Log error or notify admin
+        Log::error('Customer Order Mail for admin failed: ' . $e->getMessage());
     }
 
     //order confirm customer email
     if(isset($shipping->email) && !empty($shipping->email)){
-        Mail::to($shipping->email)->queue(new OrderConfirmedCustomer($order));
-        $bool = true;
+        try {
+            Mail::to($shipping->email)->send(new OrderConfirmedCustomer($order));
+            $bool = true;
+        } catch (\Exception $e) {
+            // Log error or notify admin
+            Log::error('Customer Order Mail for customer failed: ' . $e->getMessage());
+        }
     }
 
     return $bool;
+}
+
+function sendSupportOrContactEmail($emailFrom, $data){
+    $setting = settings();
+    $supportEmail = '';
+    if(!empty($setting) && !empty($setting)){
+        $supportEmail = $setting->support_email;
+    }
+    if(isset($supportEmail) && !empty($supportEmail)){
+        if($emailFrom=='quote'){
+            Mail::to($supportEmail)->send(new QuoteRequestMail($data));
+        }else{
+            Mail::to($supportEmail)->send(new ContactSupportMail($data));
+        }
+    }
+}
+
+if (!function_exists('orderStatus')) {
+    function orderStatus()
+    {
+        return [
+            'pending' => [
+                'label' => 'Pending',
+                'class' => 'secondary',
+                'badge' => 'bg-warning text-dark'
+            ],
+            'confirmed' => [
+                'label' => 'Confirmed',
+                'class' => 'primary',
+                'badge' => 'bg-primary'
+            ],
+            'shipped' => [
+                'label' => 'Shipped',
+                'class' => 'info',
+                'badge' => 'bg-info'
+            ],
+            'out_for_delivered' => [
+                'label' => 'Out for delivery',
+                'class' => 'info',
+                'badge' => 'bg-info'
+            ],
+            'delivered' => [
+                'label' => 'Delivered',
+                'class' => 'success',
+                'badge' => 'bg-success'
+            ],
+            'cancelled' => [
+                'label' => 'Cancelled',
+                'class' => 'danger',
+                'badge' => 'bg-danger'
+            ],
+            'returned' => [
+                'label' => 'Returned',
+                'class' => 'warning',
+                'badge' => 'bg-warning'
+            ],
+        ];
+    }
+}
+
+if (!function_exists('shippingMethods')) {
+    function shippingMethods()
+    {
+        return [
+            'FedEx' => 'FedEx',
+            'UPS' => 'UPS',
+            'DHL' => 'DHL',
+            'USPS' => 'USPS',
+        ];
+    }
+}
+
+if (!function_exists('getWeightOnlyAttribute')) {
+    function getWeightOnlyAttribute($weight)
+    {
+        if (is_null($weight)) {
+            return 0;
+        }
+
+        // Extract the numeric part
+        preg_match('/[\d\.]+/', $weight, $matches);
+        return isset($matches[0]) ? (float) $matches[0] : 0;
+    }
+}
+
+if (!function_exists('getProductShippingWeight')) {
+    function getProductShippingWeight($product_id)
+    {
+        $product = Product::where('id', $product_id)->first();
+        $weight = 0;
+        if (is_null($product) || $product->shipping_weight==null || $product->shipping_weight==0 || $product->shipping_weight=='') {
+            return 0;
+        }else{
+            $weight = $product->shipping_weight;
+        }
+
+        if(is_null($weight)){
+            return 0;
+        }
+
+        // Extract the numeric part
+        preg_match('/[\d\.]+/', $weight, $matches);
+        return isset($matches[0]) ? (float) $matches[0] : 0;
+    }
 }

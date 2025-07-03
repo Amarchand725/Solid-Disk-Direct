@@ -1,0 +1,277 @@
+<div class="invoice-box">
+    <div class="print-top-spacing"></div>
+    <div class="invoice-print-area">
+        <div class="no-print" style="text-align: right; margin-bottom: 20px;">
+            <a href="<?php echo e(route('download.invoice', $order->id)); ?>" style="padding: 8px 16px; font-size: 14px; background-color: #036; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Print Invoice
+            </a>
+        </div>
+
+        <div class="header mt-4">
+            <div class="logo" style="width: 50%;">
+                <?php if(isset(settings()->black_logo) && !empty(settings()->black_logo)): ?>
+                    <img src="<?php echo e(asset('storage').'/'.settings()->black_logo); ?>" style="width: 100%; max-width: 180px;" alt="<?php echo e(settings()->name); ?>" />
+                <?php else: ?>
+                    <img src="<?php echo e(asset('storage/images/default.png')); ?>" style="width: 100%; max-width: 180px;" alt="Default" />
+                <?php endif; ?>
+                <div style="margin-top: 10px; font-size: 13px; color: #555; text-decoration: none;">
+                    <p style="margin: 4px 0;"><strong>Address:</strong> <?php echo e(settings()->address); ?></p>
+                </div>
+            </div>
+
+            <div class="invoice-info" style="width: 50%; text-align: right;">
+                <h2 style="margin: 0;">Order Invoice</h2>
+                <p style="margin: 5px 0;"><strong>Invoice #:</strong> <?php echo e($order->order_number); ?></p>
+                <p style="margin: 0;"><strong>Date:</strong> <?php echo e($order->created_at->format('d M Y')); ?></p>
+            </div>
+        </div>
+
+        <div class="info-block">
+            <div class="info-box">
+                <h3>Shipping To</h3>
+                <?php if(isset($order->shipping)): ?>
+                    <p>
+                        <?php echo e(!empty($order->shipping->first_name) ? $order->shipping->first_name : '-'); ?> <?php echo e($order->shipping->last_name ?? ''); ?><br>
+                        <?php echo e(!empty($order->shipping->address) ? $order->shipping->address. ',' : '-'); ?> <br />
+                        <?php if(isset($order->shipping->getState) && !empty($order->shipping->getState->name)): ?>
+                            <?php echo e($order->shipping->getState->name ?? '-'); ?>, 
+                        <?php endif; ?>
+                        <?php if(isset($order->shipping->getCity) && !empty($order->shipping->getCity->name)): ?>
+                            <?php echo e($order->shipping->getCity->name ?? ''); ?>,
+                        <?php endif; ?>
+                        
+                        <?php echo e(!empty($order->shipping->zip) ? $order->shipping->zip. ',' : ''); ?>
+
+                        <br>
+                        <?php echo e(!empty($order->shipping->email) ? $order->shipping->email : '-'); ?><br>
+                        <?php echo e(!empty($order->shipping->phone) ? $order->shipping->phone : '-'); ?>
+
+                    </p>
+                <?php endif; ?>
+            </div>
+            <div class="info-box">
+                <h3>Billing Address</h3>
+                <?php if(isset($order->billing)): ?>
+                    <p>
+                        <?php echo e(!empty($order->billing->first_name) ? $order->billing->first_name : '-'); ?> <?php echo e($order->billing->last_name ?? ''); ?><br>
+                        <?php echo e(!empty($order->billing->address) ? $order->billing->address. ',' : '-'); ?> <br />
+                        <?php if(isset($order->billing->getState) && !empty($order->billing->getState->name)): ?>
+                            <?php echo e($order->billing->getState->name ?? '-'); ?>, 
+                        <?php endif; ?>
+                        <?php if(isset($order->billing->getCity) && !empty($order->billing->getCity->name)): ?>
+                            <?php echo e($order->billing->getCity->name ?? ''); ?>,
+                        <?php endif; ?>
+                        
+                        <?php echo e(!empty($order->billing->zip) ? $order->billing->zip. ',' : ''); ?><br>
+                        <?php echo e(!empty($order->billing->email) ? $order->billing->email : '-'); ?><br>
+                        <?php echo e(!empty($order->billing->phone) ? $order->billing->phone : '-'); ?>
+
+                    </p>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif;">
+            <thead>
+                <tr>
+                    <th style="background-color: #036; color: #ffffff; padding: 8px;">SL</th>
+                    <th style="background-color: #036; color: #ffffff; padding: 8px;">Part Number</th>
+                    <th style="background-color: #036; color: #ffffff; padding: 8px;">Item Description</th>
+                    <th style="background-color: #036; color: #ffffff; padding: 8px; text-align: right;">Qty</th>
+                    <th style="background-color: #036; color: #ffffff; padding: 8px; text-align: right;">Unit Price</th>
+                    <th style="background-color: #036; color: #ffffff; padding: 8px; text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php $__currentLoopData = $order->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <tr>
+                        <td style="padding: 8px;"><?php echo e($index + 1); ?></td>
+                        <td style="padding: 8px;"><?php echo e($item->product->mpn ?? '-'); ?></td>
+                        <td style="padding: 8px;"><?php echo e($item->product->title ?? '-'); ?></td>
+                        <td style="padding: 8px; text-align: right;"><?php echo e($item->quantity); ?></td>
+                        <td style="padding: 8px; text-align: right;"><?php echo e(currency()); ?><?php echo e(number_format($item->unit_price, 2)); ?></td>
+                        <td style="padding: 8px; text-align: right;"><?php echo e(currency()); ?><?php echo e(number_format($item->sub_total, 2)); ?></td>
+                    </tr>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
+                <!-- Optional spacing row -->
+                <tr><td style="border: none" colspan="6" style="height: 20px;"></td></tr>
+
+                <!-- Order Summary rows (aligned under Unit Price & Total) -->
+                <tr>
+                    <td style="border: none" colspan="4"></td>
+                    <td style="padding: 8px; text-align: left;"><strong>Sub Total:</strong></td>
+                    <td style="padding: 8px; text-align: right;"><?php echo e(currency()); ?><?php echo e(number_format($order->subtotal, 2)); ?></td>
+                </tr>
+                <tr>
+                    <td style="border: none" colspan="4"></td>
+                    <td style="padding: 8px; text-align: left;"><strong>Tax:</strong></td>
+                    <td style="padding: 8px; text-align: right;"><?php echo e(currency()); ?><?php echo e(number_format($order->tax, 2)); ?></td>
+                </tr>
+                <tr>
+                    <td style="border: none" colspan="4"></td>
+                    <td style="padding: 8px; text-align: left;"><strong>Shipping:</strong></td>
+                    <td style="padding: 8px; text-align: right;"><?php echo e(currency()); ?><?php echo e(number_format($order->shipping_cost, 2)); ?></td>
+                </tr>
+                <tr>
+                    <td style="border: none" colspan="4"></td>
+                    <td style="padding: 8px; text-align: left;"><strong>Promotion Discount:</strong></td>
+                    <td style="padding: 8px; text-align: right;">-<?php echo e(currency()); ?>0.00</td>
+                </tr>
+                <tr>
+                    <td style="border: none" colspan="4"></td>
+                    <td style="padding: 8px; text-align: left;"><strong>Total:</strong></td>
+                    <td style="padding: 8px; text-align: right;"><strong><?php echo e(currency()); ?><?php echo e(number_format($order->total, 2)); ?></strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div style="clear: both;"></div>
+
+        <p><strong>Payment Method:</strong> <?php echo e(ucfirst($order->payment_method)); ?><br>
+        <div><strong>Payment Status:</strong> <?php echo e(ucfirst($order->payment_status)); ?><br>
+
+        <div class="footer">
+            <p>Need help? Email: <?php echo e(settings()->support_email); ?> | Phone: <?php echo e(settings()->phone_number); ?></p>
+            <p>Website: <a href="<?php echo e(settings()->website_url); ?>">www.soliddiskdirect.com</a></p>
+            <p>© <?php echo e(now()->year); ?> <?php echo e(appName()); ?>. All rights reserved.</p>
+        </div>
+    </div>
+</div>
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        font-size: 14px;
+        color: #333;
+        margin: 0;
+        padding: 20px;
+        background: #f7f7f7;
+    }
+
+    .invoice-box {
+        max-width: 900px;
+        margin: auto;
+        padding: 30px;
+        background: #fff;
+        border: 1px solid #eee;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+
+    .logo {
+        max-width: 150px;
+    }
+
+    .invoice-info {
+        text-align: right;
+    }
+
+    .invoice-info h2 {
+        margin: 0;
+        font-size: 20px;
+        color: #444;
+    }
+
+    .info-block {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+    }
+
+    .info-box {
+        width: 48%;
+        line-height: 1.5;
+    }
+
+    h3 {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 5px;
+        margin-bottom: 10px;
+        font-size: 16px;
+        color: #444;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 30px;
+    }
+
+    table th, table td {
+        padding: 10px;
+        border: 1px solid #eee;
+        text-align: left;
+    }
+
+    table th {
+        background: #f0f0f0;
+        font-weight: bold;
+    }
+
+    .total-table {
+        width: 50%;
+        float: right;
+        margin-top: 20px;
+    }
+
+    .total-table td {
+        padding: 10px;
+        border: none;
+    }
+
+    .total-table tr.total-row td {
+        font-weight: bold;
+        border-top: 2px solid #333;
+    }
+
+    .footer {
+        font-size: 13px;
+        text-align: center;
+        color: #777;
+        border-top: 1px solid #eee;
+        padding-top: 20px;
+    }
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+
+        .invoice-print-area, .invoice-print-area * {
+            visibility: visible;
+        }
+
+        .invoice-print-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+        }
+
+        html, body {
+            height: auto !important;
+            overflow: hidden;
+        }
+
+        .invoice-box {
+            box-shadow: none;
+            border: none;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+    }
+</style>
+
+
+<?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/admin/orders/order_content.blade.php ENDPATH**/ ?>

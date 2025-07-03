@@ -2,42 +2,51 @@
 
 @section('title', $title.' -  ' . appName())
 @section('content')
-<input type="hidden" id="page_url" value="{{ route($routeInitialize.'.index') }}">
+
+@if (request()->is($routeInitialize.'/trashed'))
+    <input type="hidden" id="page_url" value="{{ route($routeInitialize.'.trashed') }}">
+@else
+    <input type="hidden" id="page_url" value="{{ route($routeInitialize.'.index') }}">
+@endif
 <div class="content-wrapper">
     <div class="container-xxl flex-grow-1 container-p-y">
         <div class="card mb-4">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="card-header">
                         <h4 class="fw-bold mb-0"><span class="text-muted fw-light">Home /</span> {{ $title }}</h4>
                     </div>
                 </div>
-                @can($routeInitialize.'-create')
-                    <div class="col-md-6">
-                        <div class="dt-buttons btn-group flex-wrap float-end mt-4">
-                            <button
-                                id="add-btn"
-                                data-toggle="tooltip" data-placement="top" 
-                                title="Add {{ $singularLabel }}"
-                                data-url="{{ route($routeInitialize.'.store') }}"
-                                data-create-url="{{ route($routeInitialize.'.create') }}"
-                                class="btn btn-primary add-btn mb-3 mb-md-0 mx-3
-                                tabindex="0" aria-controls="DataTables_Table_0"
-                                type="button" data-bs-toggle="modal"
-                                data-bs-target="#create-pop-up-modal">
-                                <span>
-                                    <i class="ti ti-plus me-0 me-sm-1 ti-xs"></i>
-                                    <span class="d-none d-sm-inline-block"> 
-                                        Add {{ $singularLabel }} 
-                                        @if(count(getNewMenus()) > 0)
-                                            <span class="blink-text">&#9733;</span>
-                                        @endif
+                @if (request()->is($routeInitialize.'/trashed'))
+                    @can($routeInitialize.'-list')
+                        <div class="col-md-8">
+                            <div class="dt-buttons btn-group flex-wrap float-end mt-4">
+                                <a data-toggle="tooltip" data-placement="top" title="Show All Records" href="{{ route($routeInitialize.'.index') }}" class="btn btn-success btn-primary mx-3">
+                                    <span>
+                                        <i class="ti ti-eye me-0 me-sm-1 ti-xs"></i>
+                                        <span class="d-none d-sm-inline-block">View All Records</span>
                                     </span>
-                                </span>
-                            </button>
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                @endcan
+                    @endcan
+                @else
+                    @canany([$routeInitialize.'-create', $routeInitialize.'-trashed', $routeInitialize.'-import'])
+                        <div class="col-md-8">
+                            <div class="dt-buttons btn-group flex-wrap float-end mt-4">
+                                <button id="refresh-record" class="btn btn-success mx-2" title="Refresh Records"><i class="ti ti-refresh me-0 ti-xs"></i></button>
+                                @can($routeInitialize.'-trashed')
+                                    <a data-toggle="tooltip" data-placement="top" title="All Trashed Records" href="{{ route($routeInitialize.'.trashed') }}" class="btn btn-label-danger mx-2">
+                                        <span>
+                                            <i class="ti ti-trash me-0 me-sm-1 ti-xs"></i>
+                                            <span class="d-none d-sm-inline-block">All Trashed Records </span>
+                                        </span>
+                                    </a>
+                                @endcan
+                            </div>
+                        </div>
+                    @endcan
+                @endif
             </div>
         </div>
         <!-- Users List Table -->
@@ -70,6 +79,12 @@
 <script>
     //datatable
     $(document).ready(function(){
+        var page_url = $('#page_url').val();
+        var columns =     {!! json_encode($columnsConfig) !!}  // Get columns dynamically from controller
+        initializeDataTable(page_url, columns);
+    })
+
+    $('#refresh-record').on('click', function(){
         var page_url = $('#page_url').val();
         var columns =     {!! json_encode($columnsConfig) !!}  // Get columns dynamically from controller
         initializeDataTable(page_url, columns);

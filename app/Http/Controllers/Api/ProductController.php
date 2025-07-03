@@ -5,23 +5,26 @@ namespace App\Http\Controllers\Api;
 use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use App\Models\AttributeValue;
 use App\Models\RecentViewProduct;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Cache;
 use App\Http\Resources\ProductResource;
-use App\Models\AttributeValue;
-use Attribute;
-use Dom\Attr;
+use Illuminate\Support\Facades\Storage;
+use App\Http\Resources\CategoryResource;
 
 class ProductController extends Controller
 {
     protected $model;
     protected $productResource;
+    protected $categoryResource;
 
     public function __construct(Product $model)
     {
         $this->model = $model;
         $this->productResource = new ProductResource(null);
+        $this->categoryResource = new CategoryResource(null);
     }
 
     public function index(){
@@ -84,7 +87,45 @@ class ProductController extends Controller
         // ->take(10) // Top 10 best-sellers
         // ->get();
 
-        $bestSellingProduct = $this->model->inRandomOrder()->first();
+        // $bestSellingProduct = $this->model
+        // ->select(
+        //     'products.id',
+        //     'products.title',
+        //     'products.slug',
+        //     'products.thumbnail',
+        //     'products.short_description',
+        //     DB::raw('SUM(order_items.quantity) as total_sold')
+        // )
+        // ->join('order_items', 'products.id', '=', 'order_items.product_id')
+        // ->where('products.status', 1)
+        // ->groupBy(
+        //     'products.id',
+        //     'products.title',
+        //     'products.slug',
+        //     'products.thumbnail',
+        //     'products.short_description'
+        // )
+        // ->orderByDesc('total_sold')
+        // ->first();
+
+        // $randomId = $this->model->inRandomOrder()->value('id');
+        // $bestSellingProduct = $this->model->inRandomOrder()->find($randomId);
+
+        $bestSellingProduct = null;
+
+        // Fetch a batch of random products first
+        $randomProducts = $this->model
+            ->where('status', 1)
+            ->inRandomOrder()
+            ->limit(10) // Fetch 20 random products at most
+            ->get();
+
+        foreach ($randomProducts as $product) {
+            if (!empty($product->thumbnail) && Storage::disk('public')->exists($product->thumbnail)) {
+                $bestSellingProduct = $product;
+                break; // Stop when the first valid one is found
+            }
+        }
 
         if ($bestSellingProduct) {
             return response()->json([
@@ -155,29 +196,32 @@ class ProductController extends Controller
             ]);
         }
 
-        // Get the actual category trail from product's main category
-        $categoryTrail = $this->getCategoryTrailFromRelations($model->mainCategory);
+        $categoryTrail = Cache::remember("trail_{$model->mainCategory->id}", 3600, function () use ($model) {
+            return $this->getCategoryTrailFromRelations($model->mainCategory);
+        });
+
         $correctCategoryPath = implode('/', array_column($categoryTrail, 'slug'));
-
-        // Compare the path from the URL with the actual path
         $givenCategoryPath = trim($categorySlugChain, '/');
-
+        
         if ($givenCategoryPath !== $correctCategoryPath) {
-            // Redirect to correct URL
-            return redirect()->to("/$correctCategoryPath/{$model->slug}", 301);
+            return response()->json([
+                'status' => false,
+                'redirect_to' => "/$correctCategoryPath/{$model->slug}",
+                'message' => 'Incorrect category path.',
+                'data' => null
+            ], 301);
         }
 
         $relatedProducts = $model->mainCategory
         ->products()
         ->where('products.id', '!=', $model->id)
         ->inRandomOrder()
-        // ->take(5)
+        ->limit(6)
         ->get();
 
-        $this->storeRecentViewProduct($slug);
+        $this->storeRecentViewProduct($model->slug);
 
         $data = [
-            // 'categoryTrail' => $categoryTrail,
             'details' => new $this->productResource($model),
             'related_products' => $this->productResource->collection($relatedProducts)
         ];
@@ -209,8 +253,12 @@ class ProductController extends Controller
             ]);
         }
 
-    $keyword = trim($request->input('keyword'));
-        $query = $this->model->query();
+        $perPage = $request->get('per_page', 10);
+        $sortField = $request->get('sort_field', 'created_at');
+        $sortDirection = $request->get('sort_direction', 'desc');
+
+        $keyword = trim($request->input('keyword'));
+        $query = $this->model->with('hasBrand', 'hasProductCondition');
 
         // Basic keyword search
         $query->where(function ($q) use ($keyword) {
@@ -221,28 +269,35 @@ class ProductController extends Controller
             ->orWhere('mpn', 'like', "%{$keyword}%");
         });
 
-        // Optional: paginate or limit
-        $results = $query->limit(10)->get(); // or use ->paginate(10)
-
-        if ($results->isNotEmpty()) {
+        $products = $query->orderBy($sortField, $sortDirection)->paginate($perPage);
+        
+        if ($products->isNotEmpty()) {
             return response()->json([
                 'status' => true,
                 'message' => 'Products found successfully.',
-                'data' => $this->productResource->collection($results),
+                'keyword' => $keyword,
+                'data' => $this->productResource->collection($products),
+                'pagination' => [
+                    'current_page' => $products->currentPage(),
+                    'last_page' => $products->lastPage(),
+                    'per_page' => $products->perPage(),
+                    'total' => $products->total(),
+                ]
             ]);
         }
 
         return response()->json([
             'status' => false,
             'message' => 'No matching products found.',
-            'data' => []
+            'keyword' => $keyword,
+            'data' => [],
+            'pagination' => null
         ]);
     }
 
-
     public function search2(Request $request)
     {
-        if (!$request->filled('keyword')) {
+        if (!$request->filled('search')) {
             return response()->json([
                 'status' => false,
                 'message' => 'Please provide a search keyword.',
@@ -250,8 +305,12 @@ class ProductController extends Controller
             ]);
         }
 
-        $keyword = trim($request->input('keyword'));
-        $query = $this->model->query();
+        $perPage = $request->get('per_page', 10);
+        $sortField = $request->get('sort_field', 'created_at');
+        $sortDirection = $request->get('sort_direction', 'desc');
+        
+        $keyword = trim($request->input('search'));
+        $query = $this->model->with('hasBrand', 'hasProductCondition');
 
         // Basic keyword search
         $query->where(function ($q) use ($keyword) {
@@ -262,42 +321,49 @@ class ProductController extends Controller
             ->orWhere('mpn', 'like', "%{$keyword}%");
         });
 
-        // Optional: paginate or limit
-        $results = $query->paginate(10); // or use ->paginate(10)
+        $products = $query->orderBy($sortField, $sortDirection)->paginate($perPage);
 
-        if ($results->isNotEmpty()) {
+        if ($products->isNotEmpty()) {
             return response()->json([
                 'status' => true,
                 'message' => 'Products found successfully.',
-                'data' => $this->productResource->collection($results),
+                'keyword' => $keyword,
+                'data' => $this->productResource->collection($products),
+                'pagination' => [
+                    'current_page' => $products->currentPage(),
+                    'last_page' => $products->lastPage(),
+                    'per_page' => $products->perPage(),
+                    'total' => $products->total(),
+                ]
             ]);
         }
 
         return response()->json([
             'status' => false,
             'message' => 'No matching products found.',
+            'keyword' => $keyword,
             'data' => []
         ]);
     }
-
     public function getByAttributeValue(Request $request, $attributeSlug)
     {
-        $perPage = $request->get('per_page', 10);
+        $perPage = $request->get('per_page') ?? $request->get('perPage', 10);
         $sortField = $request->get('sort_field', 'created_at');
         $sortDirection = $request->get('sort_direction', 'desc');
-        $search = $request->get('search');
+
+        $category = null;
+        $attrVal = AttributeValue::where('value', $attributeSlug)->first();
+        if ($attrVal && $attrVal->attributeGroup) {
+            $attributeGroup = $attrVal->attributeGroup;
+            $category = Category::where('name', $attributeGroup->name)->first();
+        }
 
         $keyword = trim($attributeSlug);
+        $tokens = array_filter(preg_split('/[^a-zA-Z0-9]+/', $keyword));
 
-        // Split the keyword by non-alphanumeric characters (like dash, space, etc.)
-        $tokens = preg_split('/[^a-zA-Z0-9]+/', $keyword);
+        // $query = $this->model->query();
+        $query = $this->model->with('hasBrand', 'hasProductCondition');
 
-        // Remove empty tokens
-        $tokens = array_filter($tokens);
-
-        $query = $this->model->query();
-
-        // Flexible multi-token search
         $query->where(function ($q) use ($tokens) {
             foreach ($tokens as $token) {
                 $q->orWhere(function ($subQ) use ($token) {
@@ -310,21 +376,26 @@ class ProductController extends Controller
             }
         });
 
-        // Optional: paginate or limit
-        $results = $query->paginate(10);
+        $products = $query->orderBy($sortField, $sortDirection)->paginate($perPage);
 
-        if ($results->isNotEmpty()) {
-            return response()->json([
-                'status' => true,
-                'message' => 'Products found successfully.',
-                'data' => $this->productResource->collection($results),
-            ]);
-        }
+        $data = [
+            'keyword' => $keyword,
+            'category' => $category ? new $this->categoryResource($category) : null,
+            'products' => $this->productResource->collection($products),
+            'pagination' => [
+                'current_page' => $products->currentPage(),
+                'last_page' => $products->lastPage(),
+                'per_page' => $products->perPage(),
+                'total' => $products->total(),
+            ]
+        ];
 
         return response()->json([
-            'status' => false,
-            'message' => 'No matching products found.',
-            'data' => []
+            'status' => $products->isNotEmpty(),
+            'message' => $products->isNotEmpty()
+                ? 'Products found successfully.'
+                : 'No matching products found.',
+            'data' => $data, 
         ]);
     }
 }

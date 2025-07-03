@@ -8,20 +8,21 @@ use App\Models\Order;
 use App\Models\State;
 use App\Models\Policy;
 use App\Models\Country;
+use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\AttributeValue;
+use App\Services\PayarcService;
 use App\Mail\OrderConfirmedAdmin;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Mail\OrderConfirmedCustomer;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Resources\BrandResource;
 use App\Http\Resources\ProductResource;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\CategoryResource;
-use Illuminate\Support\Facades\Log;
-use App\Services\PayarcService;
 
 class DeveloperController extends Controller
 {
@@ -793,35 +794,49 @@ class DeveloperController extends Controller
           return 'Updated tax in '. count($stateTaxRates). ' states successfully';
     }
 
-    public function linkProductsToAttributes(){
-      // Get group → attribute IDs
+    public function linkProductsToAttributes() {
+      // 1. Mappings
       $groupAttributes = DB::table('attribute_group_values')
-        ->get()
-        ->groupBy('attribute_group_id')
-        ->map(function ($items) {
-            return $items->pluck('attribute_id')->unique()->toArray();
-        });
+          ->get()
+          ->groupBy('attribute_group_id')
+          ->map(fn($items) => $items->pluck('attribute_id')->unique()->toArray());
 
-      // Get attribute ID → value IDs
       $attributeValues = DB::table('attribute_values')
-        ->get()
-        ->groupBy('attribute_id')
-        ->map(function ($items) {
-            return $items->pluck('id')->toArray();
-        });
+          ->get()
+          ->groupBy('attribute_id')
+          ->map(fn($items) => $items->pluck('id')->toArray());
 
-      $groupNameToId = DB::table('attribute_groups')->pluck('id', 'name'); // 'Memory' => 1, etc.
-      $categoryNameToId = DB::table('categories')->pluck('id', 'name');    // 'Memory' => 10, etc.
+      $groupNameToId = DB::table('attribute_groups')->pluck('id', 'name'); // 'Memory' => 1
+      $categories = DB::table('categories')->get()->keyBy('id'); // id => object
+      $categoryRelations = DB::table('category_relations')->get(); // parent_id, child_id
 
-      // dd($groupAttributes, $attributeValues, $groupNameToId, $categoryNameToId);
+      // 2. Build child → parent map
+      $childToParent = [];
+      foreach ($categoryRelations as $rel) {
+          $childToParent[$rel->child_id] = $rel->parent_id;
+      }
 
+      // 3. Find root ancestor name for each category_id
+      $categoryIdToRootName = [];
+
+      foreach ($categories as $catId => $category) {
+          $currentId = $catId;
+
+          // Walk up to the root
+          while (isset($childToParent[$currentId])) {
+              $currentId = $childToParent[$currentId];
+          }
+
+          $categoryIdToRootName[$catId] = $categories[$currentId]->name ?? null;
+      }
+
+      // 4. Category ID → attribute value IDs
       $categoryToAttributeValueIds = [];
 
-      foreach ($categoryNameToId as $categoryName => $categoryId) {
-          if (!isset($groupNameToId[$categoryName])) continue;
+      foreach ($categoryIdToRootName as $categoryId => $rootName) {
+          if (!$rootName || !isset($groupNameToId[$rootName])) continue;
 
-          $groupId = $groupNameToId[$categoryName];
-
+          $groupId = $groupNameToId[$rootName];
           $attributeIds = $groupAttributes[$groupId] ?? [];
 
           foreach ($attributeIds as $attributeId) {
@@ -832,14 +847,15 @@ class DeveloperController extends Controller
           }
       }
 
+      // 5. Link products
       $productCategories = DB::table('category_product')->get(); // product_id, category_id
       $toInsert = [];
 
       foreach ($productCategories as $pc) {
           $productId = $pc->product_id;
           $categoryId = $pc->category_id;
+
           $valueIds = $categoryToAttributeValueIds[$categoryId] ?? [];
-          // dd($productId, $categoryId, $valueIds);
 
           foreach ($valueIds as $valueId) {
               $toInsert[] = [
@@ -857,8 +873,9 @@ class DeveloperController extends Controller
       if (count($toInsert)) {
           DB::table('product_attributes')->insertOrIgnore($toInsert);
       }
+
       return $toInsert;
-    }
+  }
 
     public function getGroupAttribute(){
       $attributeSlug = '128GB';
@@ -874,11 +891,40 @@ class DeveloperController extends Controller
 
       if(!empty($order)){
         //order confirm email
-        Mail::to('chandamar725@gmail.com')->queue(new OrderConfirmedAdmin($order));
-        Mail::to('chandamar725@gmail.com')->queue(new OrderConfirmedCustomer($order));
+        Mail::to('amarchand.mmc@gmail.com')->send(new OrderConfirmedAdmin($order));
+        Mail::to('amarchand.mmc@gmail.com')->send(new OrderConfirmedCustomer($order));
         return 'mail sent successfully';
       }
     }
+    public function testSupportEmail(){
+      // $data = [
+      //   'contact_name' => 'Sales Team',
+      //   'product_name' => 'WAP4410N-A' ?? '',
+      //   'quantity' => '5' ?? '',
+      //   'company_name' => 'ABC' ?? '',
+      //   'contact_person' => 'XYZ',
+      //   'phone' => '34543543545',
+      //   'email' => 'test@gmail.com',
+      // ];
+
+      // $emailFrom = 'quote';
+
+      $data = [
+        'name' => 'Amar' ?? '',
+        'email' => 'test@gmail.com' ?? '',
+        'phone' => '234324324' ?? '',
+        'subject' => 'Testing subject' ?? '',
+        'message' => 'Testing message' ?? '',
+      ];
+      
+      $emailFrom = 'contact-support';
+      
+      //sending email to support
+      sendSupportOrContactEmail($emailFrom, $data);
+
+      return 'support email sent successfully';
+    }
+
     public function pay(PayarcService $payarc)
     {
         $response = $payarc->createPaymentIntent([
@@ -889,5 +935,225 @@ class DeveloperController extends Controller
         ]);
 
         return response()->json($response);
+    }
+
+    public function updateThumbnail()
+    {
+        // Array of updates: table => [column]
+        $updates = [
+            'products' => 'thumbnail',
+            'sliders' => 'image',
+            'banners' => 'banner',
+        ];
+
+        // Loop through each table and apply replacements
+        foreach ($updates as $table => $column) {
+            DB::table($table)
+                ->where(function ($query) use ($column) {
+                    $query->where($column, 'like', '%.jpg')
+                          ->orWhere($column, 'like', '%.jpeg')
+                          ->orWhere($column, 'like', '%.png');
+                })
+                ->update([
+                    $column => DB::raw(
+                        "REPLACE(REPLACE(REPLACE($column, '.jpeg', '.webp'), '.jpg', '.webp'), '.png', '.webp')"
+                    )
+                ]);
+        }
+
+        return 'All thumbnails/images updated to .webp';
+    }
+
+    public function countImageExtensions()
+    {
+        $folderPath = 'public/uploads/products'; // storage/app/public/uploads/products
+        $extensions = ['jpg', 'jpeg', 'png', 'webp'];
+        $folderCounts = array_fill_keys($extensions, 0);
+
+        // Get files (non-recursive)
+        $files = Storage::files($folderPath);
+        foreach ($files as $file) {
+            $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+            if (in_array($ext, $extensions)) {
+                $folderCounts[$ext]++;
+            }
+        }
+
+        $folderCounts['total_images'] = array_sum($folderCounts);
+
+        // ---------- 2. DB-based thumbnail extension count ----------
+        $dbCounts = array_fill_keys($extensions, 0);
+
+        $thumbnails = Product::whereNotNull('thumbnail')->pluck('thumbnail');
+
+        foreach ($thumbnails as $thumb) {
+            $ext = strtolower(pathinfo($thumb, PATHINFO_EXTENSION));
+            if (in_array($ext, $extensions)) {
+                $dbCounts[$ext]++;
+            }
+        }
+
+        $dbCounts['total_thumbnails'] = array_sum($dbCounts);
+        $dbCounts['total_products'] = Product::count();
+        $dbCounts['total_products_thumbnail_not_exist'] = $dbCounts['total_products']-$folderCounts['total_images'];
+
+        // ---------- 3. Final structured response ----------
+        return response()->json([
+            'folder_images' => $folderCounts,
+            'database_thumbnails' => $dbCounts,
+        ]);
+    }
+
+    public function fixDuplicateSlugs($offset = 0, $limit = 50)
+    {
+        // Step 1: Get all duplicate slugs
+        $duplicateSlugs = DB::table('products')
+            ->select('slug')
+            ->whereNotNull('slug')
+            ->groupBy('slug')
+            ->havingRaw('COUNT(*) > 1')
+            ->pluck('slug')
+            ->toArray();
+    
+        // Step 2: Get only a limited batch of products
+        $products = Product::whereIn('slug', $duplicateSlugs)
+            ->orderBy('id')
+            ->offset($offset)
+            ->limit($limit)
+            ->select('id', 'title', 'slug')
+            ->get();
+    
+        $updated = 0;
+        $updatedProducts = [];
+    
+        foreach ($products as $product) {
+            if (!empty($product)) {
+                // $productSlug = Str::slug($product->title).'-'.$product->mpn;
+                
+                $newSlug = $this->generateUniqueSlug($product->title, $product->id);
+                
+                Product::where('id', $product->id)->update([
+                    'slug' => $newSlug,
+                ]);
+                
+                // $product->refresh();
+                // return $product;
+                $updated++;
+                
+                $updatedProducts[] = $product;
+            }
+        }
+        return $updatedProducts;
+        // return "Updated {$updated} slugs from offset {$offset}. ";
+    }
+    
+    // Slug generator function
+    public function generateUniqueSlug($title, $productId = null)
+    {
+        $slug = Str::slug($title);
+        $originalSlug = $slug;
+        $counter = 1;
+    
+        while (
+            Product::where('slug', $slug)
+                ->where('id', '!=', $productId)
+                ->exists()
+        ) {
+            $slug = $originalSlug . '-' . $counter++;
+        }
+    
+        return $slug;
+    }
+
+    public function getProductsMpn(){
+      // $offset = 4973; //my system 
+      // $limit = 5000;
+
+      // $offset = 9973; //bilal system
+      // $limit = 5000;
+      
+      // $offset = 14973; //hamza system
+      // $limit = 5000;
+
+      // $offset = 19973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 22973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 25973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 28973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 31973; //hamza system
+      // $limit = 3000;
+
+      // $offset = 34973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 37973; //hamza system
+      // $limit = 3000;
+
+      // $offset = 40973; //hamza system
+      // $limit = 2000;
+      
+      // $offset = 42973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 45973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 48973; //hamza system
+      // $limit = 3000;
+
+      // $offset = 51973; //hamza system
+      // $limit = 2000;
+      
+      // $offset = 53973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 56973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 59973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 62973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 65973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 68973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 71973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 74973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 77973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 80973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 83973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 86973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 89973; //hamza system
+      // $limit = 3000;
+      
+      $offset = 92973; //hamza system
+      $limit = 3000;
+
+      $moreMpns = Product::offset($offset)->limit($limit)->pluck('mpn')->toArray();
+      return $moreMpns;
     }
 }

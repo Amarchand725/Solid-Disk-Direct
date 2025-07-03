@@ -19,31 +19,16 @@ class BlogController extends Controller
     }
 
     public function index(Request $request){
-        // $perPage = $request->get('per_page', 10);
-        // $sortField = $request->get('sort_field', 'created_at');
-        // $sortDirection = $request->get('sort_direction', 'desc');
-        // $search = $request->get('search');
-
-        // $query = $this->model->where('status', 1);
-
-        // if ($search) {
-        //     $query->where('title', 'like', "%$search%");
-        // }
-
-        // $query->orderBy($sortField, $sortDirection);
-
-        // $blogs = $query->paginate($perPage);
         $perPage = $request->get('per_page', 10);
         $sortField = $request->get('sort_field', 'created_at');
         $sortDirection = $request->get('sort_direction', 'desc');
         $search = $request->get('search');
 
-        $query = $this->model->where('status', 1);
+        $query = $this->model->select(['id', 'banner', 'title', 'slug', 'description'])->where('status', 1);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%$search%");
-                // Add more fields as needed
             });
         }
 

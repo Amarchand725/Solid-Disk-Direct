@@ -40,6 +40,7 @@
             </div>
             <div class="card-body">
                 <div class="row gy-3">
+                @can('blogs-list')
                 <div class="col-md-3 col-6">
                     <div class="d-flex align-items-center">
                     <div class="badge rounded-pill bg-label-primary me-3 p-2">
@@ -51,6 +52,8 @@
                     </div>
                     </div>
                 </div>
+                @endcan
+                @can('customers-list')
                 <div class="col-md-3 col-6">
                     <div class="d-flex align-items-center">
                     <div class="badge rounded-pill bg-label-info me-3 p-2">
@@ -62,17 +65,21 @@
                     </div>
                     </div>
                 </div>
+                @endcan
+                @can('products-list')
                 <div class="col-md-3 col-6">
                     <div class="d-flex align-items-center">
                     <div class="badge rounded-pill bg-label-danger me-3 p-2">
                         <i class="ti ti-shopping-cart ti-sm"></i>
                     </div>
                     <div class="card-info">
-                        <h5 class="mb-0">{{ $totalProducts ?? 0 }}</h5>
+                        <h5 class="mb-0">{{ formatSales($totalProducts) ?? 0 }}</h5>
                         <small>Products</small>
                     </div>
                     </div>
                 </div>
+                @endcan
+                @can('sliders-list')
                 <div class="col-md-3 col-6">
                     <div class="d-flex align-items-center">
                     <div class="badge rounded-pill bg-label-success me-3 p-2">
@@ -84,6 +91,7 @@
                     </div>
                     </div>
                 </div>
+                @endcan
                 </div>
             </div>
             </div>

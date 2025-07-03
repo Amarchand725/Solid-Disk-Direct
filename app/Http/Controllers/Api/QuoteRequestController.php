@@ -6,8 +6,10 @@ use Exception;
 use App\Traits\ApiResponse;
 use App\Models\QuoteRequest;
 use Illuminate\Http\Request;
+use App\Mail\QuoteRequestMail;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use App\Notifications\SiteEventNotification;
 
@@ -70,6 +72,21 @@ class QuoteRequestController extends Controller
                     $url = route('quote_requests.index');
                     $admin->notify(new SiteEventNotification('quote-request.png', 'New quote of ', "{$request->full_name} has received.", $url));
                 }
+
+                $data = [
+                    'contact_name' => 'Sales Team',
+                    'product_name' => $model->mpn ?? '',
+                    'quantity' => $model->quantity ?? '',
+                    'company_name' => $model->company ?? '',
+                    'contact_person' => $model->full_name,
+                    'phone' => $model->phone_number,
+                    'email' => $model->email,
+                ];
+
+                $emailFrom = 'quote';
+                //sending email to support
+                sendSupportOrContactEmail($emailFrom, $data);
+                
                 $message = 'We have received your quote request.! We will contact you soon!';
                 return $this->success(null, $message, 200);
             }else{

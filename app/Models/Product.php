@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Support\Str;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,13 +20,41 @@ class Product extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            $model->slug = Str::slug($model->title);
+            $slug = Str::slug($model->title);
+            $originalSlug = $slug;
+            $count = 1;
+
+            while (DB::table('products')->where('slug', $slug)->exists()) {
+                $slug = $originalSlug . '-' . $count++;
+            }
+
+            $model->slug = $slug;
         });
 
         static::updating(function ($model) {
-            $model->slug = Str::slug($model->title);
+            $slug = Str::slug($model->title);
+            $originalSlug = $slug;
+            $count = 1;
+
+            while (
+                DB::table('products')
+                    ->where('slug', $slug)
+                    ->where('id', '<>', $model->id)
+                    ->exists()
+            ) {
+                $slug = $originalSlug . '-' . $count++;
+            }
+
+            $model->slug = $slug;
         });
     }
+
+
+    public function pivotCategories()
+    {
+        return $this->belongsToMany(Category::class, 'category_product', 'product_id', 'category_id');
+    }
+
 
     public function categories()
     {
