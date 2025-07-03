@@ -63,3 +63,36 @@ if (!function_exists('getProductTitle')) {
         return Str::limit($title, $max);
     }
 }
+
+if (!function_exists('getCountryStateCityId')) {
+    function getCountryStateCityId($type, $name)
+    {
+        if($type=='Country'){
+            $country = Country::where('name', $name)->first();
+
+            if ($country) {
+                return $country->id;
+            }
+
+            return null; 
+        }elseif($type=='State'){
+            $state = State::where('name', $name)->first();
+
+            if ($state) {
+                return $state->id;
+            }
+
+            return null; 
+        }elseif($type=='City'){
+            $city = City::where('name', $name)->first();
+
+            if ($city) {
+                return $city->id;
+            }
+
+            return null; 
+        }else{
+            return null;
+        }
+    }
+}

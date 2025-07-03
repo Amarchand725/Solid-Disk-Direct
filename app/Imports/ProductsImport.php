@@ -22,70 +22,85 @@ class ProductsImport implements ToModel, WithHeadingRow
     {
         $model = Product::where('mpn', $row['mpn'])->first();
 
-        $category = Category::firstOrCreate([
-            'name' => $row['product_type'],
-        ], [
-            'description' => $row['product_type'],
-        ]);
-
-        $detected = $this->detectOrCreateBrandAndProductLine($row['description']);
-        $brandId = $detected['brand']->id ?? null;
-
-        if (empty($model)) {
-            $product = new Product([
-                'created_by' => Auth::user()->id,
-                'thumbnail' => !empty($row['image_link']) ? 'uploads/products/' . $row['image_link'] : null,
-                'title' => $row['title'] ?? null,
-                'sku' => $row['sku'] ?? null,
-                'brand' => $brandId,
-                'category' => $category->id,
-                'stock_quantity' => $row['stock_quantity'] ?? null,
-                'min_quantity' => $row['min_quantity'] ?? null,
-                'short_description' => $row['description'] ?? null,
-                'full_description' => $row['full_description'] ?? null,
-                'unit_price' => $row['price'] ?? null,
-                'mpn' => $row['mpn'] ?? null,
-                'discount_price' => $row['discount_price'] ?? null,
-                'is_featured' => $row['is_featured'] ?? null,
-                'is_refundable' => $row['is_refundable'] ?? null,
-                'unit' => $row['unit'] ?? null,
-                'tax_type' => $row['tax_type'] ?? null,
-                'tax_mode' => $row['tax_mode'] ?? null,
-                'discount_type' => $row['discount_type'] ?? null,
-                'condition' => $row['condition'] ?? null,
-                'product_weight' => $row['product_weight'] ?? null,
-                'shipping_weight' => $row['shipping_weight'] ?? null,
-            ]);
-
-            $product->save();
-
-            // Get all parent categories
-            $allCategoryIds = [$category->id];
-            if ($category) {
-                $parentCategoryIds = $this->getAllParentCategoryIds($category);
-                $allCategoryIds = array_unique(array_merge($parentCategoryIds, [$category->id]));
-            }
-
-            if (!empty($allCategoryIds)) {
-                $product->categories()->syncWithoutDetaching($allCategoryIds);
-            }
-
-            if($product){
-                if(!empty($detected['product_line'])){
-                    $productLine = new ProductLine();
-                    $productLine->name = $detected['product_line'] ?? null;
-                    $productLine->save();
-
-                    $product->product_line_id = $productLine->id;
-                    $product->save();
-                }
-            }
+        //for updating title & description
+        if (!empty($model)) {
+            $model->title = $row['title'] ?? null;
+            $model->short_description = $row['description'] ?? null;
+            $model->full_description = '<b>'.$row['description'].'</b>'.'<br /><br />'.$row['full_description'] ?? null;
+            $model->save();
 
             $this->importedCount++;
-            return $product;
+            return $model;
         }
 
         return null;
+        
+        //for updating title & description
+
+        // $category = Category::firstOrCreate([
+        //     'name' => $row['product_type'],
+        // ], [
+        //     'description' => $row['product_type'],
+        // ]);
+
+        // $detected = $this->detectOrCreateBrandAndProductLine($row['description']);
+        // $brandId = $detected['brand']->id ?? null;
+
+        // if (empty($model)) {
+        //     $product = new Product([
+        //         'created_by' => Auth::user()->id,
+        //         'thumbnail' => !empty($row['image_link']) ? 'uploads/products/' . $row['image_link'] : null,
+        //         'title' => $row['title'] ?? null,
+        //         'sku' => $row['sku'] ?? null,
+        //         'brand' => $brandId,
+        //         'category' => $category->id,
+        //         'stock_quantity' => $row['stock_quantity'] ?? null,
+        //         'min_quantity' => $row['min_quantity'] ?? null,
+        //         'short_description' => $row['description'] ?? null,
+        //         'full_description' => $row['full_description'] ?? null,
+        //         'unit_price' => $row['price'] ?? null,
+        //         'mpn' => $row['mpn'] ?? null,
+        //         'discount_price' => $row['discount_price'] ?? null,
+        //         'is_featured' => $row['is_featured'] ?? null,
+        //         'is_refundable' => $row['is_refundable'] ?? null,
+        //         'unit' => $row['unit'] ?? null,
+        //         'tax_type' => $row['tax_type'] ?? null,
+        //         'tax_mode' => $row['tax_mode'] ?? null,
+        //         'discount_type' => $row['discount_type'] ?? null,
+        //         'condition' => $row['condition'] ?? null,
+        //         'product_weight' => $row['product_weight'] ?? null,
+        //         'shipping_weight' => $row['shipping_weight'] ?? null,
+        //     ]);
+
+        //     $product->save();
+
+        //     // Get all parent categories
+        //     $allCategoryIds = [$category->id];
+        //     if ($category) {
+        //         $parentCategoryIds = $this->getAllParentCategoryIds($category);
+        //         $allCategoryIds = array_unique(array_merge($parentCategoryIds, [$category->id]));
+        //     }
+
+        //     if (!empty($allCategoryIds)) {
+        //         $product->categories()->syncWithoutDetaching($allCategoryIds);
+        //     }
+
+        //     if($product){
+        //         if(!empty($detected['product_line'])){
+        //             $productLine = new ProductLine();
+        //             $productLine->name = $detected['product_line'] ?? null;
+        //             $productLine->save();
+
+        //             $product->product_line_id = $productLine->id;
+        //             $product->save();
+        //         }
+        //     }
+
+        //     $this->importedCount++;
+        //     return $product;
+        // }
+
+        // return null;
     }
 
     function detectOrCreateBrandAndProductLine($productTitle)

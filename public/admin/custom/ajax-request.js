@@ -102,8 +102,9 @@ $('.submitBtn').click(function (e) {
     var formId = $(this).closest('form').attr('id');
     var modal_id = $(this).closest('form').attr('data-modal-id');
 
+    // var formData = $('#' + modal_id).find("#"+formId).serialize();
     var formData = $("#"+formId).serialize();
-
+    
     // Check if the description variable exists in the serialized form data
     var fieldExists = formData.indexOf('description=') > -1;
 
@@ -450,4 +451,67 @@ $(document).on('click', '.deleteImage', function () {
             });
         }
     })
+});
+
+$(document).on('click', '.purchase-order-btn', function () {
+    var targeted_modal = $(this).attr('data-bs-target');
+    var store_url = $(this).attr('data-url');
+    var modal_label = $(this).attr('title');
+    var content_url = $(this).attr('data-create-url');
+    
+    $(targeted_modal).find('#modal-label').html(modal_label);
+    $(targeted_modal).find("#create-form").attr("action", store_url);
+    $(targeted_modal).find("#create-form").attr("method", 'POST');
+
+    $.ajax({
+        url: content_url,
+        method: 'GET',
+        beforeSend: function () {
+            // Show a loading spinner or text before the response is loaded
+            $(targeted_modal).find('#edit-content').html('<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i> Loading...</div>');
+        },
+        success: function (response) {
+            $(targeted_modal).find('#edit-content').html(response);
+        },
+        error: function (xhr) {
+            if (xhr.status === 403) {
+                // Handle permission error
+                $(targeted_modal).find('#edit-content').html('<div class="alert alert-danger text-center">You do not have permission to access this resource.</div>');
+            } else {
+                // Handle other errors
+                $(targeted_modal).find('#edit-content').html('<div class="alert alert-danger text-center">An error occurred. Please try again later.</div>');
+            }
+        }    
+    });
+});
+
+//used for getting order data for creating purchase order
+$(document).on('change', '#get-order', function () {
+    const selectedOption = $(this).find('option:selected');
+    const createUrl = selectedOption.data('create-url');
+
+    if (createUrl) {
+        $.ajax({
+            url: createUrl,
+            type: 'GET',
+            beforeSend: function () {
+                // Show a loading spinner or text before the response is loaded
+                $('#order-form-container').html('<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i> Loading...</div>');
+            },
+            success: function (response) {
+                $('#order-form-container').html(response);
+            },
+            error: function (xhr) {
+                if (xhr.status === 403) {
+                    // Handle permission error
+                    $('#order-form-container').html('<div class="alert alert-danger text-center">You do not have permission to access this resource.</div>');
+                } else {
+                    // Handle other errors
+                    $('#order-form-container').html('<div class="alert alert-danger text-center">An error occurred. Please try again later.</div>');
+                }
+            }    
+        });
+    } else {
+        $('#order-form-container').html('');
+    }
 });

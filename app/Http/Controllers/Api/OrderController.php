@@ -88,7 +88,7 @@ class OrderController extends Controller
                 $order->payment_status = 'unpaid';
                 $order->additional_note = null;
                 $order->save();
-
+                
                 Log::info('Order Added Successfully: '.json_encode($order));
 
                 if($order && $cartItems){
@@ -96,7 +96,7 @@ class OrderController extends Controller
                         $product = $this->productModel->where('slug', $item['product']['slug'])->first();
                         $shippingWeight = getWeightOnlyAttribute($product->shipping_weight);
                         if(!empty($product)){
-                            $order_item = $this->orderItemModel;
+                            $order_item = new $this->orderItemModel;
                             $order_item->order_id = $order->id;
                             $order_item->product_id = $product->id;
                             $order_item->variant_id = null;
@@ -109,14 +109,14 @@ class OrderController extends Controller
                             $order_item->save();
                         }
                     }
-
+                    
                     Log::info('Order Item Added Successfully: '.json_encode($order_item));
                 }
             }else{
                 $order->session_id = auth()->check() ? null : $buyNowProduct['session_id'];
                 $order->coupon_id = NULL;
                 $order->same_as_shipping = $sameAsShipping;
-                $order->subtotal = $buyNowProduct['total'] ?? 0;
+                $order->subtotal = $buyNowProduct['subtotal'] ?? 0;
                 $order->tax = $buyNowProduct['tax_amount'] ?? 0;
                 $order->shipping_weight = $buyNowProduct['shipping_weight'] ?? 0;
                 $order->shipping_cost = $buyNowProduct['shipping_cost'] ?? 0;
@@ -143,7 +143,7 @@ class OrderController extends Controller
                         $order_item->discount = null;
                         $order_item->quantity = $buyNowProduct['quantity'] ?? 0;
                         $order_item->options = null;
-                        $order_item->sub_total = $buyNowProduct['unit_price'] ?? 0;
+                        $order_item->sub_total = $buyNowProduct['unit_price']*$buyNowProduct['quantity'] ?? 0;
                         $order_item->save();
                     }
 
@@ -210,13 +210,22 @@ class OrderController extends Controller
                 if(!isset($buyNowProduct) && empty($buyNowProduct)){
                     $cart = $this->cartModel->find($cart['id']);
                     if ($cart) {
-                        $cart->items()->delete();
-                        $cart->delete();
+                        // $cart->items()->delete();
+                        $cart->order_number = $order->order_number ?? null;
+                        $cart->session_id = null;
+                        $cart->customer_id = null;
+                        $cart->save();
 
                         Log::info('Cart and cart item deleted successfully. ');
                     }
                 }else{
-                    $this->buyNowModel->where('session_id', $buyNowProduct['session_id'])->delete();
+                    $buyNowCartRec = $this->buyNowModel->where('session_id', $buyNowProduct['session_id'])->first();
+                    if($buyNowCartRec){
+                        $buyNowCartRec->order_number = $order->order_number ?? null;
+                        $buyNowCartRec->session_id = null;
+                        $buyNowCartRec->customer_id = null;
+                        $buyNowCartRec->save();
+                    }
                     Log::info('Buy now deleted successfully. ');
                 }
 
@@ -274,12 +283,23 @@ class OrderController extends Controller
                     if(!isset($buyNowProduct) && empty($buyNowProduct)){
                         $cart = $this->cartModel->find($cart['id'] ?? null);
                         if ($cart) {
-                            $cart->items()->delete();
-                            $cart->delete();
+                            // $cart->items()->delete();
+                            $cart->order_number = $order->order_number ?? null;
+                            $cart->session_id = null;
+                            $cart->customer_id = null;
+                            $cart->save();
+
                             Log::info('Cart and cart items deleted successfully.');
                         }
                     }else{
-                        $this->buyNowModel->where('session_id', $buyNowProduct['session_id'])->delete();
+                        $buyNowCart = $this->buyNowModel->where('session_id', $buyNowProduct['session_id'])->first();
+                        
+                        if(!empty($buyNowCart)){
+                            $buyNowCart->order_number = $order->order_number ?? null;
+                            $buyNowCart->session_id = null;
+                            $buyNowCart->customer_id = null;
+                            $buyNowCart->save();
+                        }
                         Log::info('Buy now deleted successfully. ');
                     }
 

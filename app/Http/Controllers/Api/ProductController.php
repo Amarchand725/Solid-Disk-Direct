@@ -258,7 +258,7 @@ class ProductController extends Controller
         $sortDirection = $request->get('sort_direction', 'desc');
 
         $keyword = trim($request->input('keyword'));
-        $query = $this->model->query();
+        $query = $this->model->with('hasBrand', 'hasProductCondition');
 
         // Basic keyword search
         $query->where(function ($q) use ($keyword) {
@@ -297,7 +297,7 @@ class ProductController extends Controller
 
     public function search2(Request $request)
     {
-        if (!$request->filled('keyword')) {
+        if (!$request->filled('search')) {
             return response()->json([
                 'status' => false,
                 'message' => 'Please provide a search keyword.',
@@ -309,8 +309,8 @@ class ProductController extends Controller
         $sortField = $request->get('sort_field', 'created_at');
         $sortDirection = $request->get('sort_direction', 'desc');
         
-        $keyword = trim($request->input('keyword'));
-        $query = $this->model->query();
+        $keyword = trim($request->input('search'));
+        $query = $this->model->with('hasBrand', 'hasProductCondition');
 
         // Basic keyword search
         $query->where(function ($q) use ($keyword) {
@@ -361,7 +361,8 @@ class ProductController extends Controller
         $keyword = trim($attributeSlug);
         $tokens = array_filter(preg_split('/[^a-zA-Z0-9]+/', $keyword));
 
-        $query = $this->model->query();
+        // $query = $this->model->query();
+        $query = $this->model->with('hasBrand', 'hasProductCondition');
 
         $query->where(function ($q) use ($tokens) {
             foreach ($tokens as $token) {

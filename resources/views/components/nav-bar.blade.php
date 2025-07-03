@@ -121,7 +121,7 @@
           </li>
           <li>
             <div class="dropdown-divider"></div>
-          </li>
+          </li> 
           @can('setting-create')
               <li>
                   <a class="dropdown-item" href="{{ route('settings.create') }}">
@@ -129,10 +129,11 @@
                       <span class="align-middle">Settings</span>
                   </a>
               </li>
+              <li>
+                <div class="dropdown-divider"></div>
+              </li>
           @endcan
-          <li>
-            <div class="dropdown-divider"></div>
-          </li>
+          
           <li>
               <a class="dropdown-item" href="{{ route('user.logout') }}">
                   <i class="ti ti-logout me-2 ti-sm"></i>

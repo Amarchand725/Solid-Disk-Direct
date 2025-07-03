@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\{
 use App\Http\Controllers\Admin\{
     AdminController,
     AttributeController,
-    AttributeValueController,
     AttributeGroupController,
+    AttributeValueController,
     BannerController,
     BlogController,
     BrandController,
@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\{
     FlashDealController,
     MenuController,
     MenuFieldController,
+    OrderController,
     PaymentMethodController,
     PaymentModeController,
     PaymentTypeController,
@@ -28,6 +29,7 @@ use App\Http\Controllers\Admin\{
     PolicyController,
     ProductConditionController,
     ProductController,
+    PurchaseOrderController,
     QuestionAnswerController,
     QuoteRequestController,
     RecentViewProductController,
@@ -41,8 +43,8 @@ use App\Http\Controllers\Admin\{
     TestimonialController,
     UnitController,
     UserController,
-    WishlistController,
-    OrderController
+    VendorController,
+    WishlistController
 };
 use App\Http\Controllers\DeveloperController;
 
@@ -73,6 +75,7 @@ Route::controller(DeveloperController::class)->group(function () {
     Route::get('/updateThumbnail', 'updateThumbnail');
     Route::get('/countImageExtensions', 'countImageExtensions');
     Route::get('/fixDuplicateSlugs', 'fixDuplicateSlugs');
+    Route::get('/getProductsMpn', 'getProductsMpn');
 });
 
 //developer
@@ -266,9 +269,20 @@ Route::controller(AdminController::class)->group(function () {
     Route::prefix('orders')->controller(OrderController::class)->group(function () {
         Route::get('trashed', 'trashed')->name('orders.trashed');
         Route::get('restore/{id}', 'restore')->name('orders.restore');
+        Route::get('orders/getOrder/{orderNumber}', 'getOrder')->name('orders.getOrder');
         Route::get('orders/invoice/{order}', 'invoice')->name('orders.invoice');
         Route::get('download/invoice/{orderId}', 'downloadInvoice')->name('download.invoice');
         Route::get('changeStatus', 'changeStatus')->name('orders.changeStatus');
+    });
+
+    Route::prefix('vendors')->controller(VendorController::class)->group(function () {
+        Route::get('trashed', 'trashed')->name('vendors.trashed');
+        Route::get('restore/{id}', 'restore')->name('vendors.restore');
+    });
+    Route::prefix('purchase_orders')->controller(PurchaseOrderController::class)->group(function () {
+        Route::get('trashed', 'trashed')->name('purchase_orders.trashed');
+        Route::get('restore/{id}', 'restore')->name('purchase_orders.restore');
+        Route::get('download/purchaseOrder/invoice/{orderId}', 'downloadPOInvoice')->name('download.purchaseOrder.invoice');
     });
 
     //Resource Routes.
@@ -309,4 +323,6 @@ Route::controller(AdminController::class)->group(function () {
     Route::resource('attribute_groups', AttributeGroupController::class);
     Route::resource('attribute_values', AttributeValueController::class);
     Route::resource('orders', OrderController::class);
+    Route::resource('vendors', VendorController::class);
+    Route::resource('purchase_orders', PurchaseOrderController::class);
 });

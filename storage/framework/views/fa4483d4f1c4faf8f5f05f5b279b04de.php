@@ -130,9 +130,35 @@
             </ul>
         </li>
       <?php endif; ?>
+      <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->any(['purchase_orders-list'])): ?>
+        <li class="menu-header small text-uppercase">
+          <span class="menu-header-text">Purchase Orders</span>
+        </li>
+        <li class="menu-item
+            <?php echo e(request()->is('purchase_orders')
+                ?'open active':''); ?>
+
+        ">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+              <i class="menu-icon tf-icons ti ti-file"></i>
+              <div data-i18n="Purchase Orders">Purchase Orders</div>
+            </a>
+            <ul class="menu-sub">
+                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('purchase_orders-list')): ?>
+                <li class="menu-item <?php echo e(request()->is('purchase_orders') ?'active':''); ?>">
+                  <a href="<?php echo e(route('purchase_orders.index')); ?>" class="menu-link"  >  
+                      <div>All Purchase Orders</div>
+                  </a>
+                </li>
+                <?php endif; ?>
+            </ul>
+        </li>
+      <?php endif; ?>
 
       <?php 
         $menuGroups = getDynamicMenuGroups();
+
+        
       ?> 
 
       <li class="menu-header small text-uppercase">
@@ -141,10 +167,16 @@
       <?php $__currentLoopData = $menuGroups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $menuGroup): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>  
         <?php
           $menus = $menuGroup['has_child_menus'];
+          // Build an array of permissions, e.g., ['categories-list', 'brands-list']
+          $permissions = array_map(function ($menu) {
+              $pluralMenu = str_replace('-', '_', Str::kebab(Str::plural($menu)));
+              return $pluralMenu . '-list';
+          }, $menus);
         ?>
 
         <!-- Top-level menu item to group all dynamic menus -->
         <?php if(isset($menus) && !empty($menus)): ?>
+          <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->any($permissions)): ?>
           <li class="menu-item
               <?php echo e(in_array(request()->path(), array_map(fn($menu) => str_replace('-', '_', Str::kebab(Str::plural($menu))), $menus)) ? 'open active' : ''); ?>
 
@@ -172,6 +204,7 @@
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
               </ul>
           </li>
+          <?php endif; ?>
         <?php endif; ?>
       <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </ul>

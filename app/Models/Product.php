@@ -19,16 +19,11 @@ class Product extends Model
     {
         parent::boot();
 
-        // static::creating(function ($model) {
-        //     $model->slug = Str::slug($model->title);
-        // });
-
         static::creating(function ($model) {
             $slug = Str::slug($model->title);
             $originalSlug = $slug;
             $count = 1;
 
-            // Check if slug exists in the `products` table
             while (DB::table('products')->where('slug', $slug)->exists()) {
                 $slug = $originalSlug . '-' . $count++;
             }
@@ -37,9 +32,23 @@ class Product extends Model
         });
 
         static::updating(function ($model) {
-            $model->slug = Str::slug($model->title);
+            $slug = Str::slug($model->title);
+            $originalSlug = $slug;
+            $count = 1;
+
+            while (
+                DB::table('products')
+                    ->where('slug', $slug)
+                    ->where('id', '<>', $model->id)
+                    ->exists()
+            ) {
+                $slug = $originalSlug . '-' . $count++;
+            }
+
+            $model->slug = $slug;
         });
     }
+
 
     public function pivotCategories()
     {

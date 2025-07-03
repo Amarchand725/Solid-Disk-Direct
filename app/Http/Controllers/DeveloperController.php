@@ -1004,7 +1004,7 @@ class DeveloperController extends Controller
         ]);
     }
 
-    public function fixDuplicateSlugs($offset = 0, $limit = 1000)
+    public function fixDuplicateSlugs($offset = 0, $limit = 50)
     {
         // Step 1: Get all duplicate slugs
         $duplicateSlugs = DB::table('products')
@@ -1020,6 +1020,7 @@ class DeveloperController extends Controller
             ->orderBy('id')
             ->offset($offset)
             ->limit($limit)
+            ->select('id', 'title', 'slug')
             ->get();
     
         $updated = 0;
@@ -1033,9 +1034,10 @@ class DeveloperController extends Controller
                 
                 Product::where('id', $product->id)->update([
                     'slug' => $newSlug,
-                    // 'short_description' => $product->title
                 ]);
                 
+                // $product->refresh();
+                // return $product;
                 $updated++;
                 
                 $updatedProducts[] = $product;
@@ -1061,5 +1063,97 @@ class DeveloperController extends Controller
         }
     
         return $slug;
+    }
+
+    public function getProductsMpn(){
+      // $offset = 4973; //my system 
+      // $limit = 5000;
+
+      // $offset = 9973; //bilal system
+      // $limit = 5000;
+      
+      // $offset = 14973; //hamza system
+      // $limit = 5000;
+
+      // $offset = 19973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 22973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 25973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 28973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 31973; //hamza system
+      // $limit = 3000;
+
+      // $offset = 34973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 37973; //hamza system
+      // $limit = 3000;
+
+      // $offset = 40973; //hamza system
+      // $limit = 2000;
+      
+      // $offset = 42973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 45973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 48973; //hamza system
+      // $limit = 3000;
+
+      // $offset = 51973; //hamza system
+      // $limit = 2000;
+      
+      // $offset = 53973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 56973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 59973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 62973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 65973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 68973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 71973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 74973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 77973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 80973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 83973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 86973; //hamza system
+      // $limit = 3000;
+      
+      // $offset = 89973; //hamza system
+      // $limit = 3000;
+      
+      $offset = 92973; //hamza system
+      $limit = 3000;
+
+      $moreMpns = Product::offset($offset)->limit($limit)->pluck('mpn')->toArray();
+      return $moreMpns;
     }
 }

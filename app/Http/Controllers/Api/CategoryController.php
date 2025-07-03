@@ -298,18 +298,26 @@ class CategoryController extends Controller
     public function productsByCategory(Request $request, $categorySlug)
     {
         $perPage = $request->get('per_page', 10);
-        $sortField = $request->get('sort_field', 'created_at');
+        // $sortField = $request->get('sort_field', 'created_at');
         $sortDirection = $request->get('sort_direction', 'desc');
         $search = $request->get('search');
-        
+
         $category = $this->model->with('children')->where('slug', $categorySlug)->first();
-        $categoryIds = [];
-        if (isset($category->children) && !empty($category->children) && $category->children->count() > 0) {
-            // Get child category IDs
-            $categoryIds = $category->children->pluck('id')->toArray();
-        } else {
-            // Fallback to current category ID
-            $categoryIds = [$category->id];
+        // $categoryIds = [];
+        // if (isset($category->children) && !empty($category->children) && $category->children->count() > 0) {
+        //     // Get child category IDs
+        //     $categoryIds = $category->children->pluck('id')->toArray();
+        // } else {
+        //     // Fallback to current category ID
+        //     $categoryIds = [$category->id];
+        // }
+        $categoryIds = [$category->id];
+
+        if (!empty($category->children) && $category->children->count() > 0) {
+            $categoryIds = array_merge(
+                $categoryIds,
+                $category->children->pluck('id')->toArray()
+            );
         }
 
         if (!empty($categoryIds)) {
@@ -322,7 +330,16 @@ class CategoryController extends Controller
                 $query->where('name', 'like', "%$search%");
             }
 
-            $products = $query->orderBy($sortField, $sortDirection)->paginate($perPage);
+            $products = $query->paginate($perPage);
+            $productsCollection = $products->getCollection();
+
+            $productsCollection = $productsCollection->sortByDesc(function ($product) {
+                $thumbnail = ltrim($product->thumbnail, '/');
+                $path = public_path($thumbnail);
+                return !empty($product->thumbnail) && file_exists($path);
+            });
+
+            $products->setCollection($productsCollection->values());
 
             return response()->json([
                 'status' => true,

@@ -122,7 +122,7 @@
           </li>
           <li>
             <div class="dropdown-divider"></div>
-          </li>
+          </li> 
           <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('setting-create')): ?>
               <li>
                   <a class="dropdown-item" href="<?php echo e(route('settings.create')); ?>">
@@ -130,10 +130,11 @@
                       <span class="align-middle">Settings</span>
                   </a>
               </li>
+              <li>
+                <div class="dropdown-divider"></div>
+              </li>
           <?php endif; ?>
-          <li>
-            <div class="dropdown-divider"></div>
-          </li>
+          
           <li>
               <a class="dropdown-item" href="<?php echo e(route('user.logout')); ?>">
                   <i class="ti ti-logout me-2 ti-sm"></i>

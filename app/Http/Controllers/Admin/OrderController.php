@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use Exception;
 use Carbon\Carbon;
 use App\Models\Order;
+use App\Models\Vendor;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Traits\DataTableTrait;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use App\Mail\OrderDeliveredReviewMail;
+use Illuminate\Support\Facades\Validator;
 
 class OrderController extends Controller
 {
@@ -163,13 +165,27 @@ class OrderController extends Controller
     }
 
     public function update(Request $request, $modelId)
-    {
-        $request->validate([
+    {   
+        $validator = Validator::make($request->all(), [
             'order_status' => 'required|string',
-            'tracking_number' => 'required|string',
-            'shipping_method' => 'required_without:custom_shipping_method|string|nullable',
-            'custom_shipping_method' => 'required_without:shipping_method|string|nullable',
+            'tracking_number' => 'string|nullable',
+            'shipping_method' => 'string|nullable',
+            'custom_shipping_method' => 'string|nullable',
         ]);
+
+        if (!in_array($request->order_status, ['cancelled', 'returned'])) {
+            $validator->after(function ($validator) use ($request) {
+                if (empty($request->tracking_number)) {
+                    $validator->errors()->add('tracking_number', 'Tracking number is required.');
+                }
+
+                if (empty($request->shipping_method) && empty($request->custom_shipping_method)) {
+                    $validator->errors()->add('shipping_method', 'Either shipping method or custom shipping method is required.');
+                }
+            });
+        }
+
+        $validator->validate();
 
         $model = $this->model->where('id', $modelId)->first();
         $singularLabel = $this->singularLabel;
@@ -319,5 +335,16 @@ class OrderController extends Controller
                 ->setPaper('a4');
 
         return $pdf->download('invoice_'.$order->order_number.'.pdf');
+    }
+
+    public function getOrder($orderNumber){
+        $vendors = Vendor::where('status', 1)->get();
+        $order = Order::where('order_number', $orderNumber )->first();
+        $customerName = null;
+        if(isset($order->shipping) && !empty($order->shipping)){
+            $customerName = $order->shipping->first_name.' '.$order->shipping->last_name;
+        }
+        
+        return (string) view('admin.orders.get_order_content', get_defined_vars());
     }
 }

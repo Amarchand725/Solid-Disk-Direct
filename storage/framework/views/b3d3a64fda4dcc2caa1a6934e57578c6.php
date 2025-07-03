@@ -19,30 +19,16 @@
             </a>
         <?php endif; ?>
 
-        
-        <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check($routeInitialize.'-status')): ?>
+        <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check($routeInitialize.'-edit')): ?>
             <button
-                data-toggle="tooltip" data-placement="top" title="Change <?php echo e($singularLabel); ?> Status"
+                data-toggle="tooltip" data-placement="top" title="Edit <?php echo e($singularLabel); ?>"
                 data-edit-url="<?php echo e(route($routeInitialize.'.edit', $model->id)); ?>"
                 data-url="<?php echo e(route($routeInitialize.'.update', $model->id)); ?>"
                 class="dropdown-item edit-btn"
                 tabindex="0" aria-controls="DataTables_Table_0"
                 type="button" data-bs-toggle="modal"
-                data-bs-target="#create-pop-up-modal">
-                <i class="ti ti-arrows-exchange me-1"></i> Change Status
-            </button>
-        <?php endif; ?>
-
-        <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('purchase_orders-create')): ?>
-            <button
-                data-toggle="tooltip" data-placement="top" title="Create Purchase Order"
-                data-create-url="<?php echo e(route('orders.getOrder', $model->order_number)); ?>"
-                data-url="<?php echo e(route('purchase_orders.store')); ?>"
-                class="dropdown-item purchase-order-btn"
-                tabindex="0" aria-controls="DataTables_Table_0"
-                type="button" data-bs-toggle="modal"
                 data-bs-target="#create-pop-up-modal-large-for-file">
-                <i class="ti ti-file-check"></i> Purchase Order
+                <i class="ti ti-edit me-1"></i> Edit
             </button>
         <?php endif; ?>
 
@@ -56,4 +42,4 @@
         <?php endif; ?> 
     </div>
 </div>
-<?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/admin/orders/action.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\xampp\htdocs\Solid-Disk-Direct\Solid-Disk-Direct\resources\views/admin/purchase_orders/action.blade.php ENDPATH**/ ?>
