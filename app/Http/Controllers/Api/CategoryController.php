@@ -163,6 +163,7 @@ class CategoryController extends Controller
     //         ]);
     //     }
     // }
+
     public function show($slug){
         $model = $this->model->where('slug', $slug)->first();
 
@@ -250,7 +251,6 @@ class CategoryController extends Controller
             ]);
         }
     }
-
     public function productsByCategory(Request $request, $categorySlug)
     {
         $perPage = $request->get('per_page', 10);
